@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,6 +28,7 @@ import {
   Shield,
   Settings,
   Utensils,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,10 +38,11 @@ const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/orders', label: 'Orders', icon: ShoppingCart },
     { href: '/bookings', label: 'Bookings', icon: Calendar },
-    { href: '/segments', label: 'Customers', icon: Users },
+    { href: '/customers', label: 'Customers', icon: Users },
     { href: '/menu', label: 'Menu', icon: BookOpen },
     { href: '/banners', label: 'Banners', icon: ImageIcon },
     { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
+    { href: '/segments', label: 'Segmentation', icon: Sparkles },
     { href: '/reports', label: 'Reports', icon: BarChart },
 ];
 
