@@ -3,30 +3,25 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useFirestore } from '@/firebase/provider';
-import { doc, onSnapshot } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import type { Order, OrderHistory, OrderItem } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { mockOrders } from '@/lib/mock-data';
 
 export default function OrderDetailsPage() {
-    const { firestore } = useFirestore();
     const params = useParams();
     const orderId = params.id as string;
     const [order, setOrder] = useState<Order | null>(null);
 
     useEffect(() => {
-        if (!firestore || !orderId) return;
-        const orderRef = doc(firestore, 'orders', orderId);
-        const unsubscribe = onSnapshot(orderRef, (doc) => {
-            if (doc.exists()) {
-                setOrder({ id: doc.id, ...doc.data() } as Order);
-            } else {
-                console.log("No such document!");
-            }
-        });
-        return () => unsubscribe();
-    }, [firestore, orderId]);
+        if (!orderId) return;
+        const foundOrder = mockOrders.find(o => o.id === orderId);
+        if (foundOrder) {
+            setOrder(foundOrder);
+        } else {
+            console.log("No such document!");
+        }
+    }, [orderId]);
 
     const getStatusBadge = (status: Order['status']) => {
          switch (status) {

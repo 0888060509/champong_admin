@@ -7,26 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { useFirestore } from '@/firebase/provider';
-import { collection, onSnapshot, doc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
 import Link from 'next/link';
+import { mockOrders } from '@/lib/mock-data';
 
 export default function OrdersPage() {
-    const { firestore } = useFirestore();
     const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
-        if (!firestore) return;
-        const ordersRef = collection(firestore, 'orders');
-        const unsubscribe = onSnapshot(ordersRef, (snapshot) => {
-            const newOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-            newOrders.sort((a, b) => b.date.toMillis() - a.date.toMillis());
-            setOrders(newOrders);
-        });
-
-        return () => unsubscribe();
-    }, [firestore]);
+        // In a real app, you might fetch this data, but for now we use mocks
+        const sortedOrders = [...mockOrders].sort((a, b) => b.date.toMillis() - a.date.toMillis());
+        setOrders(sortedOrders);
+    }, []);
 
     const getStatusBadge = (status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
         switch (status) {
@@ -41,21 +33,27 @@ export default function OrdersPage() {
         }
     };
     
-    const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-        if (!firestore) return;
-        const orderRef = doc(firestore, 'orders', orderId);
-        const currentOrder = orders.find(o => o.id === orderId);
-        if (currentOrder) {
-             const historyEntry = {
-                action: `Status changed from ${currentOrder.status} to ${newStatus}`,
-                user: 'admin@example.com', // Replace with actual user
-                timestamp: serverTimestamp(),
-            };
-            await updateDoc(orderRef, { 
-                status: newStatus,
-                history: arrayUnion(historyEntry)
-            });
-        }
+    const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+       setOrders(currentOrders => {
+           const newOrders = [...currentOrders];
+           const orderIndex = newOrders.findIndex(o => o.id === orderId);
+           if (orderIndex > -1) {
+               newOrders[orderIndex] = {
+                   ...newOrders[orderIndex],
+                   status: newStatus,
+                   history: [
+                       ...(newOrders[orderIndex].history || []),
+                       {
+                           id: `hist_${Date.now()}`,
+                           action: `Status changed from ${newOrders[orderIndex].status} to ${newStatus}`,
+                           user: 'admin@example.com', // Replace with actual user
+                           timestamp: new Date(),
+                       }
+                   ]
+               }
+           }
+           return newOrders;
+       })
     };
 
     return (

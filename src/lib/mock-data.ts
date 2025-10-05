@@ -1,4 +1,5 @@
 
+import { Timestamp } from 'firebase/firestore';
 import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign } from './types';
 
 export const mockUsers: User[] = [
@@ -25,7 +26,51 @@ export const mockAuditLogs: AuditLog[] = [
   { id: '3', user: 'admin@example.com', action: 'Update Role', details: 'Permissions updated for Supervisor role', timestamp: '2023-10-26T15:00:00Z' },
 ];
 
-export const mockOrders: Order[] = [];
+export const mockOrders: Order[] = [
+    {
+        id: 'ord_1',
+        customerName: 'John Doe',
+        date: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')),
+        total: 34.98,
+        status: 'Completed',
+        items: [
+            { id: 'item_1', name: 'Classic Burger', quantity: 2, price: 12.99 },
+            { id: 'item_2', name: 'Fries', quantity: 2, price: 4.50 },
+        ],
+        history: [
+            { id: 'hist_1', timestamp: Timestamp.fromDate(new Date('2024-07-29T10:05:00Z')), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
+            { id: 'hist_2', timestamp: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')), user: 'system', action: 'Order created' },
+        ]
+    },
+    {
+        id: 'ord_2',
+        customerName: 'Jane Smith',
+        date: Timestamp.fromDate(new Date('2024-07-29T11:30:00Z')),
+        total: 17.49,
+        status: 'Processing',
+        items: [
+            { id: 'item_3', name: 'Caesar Salad', quantity: 1, price: 8.99 },
+            { id: 'item_4', name: 'Iced Tea', quantity: 1, price: 8.50 },
+        ],
+         history: [
+            { id: 'hist_3', timestamp: Timestamp.fromDate(new Date('2024-07-29T11:30:00Z')), user: 'system', action: 'Order created' },
+        ]
+    },
+    {
+        id: 'ord_3',
+        customerName: 'Peter Jones',
+        date: Timestamp.fromDate(new Date('2024-07-28T18:00:00Z')),
+        total: 7.50,
+        status: 'Cancelled',
+        items: [
+            { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
+        ],
+         history: [
+            { id: 'hist_4', timestamp: Timestamp.fromDate(new Date('2024-07-28T18:05:00Z')), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
+            { id: 'hist_5', timestamp: Timestamp.fromDate(new Date('2024-07-28T18:00:00Z')), user: 'system', action: 'Order created' },
+        ]
+    }
+];
 
 export const mockBookings: Booking[] = [
     { id: 'B001', customerName: 'Emily Clark', bookingDate: '2023-11-15', bookingTime: '19:00', guests: 2, status: 'Confirmed' },
