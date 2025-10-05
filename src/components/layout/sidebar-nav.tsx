@@ -60,11 +60,7 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    // For dashboard, we want an exact match. For others, we check if the path starts with the href.
-    if (href === '/dashboard') return pathname === href;
-    // We need to check for /dashboard prefix for all other routes
-    const fullPath = `/dashboard${href}`;
-    return pathname.startsWith(fullPath);
+    return pathname.startsWith(href);
   };
   
   return (
@@ -85,7 +81,7 @@ export function SidebarNav() {
                     <ul className="flex flex-col gap-1">
                         {menuItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
+                            <Link href={item.href}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -110,7 +106,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {managementItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
+                            <Link href={item.href}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -135,7 +131,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {settingsItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
+                            <Link href={item.href}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
