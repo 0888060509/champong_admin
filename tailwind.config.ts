@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        headline: ['Inter', 'sans-serif'],
-        body: ['PT Sans', 'sans-serif'],
+        headline: ['Roboto', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
         code: ['Source Code Pro', 'monospace'],
       },
       colors: {
