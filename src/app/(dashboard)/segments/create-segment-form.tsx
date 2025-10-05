@@ -117,7 +117,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
                       <Button
                         variant={'outline'}
                         className={cn(
-                          'w-[240px] pl-3 text-left font-normal',
+                          'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground'
                         )}
                       >
@@ -252,54 +252,54 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
               <div key={field.id} className="flex items-start gap-2 p-3 border rounded-md relative">
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
                     <FormField
-                    control={form.control}
-                    name={`conditions.${index}.criteria`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select criteria" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {criteriaOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`conditions.${index}.operator`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select operator" />
-                            </Trigger>
-                          </FormControl>
-                          <SelectContent>
-                            {(operatorOptions[form.watch(`conditions.${index}.criteria`)] || []).map(
-                              (opt) => (
+                      control={form.control}
+                      name={`conditions.${index}.criteria`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select criteria" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {criteriaOptions.map((opt) => (
                                 <SelectItem key={opt.value} value={opt.value}>
                                   {opt.label}
                                 </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {renderValueInput(index)}
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`conditions.${index}.operator`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select operator" />
+                              </Trigger>
+                            </FormControl>
+                            <SelectContent>
+                              {(operatorOptions[form.watch(`conditions.${index}.criteria`)] || []).map(
+                                (opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {renderValueInput(index)}
                  </div>
                 <Button
                   type="button"
