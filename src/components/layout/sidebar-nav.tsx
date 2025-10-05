@@ -9,7 +9,8 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarSeparator
+  SidebarSeparator,
+  SidebarGroupContent
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -33,25 +34,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-    { href: '/dashboard/bookings', label: 'Bookings', icon: Calendar },
-    { href: '/dashboard/segments', label: 'Customers', icon: Users },
-    { href: '/dashboard/menu', label: 'Menu', icon: BookOpen },
-    { href: '/dashboard/banners', label: 'Banners', icon: ImageIcon },
-    { href: '/dashboard/campaigns', label: 'Campaigns', icon: Megaphone },
-    { href: '/dashboard/reports', label: 'Reports', icon: BarChart },
+    { href: '/orders', label: 'Orders', icon: ShoppingCart },
+    { href: '/bookings', label: 'Bookings', icon: Calendar },
+    { href: '/segments', label: 'Customers', icon: Users },
+    { href: '/menu', label: 'Menu', icon: BookOpen },
+    { href: '/banners', label: 'Banners', icon: ImageIcon },
+    { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
+    { href: '/reports', label: 'Reports', icon: BarChart },
 ];
 
 const managementItems = [
-    { href: '/dashboard/branches', label: 'Branches', icon: Store },
-    { href: '/dashboard/loyalty', label: 'Loyalty', icon: Gem },
-    { href: '/dashboard/roles', label: 'Roles & Permissions', icon: UserCog },
-    { href: '/dashboard/audit-log', label: 'Audit Log', icon: Shield },
+    { href: '/branches', label: 'Branches', icon: Store },
+    { href: '/loyalty', label: 'Loyalty', icon: Gem },
+    { href: '/roles', label: 'Roles & Permissions', icon: UserCog },
+    { href: '/audit-log', label: 'Audit Log', icon: Shield },
 ];
 
 const settingsItems = [
-    { href: '/dashboard/settings/pos', label: 'POS365', icon: Settings },
-    { href: '/dashboard/settings/notifications', label: 'Automations', icon: Settings },
+    { href: '/settings/pos', label: 'POS365', icon: Settings },
+    { href: '/settings/notifications', label: 'Automations', icon: Settings },
 ];
 
 
@@ -59,8 +60,11 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
+    // For dashboard, we want an exact match. For others, we check if the path starts with the href.
     if (href === '/dashboard') return pathname === href;
-    return pathname.startsWith(href);
+    // We need to check for /dashboard prefix for all other routes
+    const fullPath = `/dashboard${href}`;
+    return pathname.startsWith(fullPath);
   };
   
   return (
@@ -81,7 +85,7 @@ export function SidebarNav() {
                     <ul className="flex flex-col gap-1">
                         {menuItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -106,7 +110,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {managementItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -131,7 +135,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {settingsItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard', '')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
