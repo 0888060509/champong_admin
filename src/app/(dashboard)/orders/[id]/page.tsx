@@ -50,12 +50,12 @@ export default function OrderDetailsPage() {
                 <CardContent>
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                            <p><strong>Customer:</strong> {order.customerName}</p>
-                            <p><strong>Date:</strong> {order.date.toDate().toLocaleString()}</p>
+                            <div className="text-sm"><strong>Customer:</strong> {order.customerName}</div>
+                            <div className="text-sm"><strong>Date:</strong> {new Date(order.date).toLocaleString()}</div>
                         </div>
                         <div>
-                            <p><strong>Status:</strong> {getStatusBadge(order.status)}</p>
-                            <p><strong>Total:</strong> ${order.total.toFixed(2)}</p>
+                            <div className="text-sm flex items-center gap-2"><strong>Status:</strong> {getStatusBadge(order.status)}</div>
+                            <div className="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)}</div>
                         </div>
                     </div>
                 </CardContent>
@@ -101,9 +101,9 @@ export default function OrderDetailsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {order.history?.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis()).map((entry: OrderHistory) => (
+                            {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
                                 <TableRow key={entry.id}>
-                                    <TableCell>{entry.timestamp.toDate().toLocaleString()}</TableCell>
+                                    <TableCell>{new Date(entry.timestamp).toLocaleString()}</TableCell>
                                     <TableCell>{entry.user}</TableCell>
                                     <TableCell>{entry.action}</TableCell>
                                 </TableRow>
