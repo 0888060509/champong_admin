@@ -28,9 +28,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import React from 'react';
 
 const conditionSchema = z.object({
+  id: z.string().optional(),
   type: z.literal('condition'),
   criteria: z.enum(['totalSpend', 'lastVisit', 'orderFrequency', 'membershipLevel']),
   operator: z.enum(['gte', 'lte', 'eq', 'neq', 'before', 'after']),
@@ -39,6 +40,7 @@ const conditionSchema = z.object({
 
 const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
   z.object({
+    id: z.string().optional(),
     type: z.literal('group'),
     logic: z.enum(['AND', 'OR']),
     conditions: z.array(z.union([conditionSchema, conditionGroupSchema])),
@@ -147,7 +149,7 @@ const renderValueInput = (path: string, index: number) => {
                     type="number"
                     placeholder="Value"
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -245,12 +247,41 @@ function ConditionRow({ path, index, onRemove }: { path: string; index: number; 
         variant="ghost"
         size="icon"
         onClick={onRemove}
-        className="shrink-0 mt-1"
+        className="shrink-0 mt-1 text-muted-foreground hover:text-destructive"
       >
-        <Trash2 className="h-4 w-4 text-destructive" />
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
+}
+
+function LogicSelector({ path }: { path: string }) {
+    const { control, getValues, setValue } = useFormContext();
+    const value = getValues(path);
+
+    return (
+        <div className="flex items-center my-2">
+            <div className="h-px bg-border flex-1" />
+            <FormField
+                control={control}
+                name={path}
+                render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger className="w-auto mx-2 border-dashed">
+                                <SelectValue />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="AND">AND</SelectItem>
+                            <SelectItem value="OR">OR</SelectItem>
+                        </SelectContent>
+                    </Select>
+                )}
+            />
+            <div className="h-px bg-border flex-1" />
+        </div>
+    );
 }
 
 function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?: () => void }) {
@@ -260,50 +291,41 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
     name: `${path}.conditions`
   });
   
-  const addCondition = () => append({ type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 });
-  const addGroup = () => append({ type: 'group', logic: 'AND', conditions: [] });
+  const addCondition = () => append({ id: crypto.randomUUID(), type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 });
+  const addGroup = () => append({ id: crypto.randomUUID(), type: 'group', logic: 'AND', conditions: [] });
 
   const conditions = watch(`${path}.conditions`);
 
   return (
-    <div className="p-4 border rounded-lg space-y-4">
+    <div className="p-4 border rounded-lg bg-card space-y-4">
       <div className="flex items-center justify-between gap-4">
-          <FormField
-            control={control}
-            name={`${path}.logic`}
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex items-center"
-                  >
-                    <FormLabel className="text-sm mr-2">Logic</FormLabel>
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="AND" />
-                      </FormControl>
-                      <FormLabel className="font-normal">AND</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="OR" />
-                      </FormControl>
-                      <FormLabel className="font-normal">OR</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        <div className='flex gap-2'>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addCondition}
+                >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Condition
+            </Button>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addGroup}
+                >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Group
+            </Button>
+        </div>
           {onRemoveGroup && (
               <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={onRemoveGroup}
-                  className="text-destructive"
+                  className="text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4"/>
                   <span className="sr-only">Remove Group</span>
@@ -311,37 +333,25 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
           )}
       </div>
 
-      <div className="space-y-4 pl-6 border-l-2">
-        {fields.map((field, index) => {
-          const condition = conditions[index];
-          if (condition.type === 'group') {
-            return <ConditionGroup key={field.id} path={`${path}.conditions.${index}`} onRemoveGroup={() => remove(index)} />;
-          }
-          return <ConditionRow key={field.id} path={path} index={index} onRemove={() => remove(index)} />;
-        })}
-      
-        <div className="flex gap-2 pt-2">
-            <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addCondition}
-            >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Condition
-            </Button>
-            <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addGroup}
-            >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Group
-            </Button>
-        </div>
+      <div className="space-y-4">
+        {fields.map((field, index) => (
+            <React.Fragment key={field.id}>
+                {index > 0 && <LogicSelector path={`${path}.logic`} />}
+                {conditions[index].type === 'group' ? (
+                    <ConditionGroup 
+                        path={`${path}.conditions.${index}`} 
+                        onRemoveGroup={() => remove(index)} 
+                    />
+                ) : (
+                    <ConditionRow 
+                        path={path} 
+                        index={index} 
+                        onRemove={() => remove(index)} 
+                    />
+                )}
+            </React.Fragment>
+        ))}
       </div>
-
     </div>
   );
 }
@@ -353,10 +363,11 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     defaultValues: {
       name: '',
       root: {
+        id: crypto.randomUUID(),
         type: 'group',
         logic: 'AND',
         conditions: [
-          { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 },
+          { id: crypto.randomUUID(), type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 },
         ],
       },
     },
@@ -400,3 +411,5 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     </Form>
   );
 }
+
+    
