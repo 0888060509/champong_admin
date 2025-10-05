@@ -2,7 +2,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import * as z from 'zod';
 import {
   Form,
@@ -31,24 +31,31 @@ import { CalendarIcon } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const conditionSchema = z.object({
+  type: z.literal('condition'),
   criteria: z.enum(['totalSpend', 'lastVisit', 'orderFrequency', 'membershipLevel']),
   operator: z.enum(['gte', 'lte', 'eq', 'neq', 'before', 'after']),
   value: z.union([z.string().min(1), z.number().min(0), z.date()]),
 });
 
+const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
+  z.object({
+    type: z.literal('group'),
+    logic: z.enum(['AND', 'OR']),
+    conditions: z.array(z.union([conditionSchema, conditionGroupSchema])),
+  })
+);
+
 const segmentFormSchema = z.object({
   name: z.string().min(2, {
     message: 'Segment name must be at least 2 characters.',
   }),
-  logic: z.enum(['AND', 'OR'], {
-    required_error: "You need to select a logic type."
-  }),
-  conditions: z.array(conditionSchema).min(1, {
-    message: 'At least one condition is required.',
-  }),
+  root: conditionGroupSchema,
 });
 
+
 type SegmentFormValues = z.infer<typeof segmentFormSchema>;
+type Condition = z.infer<typeof conditionSchema>;
+type ConditionGroup = z.infer<typeof conditionGroupSchema>;
 
 const criteriaOptions = [
   { value: 'totalSpend', label: 'Total Spend' },
@@ -57,7 +64,7 @@ const criteriaOptions = [
   { value: 'membershipLevel', label: 'Membership Level' },
 ];
 
-const operatorOptions = {
+const operatorOptions: Record<Condition['criteria'], { value: string; label: string }[]> = {
   totalSpend: [
     { value: 'gte', label: 'is greater than or equal to' },
     { value: 'lte', label: 'is less than or equal to' },
@@ -83,33 +90,15 @@ interface CreateSegmentFormProps {
   isSaving: boolean;
 }
 
-export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentFormProps) {
-  const form = useForm<SegmentFormValues>({
-    resolver: zodResolver(segmentFormSchema),
-    defaultValues: {
-      name: '',
-      logic: 'AND',
-      conditions: [{ criteria: 'totalSpend', operator: 'gte', value: 100 }],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'conditions',
-  });
-
-  function onSubmit(data: SegmentFormValues) {
-    onSave(data);
-  }
-
-  const renderValueInput = (index: number) => {
-    const criteria = form.watch(`conditions.${index}.criteria`);
+const renderValueInput = (path: string, index: number) => {
+    const form = useFormContext();
+    const criteria = form.watch(`${path}.conditions.${index}.criteria`);
     switch (criteria) {
       case 'lastVisit':
         return (
           <FormField
             control={form.control}
-            name={`conditions.${index}.value`}
+            name={`${path}.conditions.${index}.value`}
             render={({ field }) => (
               <FormItem>
                 <Popover>
@@ -150,7 +139,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
         return (
           <FormField
             control={form.control}
-            name={`conditions.${index}.value`}
+            name={`${path}.conditions.${index}.value`}
             render={({ field }) => (
               <FormItem>
                 <FormControl>
@@ -170,7 +159,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
          return (
             <FormField
                 control={form.control}
-                name={`conditions.${index}.value`}
+                name={`${path}.conditions.${index}.value`}
                 render={({ field }) => (
                 <FormItem>
                     <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
@@ -195,32 +184,95 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     }
   };
 
+function ConditionRow({ path, index, onRemove }: { path: string; index: number; onRemove: () => void }) {
+  const { control, watch } = useFormContext();
+  const criteria = watch(`${path}.conditions.${index}.criteria`);
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="flex items-start gap-2 p-3 border rounded-md relative bg-background">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
         <FormField
-          control={form.control}
-          name="name"
+          control={control}
+          name={`${path}.conditions.${index}.criteria`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Segment Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., High Value Customers" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select criteria" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {criteriaOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        
         <FormField
-          control={form.control}
-          name="logic"
+          control={control}
+          name={`${path}.conditions.${index}.operator`}
           render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Match Logic</FormLabel>
-              <FormDescription>
-                Combine conditions using AND (all must match) or OR (any can match).
-              </FormDescription>
+            <FormItem>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select operator" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {(operatorOptions[criteria] || []).map(
+                    (opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {renderValueInput(path, index)}
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onRemove}
+        className="shrink-0"
+      >
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
+}
+
+function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?: () => void }) {
+  const { control, watch } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `${path}.conditions`
+  });
+  
+  const addCondition = () => append({ type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 });
+  const addGroup = () => append({ type: 'group', logic: 'AND', conditions: [] });
+
+  const conditions = watch(`${path}.conditions`);
+
+  return (
+    <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
+      <div className="flex items-center justify-between">
+        <FormField
+          control={control}
+          name={`${path}.logic`}
+          render={({ field }) => (
+            <FormItem>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -241,92 +293,100 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
                   </FormItem>
                 </RadioGroup>
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
+        {onRemoveGroup && (
+             <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onRemoveGroup}
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4"/> Remove Group
+            </Button>
+        )}
+      </div>
 
-        <div>
-          <FormLabel>Conditions</FormLabel>
-          <div className="space-y-4 mt-2">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-2 p-3 border rounded-md relative">
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
-                    <FormField
-                      control={form.control}
-                      name={`conditions.${index}.criteria`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select criteria" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {criteriaOptions.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`conditions.${index}.operator`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select operator" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {(operatorOptions[form.watch(`conditions.${index}.criteria`)] || []).map(
-                                (opt) => (
-                                  <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {renderValueInput(index)}
-                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length <= 1}
-                  className="shrink-0"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="space-y-4">
+        {fields.map((field, index) => {
+          const condition = conditions[index];
+          if (condition.type === 'group') {
+            return <ConditionGroup key={field.id} path={`${path}.conditions.${index}`} onRemoveGroup={() => remove(index)} />;
+          }
+          return <ConditionRow key={field.id} path={path} index={index} onRemove={() => remove(index)} />;
+        })}
+      </div>
 
+      <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ criteria: 'totalSpend', operator: 'gte', value: '' })}
+          onClick={addCondition}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Condition
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addGroup}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Group
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
+export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentFormProps) {
+  const form = useForm<SegmentFormValues>({
+    resolver: zodResolver(segmentFormSchema),
+    defaultValues: {
+      name: '',
+      root: {
+        type: 'group',
+        logic: 'AND',
+        conditions: [
+          { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 },
+        ],
+      },
+    },
+  });
+
+  function onSubmit(data: SegmentFormValues) {
+    onSave(data);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Segment Name</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., High Value Customers" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
+        <div>
+          <FormLabel>Conditions</FormLabel>
+          <div className="mt-2">
+            <ConditionGroup path="root" />
+          </div>
+        </div>
+
         <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>Cancel</Button>
             <Button type="submit" disabled={isSaving}>
@@ -337,5 +397,3 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     </Form>
   );
 }
-
-    
