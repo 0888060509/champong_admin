@@ -188,7 +188,7 @@ function ConditionRow({ path, index, onRemove }: { path: string; index: number; 
   const { control, watch } = useFormContext();
   const criteria = watch(`${path}.conditions.${index}.criteria`);
   return (
-    <div className="flex items-start gap-2 p-3 border rounded-md relative bg-background">
+    <div className="flex items-start gap-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
         <FormField
           control={control}
@@ -245,7 +245,7 @@ function ConditionRow({ path, index, onRemove }: { path: string; index: number; 
         variant="ghost"
         size="icon"
         onClick={onRemove}
-        className="shrink-0"
+        className="shrink-0 mt-1"
       >
         <Trash2 className="h-4 w-4 text-destructive" />
       </Button>
@@ -266,50 +266,52 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
   const conditions = watch(`${path}.conditions`);
 
   return (
-    <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
-      <div className="flex items-center justify-between">
-        <FormField
-          control={control}
-          name={`${path}.logic`}
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex space-x-4"
+    <div className="p-4 border rounded-lg space-y-4">
+      <div className="flex items-center justify-between gap-4">
+          <FormField
+            control={control}
+            name={`${path}.logic`}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex items-center"
+                  >
+                    <FormLabel className="text-sm mr-2">Logic</FormLabel>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="AND" />
+                      </FormControl>
+                      <FormLabel className="font-normal">AND</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="OR" />
+                      </FormControl>
+                      <FormLabel className="font-normal">OR</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          {onRemoveGroup && (
+              <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={onRemoveGroup}
+                  className="text-destructive"
                 >
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="AND" />
-                    </FormControl>
-                    <FormLabel className="font-normal">AND</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="OR" />
-                    </FormControl>
-                    <FormLabel className="font-normal">OR</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
+                  <Trash2 className="h-4 w-4"/>
+                  <span className="sr-only">Remove Group</span>
+              </Button>
           )}
-        />
-        {onRemoveGroup && (
-             <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onRemoveGroup}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4"/> Remove Group
-            </Button>
-        )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pl-6 border-l-2">
         {fields.map((field, index) => {
           const condition = conditions[index];
           if (condition.type === 'group') {
@@ -317,28 +319,29 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
           }
           return <ConditionRow key={field.id} path={path} index={index} onRemove={() => remove(index)} />;
         })}
+      
+        <div className="flex gap-2 pt-2">
+            <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addCondition}
+            >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Condition
+            </Button>
+            <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addGroup}
+            >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Group
+            </Button>
+        </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addCondition}
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Condition
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addGroup}
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Group
-        </Button>
-      </div>
     </div>
   );
 }
