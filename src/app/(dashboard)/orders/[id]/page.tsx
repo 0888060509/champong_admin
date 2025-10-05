@@ -16,7 +16,7 @@ export default function OrderDetailsPage() {
     const [order, setOrder] = useState<Order | null>(null);
 
     useEffect(() => {
-        if (!orderId) return;
+        if (!firestore || !orderId) return;
         const orderRef = doc(firestore, 'orders', orderId);
         const unsubscribe = onSnapshot(orderRef, (doc) => {
             if (doc.exists()) {

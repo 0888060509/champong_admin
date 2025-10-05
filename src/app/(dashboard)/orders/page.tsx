@@ -17,6 +17,7 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
+        if (!firestore) return;
         const ordersRef = collection(firestore, 'orders');
         const unsubscribe = onSnapshot(ordersRef, (snapshot) => {
             const newOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
@@ -41,6 +42,7 @@ export default function OrdersPage() {
     };
     
     const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+        if (!firestore) return;
         const orderRef = doc(firestore, 'orders', orderId);
         const currentOrder = orders.find(o => o.id === orderId);
         if (currentOrder) {
