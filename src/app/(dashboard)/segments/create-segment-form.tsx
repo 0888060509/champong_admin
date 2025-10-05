@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -110,7 +111,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
             control={form.control}
             name={`conditions.${index}.value`}
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -283,7 +284,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select operator" />
-                              </Trigger>
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {(operatorOptions[form.watch(`conditions.${index}.criteria`)] || []).map(
@@ -336,3 +337,5 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     </Form>
   );
 }
+
+    
