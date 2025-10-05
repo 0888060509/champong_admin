@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   name: string;
@@ -28,12 +29,28 @@ export type AuditLog = {
   timestamp: string;
 };
 
+export type OrderItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+};
+
+export type OrderHistory = {
+  id: string;
+  timestamp: any;
+  user: string;
+  action: string;
+}
+
 export type Order = {
   id: string;
   customerName: string;
-  date: string;
+  date: any;
   total: number;
-  status: 'Completed' | 'Processing' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
+  items: OrderItem[];
+  history?: OrderHistory[];
 };
 
 export type Booking = {

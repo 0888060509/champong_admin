@@ -1,3 +1,4 @@
+
 import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign } from './types';
 
 export const mockUsers: User[] = [
@@ -24,12 +25,7 @@ export const mockAuditLogs: AuditLog[] = [
   { id: '3', user: 'admin@example.com', action: 'Update Role', details: 'Permissions updated for Supervisor role', timestamp: '2023-10-26T15:00:00Z' },
 ];
 
-export const mockOrders: Order[] = [
-  { id: '#1234', customerName: 'John Doe', date: '2023-10-27', total: 45.50, status: 'Completed' },
-  { id: '#1235', customerName: 'Jane Smith', date: '2023-10-27', total: 22.00, status: 'Processing' },
-  { id: '#1236', customerName: 'Bob Johnson', date: '2023-10-26', total: 15.75, status: 'Completed' },
-  { id: '#1237', customerName: 'Alice Williams', date: '2023-10-25', total: 89.90, status: 'Cancelled' },
-];
+export const mockOrders: Order[] = [];
 
 export const mockBookings: Booking[] = [
     { id: 'B001', customerName: 'Emily Clark', bookingDate: '2023-11-15', bookingTime: '19:00', guests: 2, status: 'Confirmed' },
