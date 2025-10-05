@@ -1,4 +1,5 @@
 
+
 export type User = {
   id: string;
   name: string;
@@ -87,6 +88,8 @@ export type Banner = {
     isActive: boolean;
     startDate: string;
     endDate: string;
+    linkType: 'url' | 'deeplink';
+    link: string;
 }
 
 export type Campaign = {

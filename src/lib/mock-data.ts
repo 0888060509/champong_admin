@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from 'firebase/firestore';
 import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer } from './types';
 
@@ -92,8 +93,8 @@ export const mockMenuItems: MenuItem[] = [
 ];
 
 export const mockBanners: Banner[] = [
-    { id: 'BNR01', title: 'Happy Hour Special', imageUrl: 'https://picsum.photos/seed/banner1/1080/400', isActive: true, startDate: '2023-10-01', endDate: '2023-10-31' },
-    { id: 'BNR02', title: 'New Winter Menu', imageUrl: 'https://picsum.photos/seed/banner2/1080/400', isActive: false, startDate: '2023-11-01', endDate: '2023-11-30' },
+    { id: 'BNR01', title: 'Happy Hour Special', imageUrl: 'https://picsum.photos/seed/banner1/1080/400', isActive: true, startDate: '2023-10-01', endDate: '2023-10-31', linkType: 'url', link: 'https://example.com/specials' },
+    { id: 'BNR02', title: 'New Winter Menu', imageUrl: 'https://picsum.photos/seed/banner2/1080/400', isActive: false, startDate: '2023-11-01', endDate: '2023-11-30', linkType: 'deeplink', link: 'app://menu/winter' },
 ];
 
 export const mockCampaigns: Campaign[] = [
