@@ -1,7 +1,7 @@
+
 'use client';
 
 import { useState } from 'react';
-import { SegmentationClient } from "./segmentation-client";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import {
 import { CreateSegmentForm } from './create-segment-form';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type Segment = {
   id: string;
@@ -60,46 +61,49 @@ export default function SegmentsPage() {
   }
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-            <SegmentationClient />
-        </div>
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="font-headline">Existing Segments</CardTitle>
-                <CardDescription>Manage your saved customer segments.</CardDescription>
-              </div>
-               <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Create
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[625px]">
-                  <DialogHeader>
-                    <DialogTitle>Create New Segment</DialogTitle>
-                    <DialogDescription>
-                      Define a new customer segment by adding conditions.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <CreateSegmentForm 
-                    onSave={handleSaveSegment} 
-                    onCancel={() => setCreateDialogOpen(false)}
-                    isSaving={isSaving}
-                  />
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-2">
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+            <CardTitle className="font-headline">Customer Segments</CardTitle>
+            <CardDescription>Create and manage your customer segments.</CardDescription>
+            </div>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Create Segment
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                <DialogTitle>Create New Segment</DialogTitle>
+                <DialogDescription>
+                    Define a new customer segment by adding conditions.
+                </DialogDescription>
+                </DialogHeader>
+                <CreateSegmentForm 
+                onSave={handleSaveSegment} 
+                onCancel={() => setCreateDialogOpen(false)}
+                isSaving={isSaving}
+                />
+            </DialogContent>
+            </Dialog>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Segment Name</TableHead>
+                        <TableHead>Customers</TableHead>
+                        <TableHead><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                     {segments.map(segment => (
-                       <li key={segment.id} className="text-sm p-2 rounded-md hover:bg-muted flex justify-between items-center">
-                           <div>
-                                <p className="font-medium">{segment.name}</p>
-                                <p className="text-xs text-muted-foreground">{segment.customers} customers</p>
-                           </div>
-                           <DropdownMenu>
+                    <TableRow key={segment.id}>
+                        <TableCell className="font-medium">{segment.name}</TableCell>
+                        <TableCell>{segment.customers}</TableCell>
+                        <TableCell className="text-right">
+                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                 <Button aria-haspopup="true" size="icon" variant="ghost">
                                     <MoreHorizontal className="h-4 w-4" />
@@ -112,11 +116,12 @@ export default function SegmentsPage() {
                                     <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                       </li>
+                        </TableCell>
+                    </TableRow>
                     ))}
-                </ul>
-            </CardContent>
-        </Card>
-    </div>
+                </TableBody>
+            </Table>
+        </CardContent>
+    </Card>
   );
 }
