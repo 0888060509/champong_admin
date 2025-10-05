@@ -100,3 +100,12 @@ export type Campaign = {
     status: 'Active' | 'Draft' | 'Sent';
     sendDate: string;
 }
+
+export type Tier = {
+    id: string;
+    name: string;
+    description: string;
+    minSpend: number;
+    maxSpend: number | null;
+    benefits: string[];
+};
