@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-avatar-1",
+      "description": "Default user avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NTk2MjQ1ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "banner-1",
+      "description": "Promotional banner for a restaurant",
+      "imageUrl": "https://images.unsplash.com/photo-1666014313959-348bf6f7b0a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmb29kJTIwcHJvbW90aW9ufGVufDB8fHx8MTc1OTY0OTIzNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food promotion"
+    },
+    {
+      "id": "banner-2",
+      "description": "Promotional banner for a new menu",
+      "imageUrl": "https://images.unsplash.com/photo-1557499305-bd68d0ad468d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVzdGF1cmFudCUyMG1lbnV8ZW58MHx8fHwxNzU5NjQ5MjM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "restaurant menu"
+    }
+  ]
 }
