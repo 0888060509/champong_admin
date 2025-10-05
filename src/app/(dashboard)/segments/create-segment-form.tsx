@@ -256,8 +256,7 @@ function ConditionRow({ path, index, onRemove }: { path: string; index: number; 
 }
 
 function LogicSelector({ path }: { path: string }) {
-    const { control, getValues, setValue } = useFormContext();
-    const value = getValues(path);
+    const { control } = useFormContext();
 
     return (
         <div className="flex items-center my-2">
@@ -297,7 +296,7 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
   const conditions = watch(`${path}.conditions`);
 
   return (
-    <div className="p-4 border rounded-lg bg-card space-y-4">
+    <div className="p-4 border rounded-lg space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div className='flex gap-2'>
             <Button
@@ -411,5 +410,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
     </Form>
   );
 }
+
+    
 
     
