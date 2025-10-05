@@ -6,6 +6,7 @@ import * as z from 'zod';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,7 +27,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const conditionSchema = z.object({
   criteria: z.enum(['totalSpend', 'lastVisit', 'orderFrequency', 'membershipLevel']),
@@ -37,6 +38,9 @@ const conditionSchema = z.object({
 const segmentFormSchema = z.object({
   name: z.string().min(2, {
     message: 'Segment name must be at least 2 characters.',
+  }),
+  logic: z.enum(['AND', 'OR'], {
+    required_error: "You need to select a logic type."
   }),
   conditions: z.array(conditionSchema).min(1, {
     message: 'At least one condition is required.',
@@ -79,11 +83,11 @@ interface CreateSegmentFormProps {
 }
 
 export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentFormProps) {
-    const { toast } = useToast();
   const form = useForm<SegmentFormValues>({
     resolver: zodResolver(segmentFormSchema),
     defaultValues: {
       name: '',
+      logic: 'AND',
       conditions: [{ criteria: 'totalSpend', operator: 'gte', value: 100 }],
     },
   });
@@ -206,6 +210,40 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
             </FormItem>
           )}
         />
+        
+        <FormField
+          control={form.control}
+          name="logic"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Match Logic</FormLabel>
+              <FormDescription>
+                Combine conditions using AND (all must match) or OR (any can match).
+              </FormDescription>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="AND" />
+                    </FormControl>
+                    <FormLabel className="font-normal">AND</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="OR" />
+                    </FormControl>
+                    <FormLabel className="font-normal">OR</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div>
           <FormLabel>Conditions</FormLabel>
@@ -245,7 +283,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentF
                            <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select operator" />
-                            </SelectTrigger>
+                            </Trigger>
                           </FormControl>
                           <SelectContent>
                             {(operatorOptions[form.watch(`conditions.${index}.criteria`)] || []).map(
