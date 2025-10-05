@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import type { Tier } from '@/lib/types';
+import type { Tier, StampCardConfig, Reward } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 const initialTiers: Tier[] = [
     {
@@ -36,6 +37,7 @@ const initialTiers: Tier[] = [
         name: 'Gold',
         description: 'Top tier',
         minSpend: 2000,
+        maxSpend: null,
         benefits: ['15% off', 'Free Meal on Birthday', 'Priority Booking']
     }
 ];
@@ -49,20 +51,41 @@ const initialTierState: Tier = {
     benefits: []
 };
 
+const initialRewards: Reward[] = [
+    { id: 'rew-1', title: 'Free Coffee', description: 'Any regular coffee on the menu.', pointsCost: 50 },
+    { id: 'rew-2', title: '$5 Off Voucher', description: 'Get $5 off your next purchase.', pointsCost: 100 },
+];
+
+const initialRewardState: Reward = {
+    id: '',
+    title: '',
+    description: '',
+    pointsCost: 0,
+};
+
 export default function LoyaltyPage() {
+  const [activeTab, setActiveTab] = useState('tiers');
   const [tiers, setTiers] = useState<Tier[]>(initialTiers);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [stampConfig, setStampConfig] = useState<StampCardConfig>({ isEnabled: true, stampsNeeded: 10, reward: 'Free Pastry' });
+  const [rewards, setRewards] = useState<Reward[]>(initialRewards);
+
+  const [isTierDialogOpen, setTierDialogOpen] = useState(false);
   const [editingTier, setEditingTier] = useState<Tier | null>(null);
   const [newBenefit, setNewBenefit] = useState('');
+  
+  const [isRewardDialogOpen, setRewardDialogOpen] = useState(false);
+  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+
   const { toast } = useToast();
 
-  const handleOpenDialog = (tier: Tier | null = null) => {
+  // Tier Management
+  const handleOpenTierDialog = (tier: Tier | null = null) => {
     if (tier) {
         setEditingTier({ ...tier, benefits: [...tier.benefits] });
     } else {
         setEditingTier({ ...initialTierState, id: `tier-${Date.now()}`, benefits: [] });
     }
-    setIsDialogOpen(true);
+    setTierDialogOpen(true);
   };
   
   const handleDeleteTier = (tierId: string) => {
@@ -70,7 +93,7 @@ export default function LoyaltyPage() {
       toast({ title: "Success", description: "Tier deleted successfully." });
   }
 
-  const handleSaveChanges = () => {
+  const handleSaveTier = () => {
     if (!editingTier || !editingTier.name) {
       toast({ title: "Error", description: "Tier name is required.", variant: 'destructive' });
       return;
@@ -84,11 +107,11 @@ export default function LoyaltyPage() {
       toast({ title: "Success", description: "Tier added successfully." });
     }
 
-    setIsDialogOpen(false);
+    setTierDialogOpen(false);
     setEditingTier(null);
   };
 
-  const handleFieldChange = (field: keyof Tier, value: any) => {
+  const handleTierFieldChange = (field: keyof Tier, value: any) => {
     if (editingTier) {
       setEditingTier({ ...editingTier, [field]: value });
     }
@@ -108,10 +131,54 @@ export default function LoyaltyPage() {
         setEditingTier({ ...editingTier, benefits: updatedBenefits });
     }
   };
+  
+  // Stamp Config Management
+  const handleStampConfigChange = (field: keyof StampCardConfig, value: any) => {
+      setStampConfig(prev => ({ ...prev, [field]: value }));
+  }
+
+  const handleSaveStampConfig = () => {
+      toast({ title: 'Success', description: 'Stamp card settings saved.' });
+  }
+
+  // Reward Management
+  const handleOpenRewardDialog = (reward: Reward | null = null) => {
+      setEditingReward(reward ? { ...reward } : { ...initialRewardState, id: `rew-${Date.now()}` });
+      setRewardDialogOpen(true);
+  }
+
+  const handleSaveReward = () => {
+      if (!editingReward || !editingReward.title) {
+          toast({ title: 'Error', description: 'Reward title is required.', variant: 'destructive' });
+          return;
+      }
+      
+      if (rewards.some(r => r.id === editingReward.id)) {
+          setRewards(rewards.map(r => r.id === editingReward.id ? editingReward : r));
+          toast({ title: 'Success', description: 'Reward updated successfully.'});
+      } else {
+          setRewards([...rewards, editingReward]);
+          toast({ title: 'Success', description: 'Reward added successfully.'});
+      }
+      setRewardDialogOpen(false);
+      setEditingReward(null);
+  }
+
+  const handleDeleteReward = (rewardId: string) => {
+      setRewards(rewards.filter(r => r.id !== rewardId));
+      toast({ title: 'Success', description: 'Reward deleted successfully.'});
+  }
+
+  const handleRewardFieldChange = (field: keyof Reward, value: any) => {
+      if (editingReward) {
+          setEditingReward({ ...editingReward, [field]: value });
+      }
+  }
+
 
   return (
     <>
-      <Tabs defaultValue="tiers">
+      <Tabs defaultValue="tiers" onValueChange={setActiveTab}>
         <div className="flex items-center justify-between mb-4">
           <TabsList>
             <TabsTrigger value="tiers">
@@ -127,8 +194,9 @@ export default function LoyaltyPage() {
               Rewards
             </TabsTrigger>
           </TabsList>
-           <Button onClick={() => handleOpenDialog()}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Tier
+           <Button onClick={() => activeTab === 'tiers' ? handleOpenTierDialog() : handleOpenRewardDialog()}>
+              <PlusCircle className="mr-2 h-4 w-4" /> 
+              {activeTab === 'tiers' ? 'Add Tier' : activeTab === 'rewards' ? 'Add Reward' : ''}
             </Button>
         </div>
 
@@ -147,7 +215,7 @@ export default function LoyaltyPage() {
                             <CardDescription>{tier.description}</CardDescription>
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => handleOpenDialog(tier)}>Edit</Button>
+                            <Button variant="outline" onClick={() => handleOpenTierDialog(tier)}>Edit</Button>
                             <Button variant="destructive" size="icon" onClick={() => handleDeleteTier(tier.id)}>
                                 <Trash2 className="h-4 w-4"/>
                                 <span className="sr-only">Delete</span>
@@ -174,28 +242,64 @@ export default function LoyaltyPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-headline">Loyalty Stamp Configuration</CardTitle>
-              <CardDescription>Configure how customers collect loyalty stamps.</CardDescription>
+              <CardDescription>Configure how customers collect loyalty stamps via a digital stamp card.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p>Stamp configuration settings will go here.</p>
+            <CardContent className="space-y-6">
+                <div className="flex items-center space-x-2">
+                    <Switch id="stamp-enabled" checked={stampConfig.isEnabled} onCheckedChange={(val) => handleStampConfigChange('isEnabled', val)} />
+                    <Label htmlFor="stamp-enabled">Enable Stamp Card</Label>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="stamps-needed">Stamps Needed</Label>
+                        <Input id="stamps-needed" type="number" value={stampConfig.stampsNeeded} onChange={(e) => handleStampConfigChange('stampsNeeded', Number(e.target.value))} />
+                        <p className="text-sm text-muted-foreground">Number of stamps to complete one card.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="stamp-reward">Reward</Label>
+                        <Input id="stamp-reward" value={stampConfig.reward} onChange={(e) => handleStampConfigChange('reward', e.target.value)} />
+                        <p className="text-sm text-muted-foreground">Reward for completing a stamp card.</p>
+                    </div>
+                </div>
             </CardContent>
+            <CardFooter>
+                <Button onClick={handleSaveStampConfig}>Save Stamp Settings</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 
         <TabsContent value="rewards">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">Loyalty Rewards Configuration</CardTitle>
-              <CardDescription>Manage loyalty rewards that can be redeemed with points or stamps.</CardDescription>
+              <CardTitle className="font-headline">Redeemable Rewards</CardTitle>
+              <CardDescription>Manage loyalty rewards that can be redeemed with points.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p>Rewards configuration settings will go here.</p>
+            <CardContent className="space-y-4">
+              {rewards.map((reward) => (
+                <Card key={reward.id}>
+                    <CardHeader className="flex flex-row items-start justify-between">
+                        <div>
+                            <CardTitle className="font-headline text-lg">{reward.title}</CardTitle>
+                            <CardDescription>{reward.description}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline">{reward.pointsCost} Points</Badge>
+                            <Button variant="outline" size="sm" onClick={() => handleOpenRewardDialog(reward)}>Edit</Button>
+                            <Button variant="destructive" size="icon" onClick={() => handleDeleteReward(reward.id)}>
+                                <Trash2 className="h-4 w-4"/>
+                                <span className="sr-only">Delete Reward</span>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                </Card>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Tier Dialog */}
+      <Dialog open={isTierDialogOpen} onOpenChange={setTierDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="font-headline">{editingTier?.id && tiers.some(t => t.id === editingTier.id) ? 'Edit Tier' : 'Add New Tier'}</DialogTitle>
@@ -207,19 +311,19 @@ export default function LoyaltyPage() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">Name</Label>
-                <Input id="name" value={editingTier.name} onChange={(e) => handleFieldChange('name', e.target.value)} className="col-span-3" />
+                <Input id="name" value={editingTier.name} onChange={(e) => handleTierFieldChange('name', e.target.value)} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="description" className="text-right">Description</Label>
-                <Input id="description" value={editingTier.description} onChange={(e) => handleFieldChange('description', e.target.value)} className="col-span-3" />
+                <Input id="description" value={editingTier.description} onChange={(e) => handleTierFieldChange('description', e.target.value)} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="minSpend" className="text-right">Min Spend</Label>
-                <Input id="minSpend" type="number" value={editingTier.minSpend} onChange={(e) => handleFieldChange('minSpend', Number(e.target.value))} className="col-span-3" />
+                <Input id="minSpend" type="number" value={editingTier.minSpend} onChange={(e) => handleTierFieldChange('minSpend', Number(e.target.value))} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="maxSpend" className="text-right">Max Spend</Label>
-                <Input id="maxSpend" type="number" placeholder="Leave blank for no upper limit" value={editingTier.maxSpend ?? ''} onChange={(e) => handleFieldChange('maxSpend', e.target.value === '' ? null : Number(e.target.value))} className="col-span-3" />
+                <Input id="maxSpend" type="number" placeholder="Leave blank for no upper limit" value={editingTier.maxSpend ?? ''} onChange={(e) => handleTierFieldChange('maxSpend', e.target.value === '' ? null : Number(e.target.value))} className="col-span-3" />
               </div>
               
                <div className="grid grid-cols-4 items-start gap-4">
@@ -250,8 +354,40 @@ export default function LoyaltyPage() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveChanges}>Save Changes</Button>
+            <Button variant="ghost" onClick={() => setTierDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveTier}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Reward Dialog */}
+      <Dialog open={isRewardDialogOpen} onOpenChange={setRewardDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="font-headline">{editingReward?.id && rewards.some(r => r.id === editingReward.id) ? 'Edit Reward' : 'Add New Reward'}</DialogTitle>
+            <DialogDescription>
+              Set up a reward that customers can redeem with loyalty points.
+            </DialogDescription>
+          </DialogHeader>
+          {editingReward && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="reward-title" className="text-right">Title</Label>
+                <Input id="reward-title" value={editingReward.title} onChange={(e) => handleRewardFieldChange('title', e.target.value)} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="reward-desc" className="text-right pt-2">Description</Label>
+                <Textarea id="reward-desc" value={editingReward.description} onChange={(e) => handleRewardFieldChange('description', e.target.value)} className="col-span-3" />
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="reward-points" className="text-right">Points Cost</Label>
+                <Input id="reward-points" type="number" value={editingReward.pointsCost} onChange={(e) => handleRewardFieldChange('pointsCost', Number(e.target.value))} className="col-span-3" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRewardDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveReward}>Save Reward</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

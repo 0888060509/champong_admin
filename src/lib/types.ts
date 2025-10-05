@@ -109,3 +109,16 @@ export type Tier = {
     maxSpend: number | null;
     benefits: string[];
 };
+
+export type StampCardConfig = {
+    isEnabled: boolean;
+    stampsNeeded: number;
+    reward: string;
+};
+
+export type Reward = {
+    id: string;
+    title: string;
+    description: string;
+    pointsCost: number;
+};
