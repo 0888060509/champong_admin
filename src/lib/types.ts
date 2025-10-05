@@ -7,6 +7,16 @@ export type User = {
   role: 'Admin' | 'Supervisor' | 'Staff';
 };
 
+export type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  totalSpent: number;
+  totalVisits: number;
+  lastVisit: any;
+}
+
 export type Role = {
   id: string;
   name: 'Admin' | 'Supervisor' | 'Staff';

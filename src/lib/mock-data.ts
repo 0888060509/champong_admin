@@ -1,11 +1,18 @@
 
 import { Timestamp } from 'firebase/firestore';
-import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign } from './types';
+import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer } from './types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', role: 'Admin' },
   { id: '2', name: 'Supervisor Sam', email: 'supervisor@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', role: 'Supervisor' },
   { id: '3', name: 'Staff Sarah', email: 'staff@example.com', avatar: 'https://i.pravatar.cc/150?u=a04258114e29026702d', role: 'Staff' },
+];
+
+export const mockCustomers: Customer[] = [
+    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', totalSpent: 1250.50, totalVisits: 15, lastVisit: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=liam' },
+    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia' },
+    { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah' },
+    { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma' },
 ];
 
 export const mockRoles: Role[] = [
