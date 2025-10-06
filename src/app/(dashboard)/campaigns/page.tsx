@@ -122,6 +122,7 @@ export default function CampaignsPage() {
                 <TableHead>Scheduled/Sent</TableHead>
                 <TableHead className="text-right">Sent</TableHead>
                 <TableHead className="text-right">Open Rate</TableHead>
+                <TableHead className="text-right">CTR</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -140,6 +141,7 @@ export default function CampaignsPage() {
                   <TableCell>{isClient && campaign.scheduleDate ? new Date(campaign.scheduleDate).toLocaleString() : 'Not scheduled'}</TableCell>
                   <TableCell className="text-right">{campaign.sentCount.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{(campaign.openRate * 100).toFixed(1)}%</TableCell>
+                  <TableCell className="text-right">{(campaign.ctr * 100).toFixed(1)}%</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

@@ -18,6 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 
 export default function CampaignDetailsPage() {
     const params = useParams();
@@ -137,14 +139,26 @@ export default function CampaignDetailsPage() {
                             <CardTitle className="font-headline text-lg">Performance</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div>
+                             <div>
                                 <p className="text-sm text-muted-foreground">Sent</p>
                                 <p className="text-2xl font-bold">{campaign.sentCount.toLocaleString()}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Open Rate</p>
-                                <p className="text-2xl font-bold">{(campaign.openRate * 100).toFixed(1)}%</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Open Rate</p>
+                                    <p className="text-2xl font-bold">{(campaign.openRate * 100).toFixed(1)}%</p>
+                                </div>
+                                 <div>
+                                    <p className="text-sm text-muted-foreground">CTR</p>
+                                    <p className="text-2xl font-bold">{(campaign.ctr * 100).toFixed(1)}%</p>
+                                </div>
                             </div>
+                             {campaign.redemptionRate !== undefined && (
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Redemption Rate</p>
+                                    <p className="text-2xl font-bold">{(campaign.redemptionRate * 100).toFixed(1)}%</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                     <Card className="md:col-span-2">
@@ -181,6 +195,28 @@ export default function CampaignDetailsPage() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {campaign.performanceData && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Performance Over Time (First 24h)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={campaign.performanceData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="hour" label={{ value: 'Hour after sending', position: 'insideBottom', offset: -5 }} />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="opens" stroke="hsl(var(--primary))" name="Opens" />
+                                    <Line type="monotone" dataKey="clicks" stroke="hsl(var(--accent))" name="Clicks" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
+
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
