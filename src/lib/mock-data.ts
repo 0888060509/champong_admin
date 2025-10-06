@@ -75,7 +75,7 @@ export const mockOrders: Order[] = [
         ],
          history: [
             { id: 'hist_4', timestamp: Timestamp.fromDate(new Date('2024-07-28T18:05:00Z')), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
-            { id: 'hist_5', timestamp: Timestamp.fromDate(new Date('2024-07-28T18:00:00Z')), user: 'system', action: 'Order created' },
+            { id: 'hist_5', timestamp: Timestamp.fromDate(new Date('2_024-07-28T18:00:00Z')), user: 'system', action: 'Order created' },
         ]
     }
 ];
@@ -98,9 +98,58 @@ export const mockBanners: Banner[] = [
 ];
 
 export const mockCampaigns: Campaign[] = [
-    { id: 'CMP01', name: 'Weekend Promo', targetSegment: 'Frequent Diners', message: 'Get 20% off this weekend!', status: 'Sent', sendDate: '2023-10-20' },
-    { id: 'CMP02', name: 'New Customer Welcome', targetSegment: 'New Signups', message: 'Welcome! Enjoy a free appetizer on us.', status: 'Active', sendDate: '' },
-    { id: 'CMP03', name: 'Holiday Special', targetSegment: 'All Customers', message: 'Book your holiday party with us!', status: 'Draft', sendDate: '' },
+    { 
+        id: 'CMP01', 
+        name: 'Weekend BOGO',
+        description: 'Buy one get one free on all appetizers this weekend.',
+        targetSegment: ['High Spenders'], 
+        title: 'Weekend BOGO is on!',
+        message: 'Hi {customerName}, enjoy a free appetizer on us this weekend!', 
+        status: 'Completed', 
+        scheduleDate: new Date('2023-10-20T10:00:00Z').toISOString(),
+        sentCount: 1250,
+        openRate: 0.23, // 23%
+        onClickAction: { type: 'None' }
+    },
+    { 
+        id: 'CMP02', 
+        name: 'New Customer Welcome',
+        description: 'Welcome new users with a discount on their first order.',
+        targetSegment: ['New Customers'], 
+        title: 'Welcome to AdminWeb!',
+        message: 'Thanks for joining! Here\'s 15% off your first order.', 
+        status: 'Sending', 
+        scheduleDate: null,
+        sentCount: 50,
+        openRate: 0.68, // 68%
+        onClickAction: { type: 'Link to Voucher', value: 'VOUCHER_15OFF' }
+    },
+    { 
+        id: 'CMP03', 
+        name: 'Holiday Special',
+        description: 'Promote holiday party bookings.',
+        targetSegment: ['All Customers'], 
+        title: 'Book Your Holiday Party!',
+        message: 'Planning a holiday event? Book with us and get a special discount.', 
+        status: 'Scheduled', 
+        scheduleDate: new Date('2023-12-01T09:00:00Z').toISOString(),
+        sentCount: 0,
+        openRate: 0,
+        onClickAction: { type: 'Custom Web Link', value: 'https://example.com/holiday-booking' }
+    },
+     { 
+        id: 'CMP04', 
+        name: 'Q4 Marketing Push',
+        description: 'Re-engage lapsed customers before the end of the year.',
+        targetSegment: ['Lapsed Customers'],
+        title: "We've missed you!",
+        message: 'Come back and see what\'s new. Here\'s a little something to get you started.', 
+        status: 'Draft', 
+        scheduleDate: null,
+        sentCount: 0,
+        openRate: 0,
+        onClickAction: { type: 'Link to Product', value: 'PROD_BESTSELLER' }
+    },
 ];
 
 export const mockNotifications: Notification[] = [

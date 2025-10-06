@@ -95,10 +95,18 @@ export type Banner = {
 export type Campaign = {
     id: string;
     name: string;
-    targetSegment: string;
+    description?: string;
+    targetSegment: string[];
+    title: string;
     message: string;
-    status: 'Active' | 'Draft' | 'Sent';
-    sendDate: string;
+    status: 'Draft' | 'Scheduled' | 'Sending' | 'Completed' | 'Canceled';
+    scheduleDate: string | null;
+    sentCount: number;
+    openRate: number;
+    onClickAction: {
+      type: 'None' | 'Link to Product' | 'Link to Voucher' | 'Custom Web Link';
+      value?: string;
+    };
 }
 
 export type Tier = {

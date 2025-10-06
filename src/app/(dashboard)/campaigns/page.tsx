@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, Trash2 } from "lucide-react";
+import { PlusCircle, MoreHorizontal } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { mockCampaigns } from "@/lib/mock-data";
@@ -20,10 +20,14 @@ import { useToast } from '@/hooks/use-toast';
 const initialCampaignState: Campaign = {
     id: '',
     name: '',
-    targetSegment: 'All Customers',
+    targetSegment: [],
+    title: '',
     message: '',
     status: 'Draft',
-    sendDate: ''
+    scheduleDate: null,
+    sentCount: 0,
+    openRate: 0,
+    onClickAction: { type: 'None' }
 };
 
 export default function CampaignsPage() {
@@ -68,13 +72,29 @@ export default function CampaignsPage() {
     }
   };
 
+  const getStatusBadge = (status: Campaign['status']) => {
+    switch (status) {
+      case 'Completed':
+        return <Badge>{status}</Badge>;
+      case 'Scheduled':
+        return <Badge variant="secondary">{status}</Badge>;
+      case 'Sending':
+        return <Badge className="bg-blue-500 text-white">{status}</Badge>;
+      case 'Canceled':
+        return <Badge variant="destructive">{status}</Badge>;
+      case 'Draft':
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="font-headline">Notification Campaigns</CardTitle>
-            <CardDescription>Configure and manage notification campaigns.</CardDescription>
+            <CardDescription>Create, schedule, and send targeted push notification campaigns.</CardDescription>
           </div>
           <Button onClick={() => handleOpenDialog()}>
             <PlusCircle className="mr-2 h-4 w-4" /> New Campaign
@@ -84,10 +104,12 @@ export default function CampaignsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Campaign</TableHead>
                 <TableHead>Target Segment</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Sent Date</TableHead>
+                <TableHead>Scheduled/Sent</TableHead>
+                <TableHead className="text-right">Sent</TableHead>
+                <TableHead className="text-right">Open Rate</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -95,13 +117,13 @@ export default function CampaignsPage() {
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">{campaign.name}</TableCell>
-                  <TableCell>{campaign.targetSegment}</TableCell>
+                  <TableCell>{campaign.targetSegment.join(', ')}</TableCell>
                   <TableCell>
-                      <Badge variant={campaign.status === 'Sent' ? 'default' : campaign.status === 'Active' ? 'secondary' : 'outline'}>
-                          {campaign.status}
-                      </Badge>
+                    {getStatusBadge(campaign.status)}
                   </TableCell>
-                  <TableCell>{campaign.sendDate || 'N/A'}</TableCell>
+                  <TableCell>{campaign.scheduleDate ? new Date(campaign.scheduleDate).toLocaleString() : 'Not scheduled'}</TableCell>
+                  <TableCell className="text-right">{campaign.sentCount.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{(campaign.openRate * 100).toFixed(1)}%</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -141,7 +163,7 @@ export default function CampaignsPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="targetSegment" className="text-right">Target</Label>
-                <Select value={editingCampaign.targetSegment} onValueChange={(value) => handleFieldChange('targetSegment', value)}>
+                <Select value={editingCampaign.targetSegment[0]} onValueChange={(value) => handleFieldChange('targetSegment', [value])}>
                     <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select segment" />
                     </SelectTrigger>
@@ -150,8 +172,13 @@ export default function CampaignsPage() {
                         <SelectItem value="High Spenders">High Spenders</SelectItem>
                         <SelectItem value="Recent Visitors">Recent Visitors</SelectItem>
                          <SelectItem value="Lapsed Customers">Lapsed Customers</SelectItem>
+                         <SelectItem value="New Customers">New Customers</SelectItem>
                     </SelectContent>
                 </Select>
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">Title</Label>
+                <Input id="title" value={editingCampaign.title} onChange={(e) => handleFieldChange('title', e.target.value)} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="message" className="text-right pt-2">Message</Label>
@@ -165,7 +192,7 @@ export default function CampaignsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="Draft">Draft</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Scheduled">Scheduled</SelectItem>
                     </SelectContent>
                 </Select>
               </div>
