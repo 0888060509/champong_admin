@@ -1,7 +1,7 @@
 
 
 import { Timestamp } from 'firebase/firestore';
-import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer } from './types';
+import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification } from './types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', role: 'Admin' },
@@ -101,4 +101,35 @@ export const mockCampaigns: Campaign[] = [
     { id: 'CMP01', name: 'Weekend Promo', targetSegment: 'Frequent Diners', message: 'Get 20% off this weekend!', status: 'Sent', sendDate: '2023-10-20' },
     { id: 'CMP02', name: 'New Customer Welcome', targetSegment: 'New Signups', message: 'Welcome! Enjoy a free appetizer on us.', status: 'Active', sendDate: '' },
     { id: 'CMP03', name: 'Holiday Special', targetSegment: 'All Customers', message: 'Book your holiday party with us!', status: 'Draft', sendDate: '' },
+];
+
+export const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'New Order Received',
+    description: 'Order #ORD_4 from James Dean for $42.50.',
+    read: false,
+    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
+  },
+  {
+    id: '2',
+    title: 'Low Stock Warning',
+    description: 'Item "Classic Burger" is running low.',
+    read: false,
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+  },
+  {
+    id: '3',
+    title: 'Booking Confirmed',
+    description: 'Booking #B004 for 4 people has been confirmed.',
+    read: true,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+  },
+  {
+    id: '4',
+    title: 'New Customer Signup',
+    description: 'A new customer, sarah@example.com, has registered.',
+    read: true,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
+  },
 ];

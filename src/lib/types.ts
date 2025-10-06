@@ -122,3 +122,11 @@ export type Reward = {
     description: string;
     pointsCost: number;
 };
+
+export type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  read: boolean;
+  timestamp: string;
+};
