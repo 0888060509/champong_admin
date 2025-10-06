@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Campaign } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 const initialCampaignState: Campaign = {
     id: '',
@@ -147,7 +148,7 @@ export default function CampaignsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View</DropdownMenuItem>
+                        <Link href={`/campaigns/${campaign.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                         <DropdownMenuItem onClick={() => handleOpenDialog(campaign)}>Edit</DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-destructive">Delete</DropdownMenuItem>
