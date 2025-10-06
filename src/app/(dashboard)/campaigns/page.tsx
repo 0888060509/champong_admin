@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { mockCampaigns } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -19,6 +17,7 @@ import type { Campaign } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { useCampaigns } from './campaigns-context';
 
 const initialCampaignState: Campaign = {
     id: '',
@@ -34,7 +33,7 @@ const initialCampaignState: Campaign = {
 };
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns);
+  const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaigns();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
@@ -57,12 +56,10 @@ export default function CampaignsPage() {
 
     if (campaigns.some(c => c.id === editingCampaign.id)) {
       // Edit
-      setCampaigns(campaigns.map(c => c.id === editingCampaign.id ? editingCampaign : c));
-      toast({ title: 'Success', description: 'Campaign updated successfully.' });
+      updateCampaign(editingCampaign);
     } else {
       // Add
-      setCampaigns([...campaigns, editingCampaign]);
-      toast({ title: 'Success', description: 'Campaign created successfully.' });
+      addCampaign(editingCampaign);
     }
     
     setIsDialogOpen(false);
@@ -70,8 +67,7 @@ export default function CampaignsPage() {
   };
 
   const handleDelete = (campaignId: string) => {
-      setCampaigns(campaigns.filter(c => c.id !== campaignId));
-      toast({ title: 'Success', description: 'Campaign deleted successfully.' });
+      deleteCampaign(campaignId);
   }
 
   const handleFieldChange = (field: keyof Campaign, value: any) => {
@@ -131,7 +127,11 @@ export default function CampaignsPage() {
             <TableBody>
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
-                  <TableCell className="font-medium">{campaign.name}</TableCell>
+                  <TableCell className="font-medium">
+                     <Link href={`/campaigns/${campaign.id}`} className="hover:underline">
+                        {campaign.name}
+                     </Link>
+                  </TableCell>
                   <TableCell>{campaign.targetSegment.join(', ')}</TableCell>
                   <TableCell>
                     {getStatusBadge(campaign.status)}
@@ -173,7 +173,6 @@ export default function CampaignsPage() {
           {editingCampaign && (
             <ScrollArea className="max-h-[70vh] pr-6">
               <div className="grid gap-6 py-4">
-                {/* This will be converted to a multi-step form later */}
                 <div className="space-y-4 border-b pb-6">
                   <h3 className="text-lg font-medium font-headline">1. General Settings</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">

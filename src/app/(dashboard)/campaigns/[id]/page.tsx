@@ -5,24 +5,25 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockCampaigns } from '@/lib/mock-data';
 import type { Campaign } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { useCampaigns } from '../campaigns-context';
 
 export default function CampaignDetailsPage() {
     const params = useParams();
     const campaignId = params.id as string;
+    const { getCampaignById } = useCampaigns();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
 
     useEffect(() => {
         if (!campaignId) return;
-        const foundCampaign = mockCampaigns.find(c => c.id === campaignId);
+        const foundCampaign = getCampaignById(campaignId);
         if (foundCampaign) {
             setCampaign(foundCampaign);
         } else {
             console.log("Campaign not found!");
         }
-    }, [campaignId]);
+    }, [campaignId, getCampaignById]);
 
     const getStatusBadge = (status: Campaign['status']) => {
         switch (status) {
