@@ -172,22 +172,22 @@ export default function CampaignsPage() {
                {/* This will be converted to a multi-step form later */}
               <div className="space-y-4 border-b pb-6">
                 <h3 className="text-lg font-medium font-headline">1. General Settings</h3>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">Name</Label>
-                    <Input id="name" value={editingCampaign.name} onChange={(e) => handleFieldChange('name', e.target.value)} className="col-span-3" placeholder="e.g. Q4 Marketing Push" />
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="md:text-right">Name</Label>
+                    <Input id="name" value={editingCampaign.name} onChange={(e) => handleFieldChange('name', e.target.value)} className="col-span-1 md:col-span-3" placeholder="e.g. Q4 Marketing Push" />
                 </div>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                    <Label htmlFor="description" className="text-right pt-2">Description</Label>
-                    <Textarea id="description" value={editingCampaign.description} onChange={(e) => handleFieldChange('description', e.target.value)} className="col-span-3" placeholder="Internal description for this campaign" />
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-start gap-4">
+                    <Label htmlFor="description" className="md:text-right pt-2">Description</Label>
+                    <Textarea id="description" value={editingCampaign.description} onChange={(e) => handleFieldChange('description', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Internal description for this campaign" />
                 </div>
               </div>
               
               <div className="space-y-4 border-b pb-6">
                 <h3 className="text-lg font-medium font-headline">2. Audience</h3>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="targetSegment" className="text-right">Target</Label>
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="targetSegment" className="md:text-right">Target</Label>
                     <Select value={editingCampaign.targetSegment[0]} onValueChange={(value) => handleFieldChange('targetSegment', [value])}>
-                        <SelectTrigger className="col-span-3">
+                        <SelectTrigger className="col-span-1 md:col-span-3">
                             <SelectValue placeholder="Select segment" />
                         </SelectTrigger>
                         <SelectContent>
@@ -203,18 +203,18 @@ export default function CampaignsPage() {
 
               <div className="space-y-4 border-b pb-6">
                 <h3 className="text-lg font-medium font-headline">3. Content</h3>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">Title</Label>
-                    <Input id="title" value={editingCampaign.title} onChange={(e) => handleFieldChange('title', e.target.value)} className="col-span-3" placeholder="e.g. We've missed you!" />
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="md:text-right">Title</Label>
+                    <Input id="title" value={editingCampaign.title} onChange={(e) => handleFieldChange('title', e.target.value)} className="col-span-1 md:col-span-3" placeholder="e.g. We've missed you!" />
                  </div>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                    <Label htmlFor="message" className="text-right pt-2">Message</Label>
-                    <Textarea id="message" value={editingCampaign.message} onChange={(e) => handleFieldChange('message', e.target.value)} className="col-span-3" rows={4} placeholder="Use {customerName} for personalization." />
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-start gap-4">
+                    <Label htmlFor="message" className="md:text-right pt-2">Message</Label>
+                    <Textarea id="message" value={editingCampaign.message} onChange={(e) => handleFieldChange('message', e.target.value)} className="col-span-1 md:col-span-3" rows={4} placeholder="Use {customerName} for personalization." />
                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="onClickAction" className="text-right">On Click Action</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="onClickAction" className="md:text-right">On Click Action</Label>
                     <Select value={editingCampaign.onClickAction.type} onValueChange={(value: Campaign['onClickAction']['type']) => handleActionFieldChange('type', value)}>
-                        <SelectTrigger className="col-span-3">
+                        <SelectTrigger className="col-span-1 md:col-span-3">
                             <SelectValue placeholder="Select action" />
                         </SelectTrigger>
                         <SelectContent>
@@ -226,19 +226,19 @@ export default function CampaignsPage() {
                     </Select>
                   </div>
                   {editingCampaign.onClickAction.type !== 'None' && (
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="actionValue" className="text-right">Action Value</Label>
-                        <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-3" placeholder="Product ID, Voucher Code, or URL" />
+                     <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="actionValue" className="md:text-right">Action Value</Label>
+                        <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Product ID, Voucher Code, or URL" />
                     </div>
                   )}
               </div>
               
               <div className="space-y-4">
                 <h3 className="text-lg font-medium font-headline">4. Schedule</h3>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="status" className="text-right">Status</Label>
+                <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="md:text-right">Status</Label>
                     <Select value={editingCampaign.status} onValueChange={(value: Campaign['status']) => handleFieldChange('status', value)}>
-                        <SelectTrigger className="col-span-2">
+                        <SelectTrigger className="col-span-1 md:col-span-2">
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -248,14 +248,14 @@ export default function CampaignsPage() {
                     </Select>
                 </div>
                 {editingCampaign.status === 'Scheduled' && (
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="scheduleDate" className="text-right">Schedule Date</Label>
+                     <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="scheduleDate" className="md:text-right">Schedule Date</Label>
                         <Input 
                             id="scheduleDate" 
                             type="datetime-local" 
                             value={editingCampaign.scheduleDate ? editingCampaign.scheduleDate.substring(0,16) : ''}
                             onChange={(e) => handleFieldChange('scheduleDate', e.target.value ? new Date(e.target.value).toISOString() : null)} 
-                            className="col-span-2" />
+                            className="col-span-1 md:col-span-2" />
                     </div>
                 )}
               </div>
