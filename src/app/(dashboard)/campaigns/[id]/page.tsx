@@ -117,7 +117,7 @@ export default function CampaignDetailsPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        {campaign.status === 'Scheduled' && (
+                                        {(campaign.status === 'Scheduled' || campaign.status === 'Sending') && (
                                             <DropdownMenuItem onClick={() => handleStatusChange('Draft')}>Pause (Set to Draft)</DropdownMenuItem>
                                         )}
                                         {campaign.status === 'Scheduled' && (
