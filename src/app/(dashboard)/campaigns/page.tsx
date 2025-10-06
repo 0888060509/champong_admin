@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal } from "lucide-react";
@@ -35,6 +35,11 @@ export default function CampaignsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleOpenDialog = (campaign: Campaign | null = null) => {
     setEditingCampaign(campaign ? { ...campaign } : { ...initialCampaignState, id: `CMP${Date.now()}` });
@@ -128,7 +133,7 @@ export default function CampaignsPage() {
                   <TableCell>
                     {getStatusBadge(campaign.status)}
                   </TableCell>
-                  <TableCell>{campaign.scheduleDate ? new Date(campaign.scheduleDate).toLocaleString() : 'Not scheduled'}</TableCell>
+                  <TableCell>{isClient && campaign.scheduleDate ? new Date(campaign.scheduleDate).toLocaleString() : 'Not scheduled'}</TableCell>
                   <TableCell className="text-right">{campaign.sentCount.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{(campaign.openRate * 100).toFixed(1)}%</TableCell>
                   <TableCell>
@@ -265,5 +270,3 @@ export default function CampaignsPage() {
     </>
   );
 }
-
-    
