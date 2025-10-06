@@ -97,6 +97,19 @@ export const mockBanners: Banner[] = [
     { id: 'BNR02', title: 'New Winter Menu', imageUrl: 'https://picsum.photos/seed/banner2/1080/400', isActive: false, startDate: '2023-11-01', endDate: '2023-11-30', linkType: 'deeplink', link: 'app://menu/winter' },
 ];
 
+const generatePerformanceData = () => {
+    let opens = 50 + Math.random() * 50;
+    let clicks = opens * (Math.random() * 0.5);
+    const data = [];
+    for (let i = 1; i <= 24; i++) {
+        data.push({ hour: i, opens: Math.round(opens), clicks: Math.round(clicks) });
+        opens *= (0.8 + Math.random() * 0.2);
+        clicks *= (0.7 + Math.random() * 0.25);
+    }
+    return data;
+}
+
+
 export const mockCampaigns: Campaign[] = [
     { 
         id: 'CMP01', 
@@ -109,6 +122,8 @@ export const mockCampaigns: Campaign[] = [
         scheduleDate: new Date('2023-10-20T10:00:00Z').toISOString(),
         sentCount: 1250,
         openRate: 0.23, // 23%
+        ctr: 0.08, // 8%
+        performanceData: generatePerformanceData(),
         onClickAction: { type: 'None' }
     },
     { 
@@ -122,6 +137,9 @@ export const mockCampaigns: Campaign[] = [
         scheduleDate: null,
         sentCount: 50,
         openRate: 0.68, // 68%
+        ctr: 0.25, // 25%
+        redemptionRate: 0.15, // 15%
+        performanceData: generatePerformanceData(),
         onClickAction: { type: 'Link to Voucher', value: 'VOUCHER_15OFF' }
     },
     { 
@@ -135,6 +153,7 @@ export const mockCampaigns: Campaign[] = [
         scheduleDate: new Date('2023-12-01T09:00:00Z').toISOString(),
         sentCount: 0,
         openRate: 0,
+        ctr: 0,
         onClickAction: { type: 'Custom Web Link', value: 'https://example.com/holiday-booking' }
     },
      { 
@@ -148,6 +167,7 @@ export const mockCampaigns: Campaign[] = [
         scheduleDate: null,
         sentCount: 0,
         openRate: 0,
+        ctr: 0,
         onClickAction: { type: 'Link to Product', value: 'PROD_BESTSELLER' }
     },
 ];

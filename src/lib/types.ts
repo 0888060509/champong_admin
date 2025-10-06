@@ -92,6 +92,12 @@ export type Banner = {
     link: string;
 }
 
+export type CampaignPerformanceData = {
+    hour: number;
+    opens: number;
+    clicks: number;
+};
+
 export type Campaign = {
     id: string;
     name: string;
@@ -103,6 +109,9 @@ export type Campaign = {
     scheduleDate: string | null;
     sentCount: number;
     openRate: number;
+    ctr: number; // Click-Through Rate
+    redemptionRate?: number;
+    performanceData?: CampaignPerformanceData[];
     onClickAction: {
       type: 'None' | 'Link to Product' | 'Link to Voucher' | 'Custom Web Link';
       value?: string;

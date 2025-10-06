@@ -29,6 +29,7 @@ const initialCampaignState: Campaign = {
     scheduleDate: null,
     sentCount: 0,
     openRate: 0,
+    ctr: 0,
     onClickAction: { type: 'None' }
 };
 
@@ -230,8 +231,7 @@ export default function CampaignsPage() {
                     </div>
                     {editingCampaign.onClickAction.type !== 'None' && (
                       <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="actionValue" className="text-left md:text-right">Action Value</Label>
-                          <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Product ID, Voucher Code, or URL" />
+                          <Label htmlFor="actionValue" className="text-left md:text-right">Action Value</Label>                          <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Product ID, Voucher Code, or URL" />
                       </div>
                     )}
                 </div>
