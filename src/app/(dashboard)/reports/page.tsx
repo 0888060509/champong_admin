@@ -404,7 +404,7 @@ export default function ReportsPage() {
                             </TableHeader>
                             <TableBody>
                                 {rfmPerformanceData.map((item) => (
-                                    <TableRow key={item.segment}>
+                                    <TableRow key={item.segment} className="cursor-pointer hover:bg-muted">
                                         <TableCell>
                                             <Badge className={cn('text-xs', item.color)}>{item.segment}</Badge>
                                         </TableCell>
@@ -417,12 +417,12 @@ export default function ReportsPage() {
                                     </TableRow>
                                 ))}
                             </TableBody>
-                            <TableFooter className="font-bold">
+                            <TableFooter>
                                 <TableRow>
                                     <TableCell>Total</TableCell>
-                                    <TableCell className="text-right">{rfmTotals.clients}</TableCell>
-                                    <TableCell className="text-right">{rfmTotals.orders}</TableCell>
-                                    <TableCell className="text-right">${rfmTotals.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="text-right font-bold">{rfmTotals.clients}</TableCell>
+                                    <TableCell className="text-right font-bold">{rfmTotals.orders}</TableCell>
+                                    <TableCell className="text-right font-bold">${rfmTotals.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                                     <TableCell colSpan={3}></TableCell>
                                 </TableRow>
                             </TableFooter>
@@ -447,8 +447,3 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
-
-    
-    
-
-    
