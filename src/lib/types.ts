@@ -147,3 +147,22 @@ export type Notification = {
   read: boolean;
   timestamp: string;
 };
+
+export type ChatMessage = {
+  id: string;
+  senderType: 'Customer' | 'Staff' | 'System';
+  senderName: string;
+  message: string;
+  timestamp: any;
+};
+
+export type ChatSession = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  branchName: string;
+  staffName: string;
+  status: 'Open' | 'Closed';
+  lastUpdatedAt: any;
+  messages: ChatMessage[];
+};

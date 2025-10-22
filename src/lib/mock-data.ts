@@ -1,7 +1,7 @@
 
 
 import { Timestamp } from 'firebase/firestore';
-import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification } from './types';
+import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession } from './types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', role: 'Admin' },
@@ -202,3 +202,35 @@ export const mockNotifications: Notification[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
   },
 ];
+
+export const mockChatSessions: ChatSession[] = [
+    {
+        id: 'CHAT001',
+        customerId: 'cust_2',
+        customerName: 'Olivia Smith',
+        branchName: 'Main Street Cafe',
+        staffName: 'Staff Sarah',
+        status: 'Open',
+        lastUpdatedAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 15)), // 15 mins ago
+        messages: [
+            { id: 'msg1', senderType: 'Customer', senderName: 'Olivia Smith', message: 'Hi, can I change my booking for tomorrow?', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 16))},
+            { id: 'msg2', senderType: 'Staff', senderName: 'Staff Sarah', message: 'Hello Olivia, sure! What time would you like to change it to?', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 15))}
+        ]
+    },
+    {
+        id: 'CHAT002',
+        customerId: 'cust_4',
+        customerName: 'Emma Brown',
+        branchName: 'Downtown Deli',
+        staffName: 'Supervisor Sam',
+        status: 'Closed',
+        lastUpdatedAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24)), // 1 day ago
+        messages: [
+            { id: 'msg3', senderType: 'Customer', senderName: 'Emma Brown', message: 'I left my wallet at your place yesterday, did anyone find it?', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24.5))},
+            { id: 'msg4', senderType: 'Staff', senderName: 'Staff Sarah', message: 'Let me check for you. Can you describe it?', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24.4))},
+            { id: 'msg5', senderType: 'System', senderName: 'System', message: 'Session transferred from Staff Sarah to Supervisor Sam', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24.3))},
+            { id: 'msg6', senderType: 'Staff', senderName: 'Supervisor Sam', message: 'Hi Emma, we found a wallet. We\'ve kept it safe for you.', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24.2))},
+            { id: 'msg7', senderType: 'Customer', senderName: 'Emma Brown', message: 'Oh thank you so much! I\'ll come by this afternoon.', timestamp: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 60 * 24.1))},
+        ]
+    }
+]

@@ -29,6 +29,7 @@ import {
   Settings,
   Utensils,
   Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -51,6 +52,7 @@ const managementItems = [
     { href: '/loyalty', label: 'Loyalty', icon: Gem },
     { href: '/roles', label: 'Roles & Permissions', icon: UserCog },
     { href: '/audit-log', label: 'Audit Log', icon: Shield },
+    { href: '/chat-history', label: 'Chat History', icon: MessageSquare },
 ];
 
 const settingsItems = [
