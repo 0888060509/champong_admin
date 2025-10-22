@@ -11,9 +11,11 @@ import { MoreHorizontal } from "lucide-react";
 import type { ChatSession } from '@/lib/types';
 import { mockChatSessions } from '@/lib/mock-data';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ChatHistoryPage() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const { toast } = useToast();
 
     useEffect(() => {
         const sortedSessions = [...mockChatSessions].sort((a, b) => b.lastUpdatedAt.toMillis() - a.lastUpdatedAt.toMillis());
@@ -27,6 +29,18 @@ export default function ChatHistoryPage() {
             case 'Closed':
                 return <Badge variant="secondary">Closed</Badge>;
         }
+    };
+    
+    const handleCloseSession = (sessionId: string) => {
+        setSessions(prevSessions => 
+            prevSessions.map(session => 
+                session.id === sessionId ? { ...session, status: 'Closed' } : session
+            )
+        );
+        toast({
+            title: "Session Closed",
+            description: `Session ${sessionId} has been marked as closed.`,
+        });
     };
     
     return (
@@ -71,7 +85,9 @@ export default function ChatHistoryPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <Link href={`/chat-history/${session.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
-                                            <DropdownMenuItem>Close Session</DropdownMenuItem>
+                                            {session.status === 'Open' && (
+                                                <DropdownMenuItem onClick={() => handleCloseSession(session.id)}>Close Session</DropdownMenuItem>
+                                            )}
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
