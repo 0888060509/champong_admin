@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { useCampaigns } from './campaigns-context';
+import { mockCollections } from '@/lib/mock-data'; // Assuming mock-data is updated to export mockCollections
 
 const initialCampaignState: Campaign = {
     id: '',
@@ -227,13 +229,29 @@ export default function CampaignsPage() {
                               <SelectItem value="None">None</SelectItem>
                               <SelectItem value="Link to Product">Link to Product</SelectItem>
                               <SelectItem value="Link to Voucher">Link to Voucher</SelectItem>
+                              <SelectItem value="Link to Collection">Link to Collection</SelectItem>
                               <SelectItem value="Custom Web Link">Custom Web Link</SelectItem>
                           </SelectContent>
                       </Select>
                     </div>
-                    {editingCampaign.onClickAction.type !== 'None' && (
+                    {editingCampaign.onClickAction.type === 'Link to Collection' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                            <Label htmlFor="actionValue" className="text-left md:text-right">Collection</Label>
+                             <Select value={editingCampaign.onClickAction.value} onValueChange={(value) => handleActionFieldChange('value', value)}>
+                                <SelectTrigger className="col-span-1 md:col-span-3">
+                                    <SelectValue placeholder="Select a collection" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {mockCollections.map(collection => (
+                                        <SelectItem key={collection.id} value={collection.id}>{collection.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ) : editingCampaign.onClickAction.type !== 'None' && (
                       <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="actionValue" className="text-left md:text-right">Action Value</Label>                          <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Product ID, Voucher Code, or URL" />
+                          <Label htmlFor="actionValue" className="text-left md:text-right">Action Value</Label>
+                          <Input id="actionValue" value={editingCampaign.onClickAction.value} onChange={(e) => handleActionFieldChange('value', e.target.value)} className="col-span-1 md:col-span-3" placeholder="Product ID, Voucher Code, or URL" />
                       </div>
                     )}
                 </div>

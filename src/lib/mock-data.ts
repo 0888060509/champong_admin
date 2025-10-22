@@ -2,6 +2,7 @@
 
 import { Timestamp } from 'firebase/firestore';
 import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession } from './types';
+import type { Collection } from '@/app/(dashboard)/collections/page';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', role: 'Admin' },
@@ -234,3 +235,47 @@ export const mockChatSessions: ChatSession[] = [
         ]
     }
 ]
+
+export const mockCollections: Collection[] = [
+    { 
+      id: '1', 
+      name: 'High Profit Items', 
+      description: 'Items with a high profit margin, great for upselling.',
+      productCount: 12, 
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
+    },
+    { 
+      id: '2', 
+      name: 'Low Stock Specials', 
+      description: 'Clear out items that are low in stock.',
+      productCount: 8, 
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
+    },
+    { 
+      id: '3', 
+      name: 'Weekend Dessert Specials', 
+      description: 'Special desserts featured only on weekends.',
+      productCount: 4, 
+      root: { 
+          type: 'group',
+          logic: 'AND', 
+          conditions: [
+              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
+              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
+          ]
+      }
+    },
+     { 
+      id: '4', 
+      name: 'Premium Main Courses', 
+      productCount: 7, 
+      root: { 
+          type: 'group',
+          logic: 'AND', 
+          conditions: [
+              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Main Course'},
+              {type: 'condition', criteria: 'price', operator: 'gte', value: 25}
+          ]
+      }
+    },
+  ];

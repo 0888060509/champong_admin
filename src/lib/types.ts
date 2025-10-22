@@ -113,7 +113,7 @@ export type Campaign = {
     redemptionRate?: number;
     performanceData?: CampaignPerformanceData[];
     onClickAction: {
-      type: 'None' | 'Link to Product' | 'Link to Voucher' | 'Custom Web Link';
+      type: 'None' | 'Link to Product' | 'Link to Voucher' | 'Custom Web Link' | 'Link to Collection';
       value?: string;
     };
 }
