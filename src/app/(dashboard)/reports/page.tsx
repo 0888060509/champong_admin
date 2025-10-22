@@ -19,14 +19,18 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 // Mock Data
-const generateProductPerformanceData = () => [
-  { name: 'Classic Burger', category: 'Main Course', quantity: 150 + Math.floor(Math.random() * 50), grossRevenue: 1948.50, discount: 50.00, netRevenue: 1898.50, cogs: 750, profit: 1148.50 },
-  { name: 'Caesar Salad', category: 'Appetizers', quantity: 200 + Math.floor(Math.random() * 50), grossRevenue: 1798.00, discount: 25.50, netRevenue: 1772.50, cogs: 600, profit: 1172.50 },
-  { name: 'Chocolate Lava Cake', category: 'Desserts', quantity: 120 + Math.floor(Math.random() * 30), grossRevenue: 900.00, discount: 12.00, netRevenue: 888.00, cogs: 300, profit: 588.00 },
-  { name: 'Iced Tea', category: 'Drinks', quantity: 300 + Math.floor(Math.random() * 100), grossRevenue: 1050.00, discount: 0, netRevenue: 1050.00, cogs: 150, profit: 900.00 },
+const allProductPerformanceData = [
+  { name: 'Classic Burger', category: 'Main Course', quantity: 150, grossRevenue: 1948.50, discount: 50.00, netRevenue: 1898.50, cogs: 750, profit: 1148.50 },
+  { name: 'Margherita Pizza', category: 'Main Course', quantity: 100, grossRevenue: 1500.00, discount: 20.00, netRevenue: 1480.00, cogs: 500, profit: 980.00 },
+  { name: 'Caesar Salad', category: 'Appetizers', quantity: 200, grossRevenue: 1798.00, discount: 25.50, netRevenue: 1772.50, cogs: 600, profit: 1172.50 },
+  { name: 'Bruschetta', category: 'Appetizers', quantity: 180, grossRevenue: 1440.00, discount: 15.00, netRevenue: 1425.00, cogs: 450, profit: 975.00 },
+  { name: 'Chocolate Lava Cake', category: 'Desserts', quantity: 120, grossRevenue: 900.00, discount: 12.00, netRevenue: 888.00, cogs: 300, profit: 588.00 },
+  { name: 'Tiramisu', category: 'Desserts', quantity: 90, grossRevenue: 720.00, discount: 10.00, netRevenue: 710.00, cogs: 270, profit: 440.00 },
+  { name: 'Iced Tea', category: 'Drinks', quantity: 300, grossRevenue: 1050.00, discount: 0, netRevenue: 1050.00, cogs: 150, profit: 900.00 },
+  { name: 'Espresso', category: 'Drinks', quantity: 250, grossRevenue: 750.00, discount: 5.00, netRevenue: 745.00, cogs: 125, profit: 620.00 },
 ];
 
-type ProductPerformanceData = ReturnType<typeof generateProductPerformanceData>[0];
+type ProductPerformanceData = typeof allProductPerformanceData[0];
 type SortKey = keyof ProductPerformanceData;
 
 const revenueByCategoryData = [
@@ -103,9 +107,11 @@ export default function ReportsPage() {
     to: new Date(),
   });
   const [selectedBranch, setSelectedBranch] = useState('all');
-  
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const [productData, setProductData] = useState<ProductPerformanceData[]>([]);
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'profit', direction: 'descending' });
+  const [isClient, setIsClient] = useState(false);
 
   const [selectedRfmSegment, setSelectedRfmSegment] = useState<string | null>(null);
 
@@ -116,17 +122,27 @@ export default function ReportsPage() {
   }), { clients: 0, orders: 0, totalRevenue: 0 });
 
   useEffect(() => {
+    setIsClient(true);
+    // Simulate initial data fetch
+    setProductData(allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) })));
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
     // This is a simulation of data filtering.
     // In a real app, you would fetch new data based on `date` and `selectedBranch`.
     console.log(`Filtering data for branch: ${selectedBranch} and date range:`, date);
-    setProductData(generateProductPerformanceData());
-    // You would update other data sources here as well.
-  }, [date, selectedBranch]);
+    // Just re-randomize data to show a change
+    setProductData(allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) })));
+  }, [date, selectedBranch, isClient]);
 
-  const sortedProductData = useMemo(() => {
-    let sortableItems = [...productData];
+  const filteredAndSortedProductData = useMemo(() => {
+    let filteredData = selectedCategory
+      ? productData.filter(p => p.category === selectedCategory)
+      : productData;
+
     if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
+      filteredData.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -136,8 +152,8 @@ export default function ReportsPage() {
         return 0;
       });
     }
-    return sortableItems;
-  }, [productData, sortConfig]);
+    return filteredData;
+  }, [productData, sortConfig, selectedCategory]);
   
   const topCustomersData = useMemo(() => {
     if (!selectedRfmSegment) {
@@ -147,26 +163,32 @@ export default function ReportsPage() {
   }, [selectedRfmSegment]);
 
   const requestSort = (key: SortKey) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
+    let direction: 'ascending' | 'descending' = 'descending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'descending') {
+      direction = 'ascending';
     }
     setSortConfig({ key, direction });
   };
   
   const getProfitCellStyle = (profit: number) => {
-    const profits = sortedProductData.map(p => p.profit);
+    const profits = filteredAndSortedProductData.map(p => p.profit);
     const maxProfit = Math.max(...profits);
     const minProfit = Math.min(...profits);
+    const range = maxProfit - minProfit;
+    if (range === 0) return '';
     
-    if (profit === maxProfit) {
-        return 'bg-green-100 dark:bg-green-900/50';
-    }
-    if (profit === minProfit) {
-        return 'bg-red-100 dark:bg-red-900/50';
-    }
+    const percentage = (profit - minProfit) / range;
+    
+    if (percentage > 0.8) return 'bg-green-200 dark:bg-green-900/50';
+    if (percentage < 0.2) return 'bg-red-200 dark:bg-red-900/50';
+    
     return '';
   }
+  
+  const handlePieClick = (data: any) => {
+    const categoryName = data.name;
+    setSelectedCategory(current => current === categoryName ? null : categoryName);
+  };
 
 
   return (
@@ -240,7 +262,22 @@ export default function ReportsPage() {
             <TabsContent value="product" className="space-y-6 mt-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Revenue by Category</CardTitle>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <CardTitle className="font-headline">Revenue by Category</CardTitle>
+                                {selectedCategory && (
+                                    <CardDescription>
+                                        Showing data for "{selectedCategory}". Click category again to clear.
+                                    </CardDescription>
+                                )}
+                            </div>
+                             {selectedCategory && (
+                                <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(null)}>
+                                    <XIcon className="mr-2 h-4 w-4" />
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={250}>
@@ -253,13 +290,20 @@ export default function ReportsPage() {
                                     outerRadius={100}
                                     fill="#8884d8"
                                     dataKey="value"
+                                    onClick={handlePieClick}
                                 >
                                     {revenueByCategoryData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={COLORS[index % COLORS.length]} 
+                                            className="cursor-pointer"
+                                            stroke={selectedCategory === entry.name ? 'hsl(var(--foreground))' : ''}
+                                            strokeWidth={2}
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value, name) => [`${value}%`, name]}/>
-                                <Legend />
+                                <Legend onClick={(data) => handlePieClick(data)}/>
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -268,6 +312,7 @@ export default function ReportsPage() {
                     <Card className="lg:col-span-2">
                         <CardHeader>
                             <CardTitle className="font-headline">Product Details</CardTitle>
+                            {selectedCategory && <CardDescription>Showing products in the "{selectedCategory}" category.</CardDescription>}
                         </CardHeader>
                         <CardContent>
                              <Table>
@@ -276,36 +321,40 @@ export default function ReportsPage() {
                                         <TableHead>Product</TableHead>
                                         <TableHead>Category</TableHead>
                                         <TableHead className="text-right">
-                                            <Button variant="ghost" onClick={() => requestSort('quantity')}>
-                                                Qty Sold <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            <Button variant="ghost" size="sm" onClick={() => requestSort('quantity')}>
+                                                Qty Sold
+                                                {sortConfig?.key === 'quantity' && <ArrowUpDown className="ml-2 h-4 w-4 inline" />}
                                             </Button>
                                         </TableHead>
                                         <TableHead className="text-right">
-                                            <Button variant="ghost" onClick={() => requestSort('netRevenue')}>
-                                                Net Revenue <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            <Button variant="ghost" size="sm" onClick={() => requestSort('netRevenue')}>
+                                                Net Revenue
+                                                {sortConfig?.key === 'netRevenue' && <ArrowUpDown className="ml-2 h-4 w-4 inline" />}
                                             </Button>
                                         </TableHead>
                                         <TableHead className="text-right">
-                                            <Button variant="ghost" onClick={() => requestSort('cogs')}>
-                                                COGS <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            <Button variant="ghost" size="sm" onClick={() => requestSort('cogs')}>
+                                                COGS
+                                                {sortConfig?.key === 'cogs' && <ArrowUpDown className="ml-2 h-4 w-4 inline" />}
                                             </Button>
                                         </TableHead>
                                         <TableHead className="text-right">
-                                            <Button variant="ghost" onClick={() => requestSort('profit')}>
-                                                Gross Profit <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            <Button variant="ghost" size="sm" onClick={() => requestSort('profit')}>
+                                                Gross Profit
+                                                {sortConfig?.key === 'profit' && <ArrowUpDown className="ml-2 h-4 w-4 inline" />}
                                             </Button>
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {sortedProductData.map((item) => (
+                                    {filteredAndSortedProductData.map((item) => (
                                     <TableRow key={item.name}>
                                         <TableCell className="font-medium">{item.name}</TableCell>
                                         <TableCell>{item.category}</TableCell>
                                         <TableCell className="text-right">{item.quantity}</TableCell>
                                         <TableCell className="text-right">${item.netRevenue.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">${item.cogs.toFixed(2)}</TableCell>
-                                        <TableCell className={cn("text-right", getProfitCellStyle(item.profit))}>${item.profit.toFixed(2)}</TableCell>
+                                        <TableCell className={cn("text-right font-medium", getProfitCellStyle(item.profit))}>${item.profit.toFixed(2)}</TableCell>
                                     </TableRow>
                                     ))}
                                 </TableBody>
@@ -315,7 +364,9 @@ export default function ReportsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Market Basket Analysis</CardTitle>
-                            <CardDescription>Products commonly bought with 'Classic Burger'.</CardDescription>
+                            <CardDescription>
+                                {selectedCategory ? `Commonly bought with "${selectedCategory}" items.` : `Products commonly bought together.`}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                            <ResponsiveContainer width="100%" height={200}>
@@ -583,8 +634,3 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
-
-    
-
-    
-
