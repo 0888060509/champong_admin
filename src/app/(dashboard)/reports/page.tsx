@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Download, ArrowUpDown } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, ArrowUpDown, X as XIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
@@ -63,24 +64,27 @@ const rfmSegmentsData = [
     { x: 2.5, y: 1.8, z: 250, name: 'At Risk', customers: 180 },
 ];
 
-const topCustomersData = [
-    { id: '1', name: 'Noah Williams', avatar: 'N', totalSpent: 2300.00 },
-    { id: '2', name: 'Liam Johnson', avatar: 'L', totalSpent: 1250.50 },
-    { id: '3', name: 'Sophia Loren', avatar: 'S', totalSpent: 1100.25 },
-    { id: '4', name: 'Olivia Smith', avatar: 'O', totalSpent: 850.75 },
-    { id: '5', name: 'James Dean', avatar: 'J', totalSpent: 780.00 },
+const allTopCustomers = [
+    { id: '1', name: 'Noah Williams', avatar: 'N', totalSpent: 2300.00, segment: 'Champions' },
+    { id: '2', name: 'Liam Johnson', avatar: 'L', totalSpent: 1250.50, segment: 'Loyal Customers' },
+    { id: '3', name: 'Sophia Loren', avatar: 'S', totalSpent: 1100.25, segment: 'Loyal Customers' },
+    { id: '4', name: 'Olivia Smith', avatar: 'O', totalSpent: 850.75, segment: 'Potential Loyalists' },
+    { id: '5', name: 'James Dean', avatar: 'J', totalSpent: 780.00, segment: 'Potential Loyalists' },
+    { id: '6', name: 'Ava Miller', avatar: 'A', totalSpent: 250.00, segment: 'New Customers' },
+    { id: '7', name: 'Mason Jones', avatar: 'M', totalSpent: 15.00, segment: 'At Risk' },
 ];
+
 
 const rfmPerformanceData = [
     { segment: 'Champions', clients: 1, orders: 10, totalRevenue: 4250.5, avgRevenue: 425.05, avgRecency: 652.40, avgFrequency: 3.00, color: 'bg-yellow-300' },
-    { segment: 'Loyals', clients: 0, orders: 0, totalRevenue: 0, avgRevenue: 0, avgRecency: 0, avgFrequency: 0, color: 'bg-green-400' },
+    { segment: 'Loyal Customers', clients: 2, orders: 15, totalRevenue: 2350.75, avgRevenue: 156.72, avgRecency: 610.10, avgFrequency: 2.50, color: 'bg-green-400' },
     { segment: 'Potential Loyalists', clients: 18, orders: 129, totalRevenue: 46075.33, avgRevenue: 357.17, avgRecency: 604.36, avgFrequency: 2.12, color: 'bg-green-300' },
-    { segment: 'New', clients: 29, orders: 155, totalRevenue: 54078.16, avgRevenue: 348.89, avgRecency: 682.14, avgFrequency: 0.61, color: 'bg-green-200' },
+    { segment: 'New Customers', clients: 29, orders: 155, totalRevenue: 54078.16, avgRevenue: 348.89, avgRecency: 682.14, avgFrequency: 0.61, color: 'bg-green-200' },
     { segment: 'Promising', clients: 12, orders: 63, totalRevenue: 20319.98, avgRevenue: 322.54, avgRecency: 622.10, avgFrequency: 1.21, color: 'bg-blue-200' },
     { segment: 'Need attention', clients: 4, orders: 36, totalRevenue: 14096.16, avgRevenue: 391.56, avgRecency: 510.92, avgFrequency: 3.53, color: 'bg-orange-300' },
     { segment: 'About to sleep', clients: 11, orders: 75, totalRevenue: 24891.87, avgRevenue: 331.89, avgRecency: 577.53, avgFrequency: 1.89, color: 'bg-red-300' },
     { segment: 'Cannot lose them', clients: 10, orders: 99, totalRevenue: 36146.41, avgRevenue: 365.12, avgRecency: 428.27, avgFrequency: 5.45, color: 'bg-red-500 text-white' },
-    { segment: 'At risk', clients: 27, orders: 208, totalRevenue: 69808.42, avgRevenue: 335.62, avgRecency: 440.65, avgFrequency: 3.62, color: 'bg-red-400' },
+    { segment: 'At Risk', clients: 27, orders: 208, totalRevenue: 69808.42, avgRevenue: 335.62, avgRecency: 440.65, avgFrequency: 3.62, color: 'bg-red-400' },
     { segment: 'Lost', clients: 14, orders: 95, totalRevenue: 30976.29, avgRevenue: 326.07, avgRecency: 559.33, avgFrequency: 1.93, color: 'bg-gray-400 text-white' },
 ];
 
@@ -102,6 +106,8 @@ export default function ReportsPage() {
   
   const [productData, setProductData] = useState<ProductPerformanceData[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+
+  const [selectedRfmSegment, setSelectedRfmSegment] = useState<string | null>(null);
 
   const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
       clients: acc.clients + curr.clients,
@@ -132,6 +138,13 @@ export default function ReportsPage() {
     }
     return sortableItems;
   }, [productData, sortConfig]);
+  
+  const topCustomersData = useMemo(() => {
+    if (!selectedRfmSegment) {
+        return allTopCustomers;
+    }
+    return allTopCustomers.filter(customer => customer.segment === selectedRfmSegment);
+  }, [selectedRfmSegment]);
 
   const requestSort = (key: SortKey) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -273,7 +286,7 @@ export default function ReportsPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {sortedProductData.map((item) => (
-                                    <TableRow key={item.name} className="cursor-pointer hover:bg-muted">
+                                    <TableRow key={item.name}>
                                         <TableCell className="font-medium">{item.name}</TableCell>
                                         <TableCell>{item.category}</TableCell>
                                         <TableCell className="text-right">{item.quantity}</TableCell>
@@ -419,7 +432,22 @@ export default function ReportsPage() {
                     </Card>
                     <Card className="lg:col-span-2">
                         <CardHeader>
-                            <CardTitle className="font-headline">Top Spending Customers</CardTitle>
+                            <div className='flex justify-between items-start'>
+                                <div>
+                                    <CardTitle className="font-headline">Top Spending Customers</CardTitle>
+                                    {selectedRfmSegment && (
+                                        <CardDescription>
+                                            Showing customers in the "{selectedRfmSegment}" segment.
+                                        </CardDescription>
+                                    )}
+                                </div>
+                                {selectedRfmSegment && (
+                                    <Button variant="ghost" size="sm" onClick={() => setSelectedRfmSegment(null)}>
+                                        <XIcon className="mr-2 h-4 w-4" />
+                                        Clear
+                                    </Button>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -451,7 +479,7 @@ export default function ReportsPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Overview of RFM Segments</CardTitle>
-                        <CardDescription>Detailed performance metrics for each customer segment.</CardDescription>
+                        <CardDescription>Detailed performance metrics for each customer segment. Click a row to filter customers.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -468,7 +496,14 @@ export default function ReportsPage() {
                             </TableHeader>
                             <TableBody>
                                 {rfmPerformanceData.map((item) => (
-                                    <TableRow key={item.segment} className="cursor-pointer hover:bg-muted">
+                                    <TableRow 
+                                        key={item.segment} 
+                                        className={cn(
+                                            "cursor-pointer",
+                                            selectedRfmSegment === item.segment && "bg-muted/80"
+                                        )}
+                                        onClick={() => setSelectedRfmSegment(item.segment)}
+                                    >
                                         <TableCell>
                                             <Badge className={cn('text-xs', item.color)}>{item.segment}</Badge>
                                         </TableCell>
@@ -535,5 +570,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    
 
     
