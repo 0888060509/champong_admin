@@ -12,7 +12,7 @@ import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis, LineChart, Line } from 'recharts';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -86,6 +86,15 @@ const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
     orders: acc.orders + curr.orders,
     totalRevenue: acc.totalRevenue + curr.totalRevenue,
 }), { clients: 0, orders: 0, totalRevenue: 0 });
+
+const customerTrendsData = [
+    { month: 'Jan', newCustomers: 120, returningCustomers: 450, averageClv: 280 },
+    { month: 'Feb', newCustomers: 150, returningCustomers: 480, averageClv: 285 },
+    { month: 'Mar', newCustomers: 180, returningCustomers: 520, averageClv: 290 },
+    { month: 'Apr', newCustomers: 160, returningCustomers: 510, averageClv: 295 },
+    { month: 'May', newCustomers: 200, returningCustomers: 550, averageClv: 305 },
+    { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
+];
 
 
 export default function ReportsPage() {
@@ -429,6 +438,30 @@ export default function ReportsPage() {
                         </Table>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Customer Trends Over Time</CardTitle>
+                        <CardDescription>Monthly trends for key customer metrics.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={350}>
+                            <LineChart
+                                data={customerTrendsData}
+                                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="month" />
+                                <YAxis yAxisId="left" label={{ value: 'Number of Customers', angle: -90, position: 'insideLeft' }} />
+                                <YAxis yAxisId="right" orientation="right" label={{ value: 'Average CLV ($)', angle: 90, position: 'insideRight' }} />
+                                <Tooltip />
+                                <Legend />
+                                <Line yAxisId="left" type="monotone" dataKey="newCustomers" name="New Customers" stroke="hsl(var(--chart-2))" />
+                                <Line yAxisId="left" type="monotone" dataKey="returningCustomers" name="Returning Customers" stroke="hsl(var(--chart-1))" />
+                                <Line yAxisId="right" type="monotone" dataKey="averageClv" name="Average CLV" stroke="hsl(var(--chart-3))" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
             </TabsContent>
         </Tabs>
     </div>
@@ -447,5 +480,3 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
-
-    
