@@ -37,6 +37,12 @@ const commonlyBoughtWithData = [
     { name: 'Onion Rings', count: 60 },
 ];
 
+const branchPerformanceData = [
+    { name: 'Main Street Cafe', netRevenue: 45231, totalOrders: 1234, aov: 36.65, avgRating: 4.8, onlineOfflineRatio: '60/40' },
+    { name: 'Downtown Deli', netRevenue: 38765, totalOrders: 1102, aov: 35.18, avgRating: 4.6, onlineOfflineRatio: '75/25' },
+    { name: 'Seaside Grill', netRevenue: 52109, totalOrders: 1450, aov: 35.94, avgRating: 4.9, onlineOfflineRatio: '50/50' },
+];
+
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
@@ -190,14 +196,57 @@ export default function ReportsPage() {
                     </Card>
                 </div>
             </TabsContent>
-            <TabsContent value="branch">
+            <TabsContent value="branch" className="space-y-6 mt-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Branch Performance</CardTitle>
-                        <CardDescription>Comparative analysis of branch metrics.</CardDescription>
+                        <CardTitle className="font-headline">Branch Comparison</CardTitle>
+                        <CardDescription>Comparative analysis of key branch metrics.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p>Branch performance reports will be displayed here.</p>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={branchPerformanceData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--chart-1))" />
+                                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" />
+                                <Tooltip />
+                                <Legend />
+                                <Bar yAxisId="left" dataKey="netRevenue" fill="hsl(var(--chart-1))" name="Net Revenue" />
+                                <Bar yAxisId="right" dataKey="totalOrders" fill="hsl(var(--chart-2))" name="Total Orders" />
+                                <Bar yAxisId="right" dataKey="aov" fill="hsl(var(--chart-3))" name="AOV" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Branch Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Branch</TableHead>
+                                    <TableHead className="text-right">Net Revenue</TableHead>
+                                    <TableHead className="text-right">Total Orders</TableHead>
+                                    <TableHead className="text-right">AOV</TableHead>
+                                    <TableHead className="text-right">Avg. Rating</TableHead>
+                                    <TableHead className="text-right">Online/Offline Ratio</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {branchPerformanceData.map((branch) => (
+                                <TableRow key={branch.name}>
+                                    <TableCell className="font-medium">{branch.name}</TableCell>
+                                    <TableCell className="text-right">${branch.netRevenue.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">{branch.totalOrders.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">${branch.aov.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{branch.avgRating}</TableCell>
+                                    <TableCell className="text-right">{branch.onlineOfflineRatio}</TableCell>
+                                </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             </TabsContent>
