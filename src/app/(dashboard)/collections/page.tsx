@@ -17,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -26,24 +25,27 @@ import { CreateCollectionForm } from './create-collection-form';
 import { Badge } from '@/components/ui/badge';
 import { SegmentationClient } from '../segments/segmentation-client';
 
-type CollectionCondition = {
+export type CollectionCondition = {
+  id?: string;
   type: 'condition';
   criteria: string;
   operator: string;
   value: any;
 };
 
-type CollectionGroup = {
+export type CollectionGroup = {
+    id?: string;
     type: 'group';
     logic: 'AND' | 'OR';
     conditions: (CollectionCondition | CollectionGroup)[];
 };
 
-type Collection = {
+export type Collection = {
   id: string;
   name: string;
+  description?: string;
   productCount: number;
-  rules: CollectionGroup;
+  root: CollectionGroup;
 };
 
 const operatorMap: { [key: string]: string } = {
@@ -81,24 +83,27 @@ export default function CollectionsPage() {
     { 
       id: '1', 
       name: 'High Profit Items', 
+      description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
-      rules: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
     },
     { 
       id: '2', 
       name: 'Low Stock Specials', 
+      description: 'Clear out items that are low in stock.',
       productCount: 8, 
-      rules: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
     },
     { 
       id: '3', 
       name: 'Weekend Dessert Specials', 
+      description: 'Special desserts featured only on weekends.',
       productCount: 4, 
-      rules: { 
+      root: { 
           type: 'group',
-          logic: 'OR', 
+          logic: 'AND', 
           conditions: [
-              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'special'},
+              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
               {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
           ]
       }
@@ -107,7 +112,7 @@ export default function CollectionsPage() {
       id: '4', 
       name: 'Premium Main Courses', 
       productCount: 7, 
-      rules: { 
+      root: { 
           type: 'group',
           logic: 'AND', 
           conditions: [
@@ -117,29 +122,44 @@ export default function CollectionsPage() {
       }
     },
   ]);
-  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isFormOpen, setFormOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  
+  const openForm = (collection: Collection | null = null) => {
+    setEditingCollection(collection);
+    setFormOpen(true);
+  }
 
   const handleSaveCollection = async (data: any) => {
     setIsSaving(true);
-    console.log("Saving collection", data);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    setCollections(prev => [...prev, {
-        id: String(Date.now()),
-        name: data.name,
-        productCount: Math.floor(Math.random() * 20), // Mock customer count
-        rules: data.root,
-    }]);
+    if (editingCollection) { // We are editing
+        setCollections(prev => prev.map(c => c.id === editingCollection.id ? { ...c, ...data, root: data.root, description: data.description } : c));
+        toast({
+            title: "Collection Updated",
+            description: `The collection "${data.name}" has been successfully updated.`,
+        });
+    } else { // We are creating
+        setCollections(prev => [...prev, {
+            id: String(Date.now()),
+            name: data.name,
+            description: data.description,
+            productCount: Math.floor(Math.random() * 20), // Mock customer count
+            root: data.root,
+        }]);
+        toast({
+            title: "Collection Created",
+            description: `The collection "${data.name}" has been successfully created.`,
+        });
+    }
 
     setIsSaving(false);
-    setCreateDialogOpen(false);
-    toast({
-        title: "Collection Created",
-        description: `The collection "${data.name}" has been successfully created.`,
-    });
+    setFormOpen(false);
+    setEditingCollection(null);
   }
 
   const handleDeleteCollection = (collectionId: string) => {
@@ -159,26 +179,9 @@ export default function CollectionsPage() {
                 <CardTitle className="font-headline">Product Collections</CardTitle>
                 <CardDescription>Group products for strategic merchandising on the user-facing app.</CardDescription>
                 </div>
-                <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button>
+                <Button onClick={() => openForm()}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Create Collection
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[625px]">
-                    <DialogHeader>
-                    <DialogTitle>Create New Collection</DialogTitle>
-                    <DialogDescription>
-                        Create a dynamic collection by defining rules and conditions.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <CreateCollectionForm 
-                        onSave={handleSaveCollection} 
-                        onCancel={() => setCreateDialogOpen(false)}
-                        isSaving={isSaving}
-                    />
-                </DialogContent>
-                </Dialog>
+                </Button>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -195,7 +198,7 @@ export default function CollectionsPage() {
                         <TableRow key={collection.id}>
                             <TableCell className="font-medium">{collection.name}</TableCell>
                             <TableCell>
-                                <Badge variant="outline" className="font-mono text-xs">{formatCondition(collection.rules)}</Badge>
+                                <Badge variant="outline" className="font-mono text-xs">{formatCondition(collection.root)}</Badge>
                             </TableCell>
                             <TableCell className="text-right">{collection.productCount}</TableCell>
                             <TableCell className="text-right">
@@ -207,7 +210,7 @@ export default function CollectionsPage() {
                                     </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openForm(collection)}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDeleteCollection(collection.id)} className="text-destructive">Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -219,6 +222,24 @@ export default function CollectionsPage() {
                 </Table>
             </CardContent>
         </Card>
+
+        <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                <DialogTitle>{editingCollection ? "Edit Collection" : "Create New Collection"}</DialogTitle>
+                <DialogDescription>
+                    {editingCollection ? "Modify the rules for this dynamic collection." : "Create a dynamic collection by defining rules and conditions."}
+                </DialogDescription>
+                </DialogHeader>
+                <CreateCollectionForm 
+                    key={editingCollection?.id || 'new'}
+                    onSave={handleSaveCollection} 
+                    onCancel={() => setFormOpen(false)}
+                    isSaving={isSaving}
+                    initialData={editingCollection}
+                />
+            </DialogContent>
+        </Dialog>
 
         <SegmentationClient />
     </div>

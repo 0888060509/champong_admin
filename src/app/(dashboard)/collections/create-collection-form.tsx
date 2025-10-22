@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import type { Collection } from './page';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -53,7 +54,6 @@ const collectionFormSchema = z.object({
     message: 'Collection name must be at least 2 characters.',
   }),
   description: z.string().optional(),
-  matchType: z.enum(['all', 'any']),
   root: conditionGroupSchema,
 });
 
@@ -98,6 +98,7 @@ interface CreateCollectionFormProps {
   onSave: (data: CollectionFormValues) => void;
   onCancel: () => void;
   isSaving: boolean;
+  initialData: Collection | null;
 }
 
 const renderValueInput = (path: string, index: number) => {
@@ -335,16 +336,23 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
                 )}
             </React.Fragment>
         ))}
+        {fields.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">This group is empty. Add a condition or a new group.</p>
+        )}
       </div>
     </div>
   );
 }
 
 
-export function CreateCollectionForm({ onSave, onCancel, isSaving }: CreateCollectionFormProps) {
+export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }: CreateCollectionFormProps) {
   const form = useForm<CollectionFormValues>({
     resolver: zodResolver(collectionFormSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+        name: initialData.name,
+        description: initialData.description || '',
+        root: initialData.root,
+    } : {
       name: '',
       description: '',
       root: {
@@ -384,7 +392,7 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving }: CreateColle
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Description (Optional)</FormLabel>
               <FormControl>
                 <Textarea placeholder="An internal description for this collection." {...field} />
               </FormControl>
