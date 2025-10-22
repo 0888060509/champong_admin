@@ -339,7 +339,7 @@ export default function ReportsPage() {
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value, name) => [`${value}%`, name]}/>
-                                <Legend onClick={(e) => handlePieClick(e.payload as any)} />
+                                <Legend onClick={(e) => handlePieClick(e.payload as any)} className="cursor-pointer" />
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -696,8 +696,4 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-
     
-
-    
-
