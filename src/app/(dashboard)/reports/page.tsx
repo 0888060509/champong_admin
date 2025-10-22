@@ -152,6 +152,8 @@ export default function ReportsPage() {
                                         <TableHead>Category</TableHead>
                                         <TableHead className="text-right">Qty Sold</TableHead>
                                         <TableHead className="text-right">Net Revenue</TableHead>
+                                        <TableHead className="text-right">COGS</TableHead>
+                                        <TableHead className="text-right">Gross Profit</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -161,6 +163,8 @@ export default function ReportsPage() {
                                         <TableCell>{item.category}</TableCell>
                                         <TableCell className="text-right">{item.quantity}</TableCell>
                                         <TableCell className="text-right">${item.netRevenue.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">${item.cogs.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">${item.profit.toFixed(2)}</TableCell>
                                     </TableRow>
                                     ))}
                                 </TableBody>
