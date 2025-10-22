@@ -36,7 +36,7 @@ import { Separator } from '@/components/ui/separator';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
-  type: z.literal('condition'),
+  type: z.string().describe("Must be the string 'condition'"),
   criteria: z.enum(['category', 'price', 'profit_margin', 'stock_level', 'tags']),
   operator: z.enum(['eq', 'neq', 'gte', 'lte', 'contains']),
   value: z.union([z.string().min(1), z.number().min(0)]),
@@ -45,7 +45,7 @@ const conditionSchema = z.object({
 const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
   z.object({
     id: z.string().optional(),
-    type: z.literal('group'),
+    type: z.string().describe("Must be the string 'group'"),
     logic: z.enum(['AND', 'OR']),
     conditions: z.array(z.union([conditionSchema, conditionGroupSchema])),
   })
