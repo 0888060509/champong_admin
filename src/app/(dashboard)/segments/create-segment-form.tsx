@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import type { Segment } from './page';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -48,7 +49,7 @@ const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
   })
 );
 
-const segmentFormSchema = z.object({
+export const segmentFormSchema = z.object({
   name: z.string().min(2, {
     message: 'Segment name must be at least 2 characters.',
   }),
@@ -92,7 +93,7 @@ interface CreateSegmentFormProps {
   onSave: (data: SegmentFormValues) => void;
   onCancel: () => void;
   isSaving: boolean;
-  initialData?: { name?: string, description?: string };
+  initialData: Partial<Segment> | null;
 }
 
 const renderValueInput = (path: string, index: number) => {
@@ -362,9 +363,20 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
 export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: CreateSegmentFormProps) {
   const form = useForm<SegmentFormValues>({
     resolver: zodResolver(segmentFormSchema),
-    defaultValues: {
-      name: initialData?.name || '',
-      description: initialData?.description || '',
+    defaultValues: initialData ? {
+        name: initialData.name || '',
+        description: initialData.description || '',
+        root: initialData.root || {
+            id: crypto.randomUUID(),
+            type: 'group',
+            logic: 'AND',
+            conditions: [
+              { id: crypto.randomUUID(), type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 100 },
+            ],
+        },
+    } : {
+      name: '',
+      description: '',
       root: {
         id: crypto.randomUUID(),
         type: 'group',

@@ -18,17 +18,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CreateSegmentForm } from './create-segment-form';
+import { CreateSegmentForm, segmentFormSchema } from './create-segment-form';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SegmentationClient } from './segmentation-client';
+import type { SuggestedSegment } from '@/ai/flows/suggest-customer-segments-with-rules';
+import type { z } from 'zod';
 
-type Segment = {
+export type Condition = {
+  id?: string;
+  type: 'condition';
+  criteria: string;
+  operator: string;
+  value: any;
+};
+
+export type ConditionGroup = {
+    id?: string;
+    type: 'group';
+    logic: 'AND' | 'OR';
+    conditions: (Condition | ConditionGroup)[];
+};
+
+export type Segment = {
   id: string;
   name: string;
   description?: string;
   customers: number;
+  root?: ConditionGroup;
 };
 
 export default function SegmentsPage() {
@@ -40,9 +58,9 @@ export default function SegmentsPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const [initialSegmentData, setInitialSegmentData] = useState<{ name?: string, description?: string } | undefined>(undefined);
+  const [initialSegmentData, setInitialSegmentData] = useState<Partial<Segment> | null>(null);
 
-  const handleSaveSegment = async (data: any) => {
+  const handleSaveSegment = async (data: z.infer<typeof segmentFormSchema>) => {
     setIsSaving(true);
     console.log("Saving segment", data);
     // Simulate API call
@@ -52,22 +70,33 @@ export default function SegmentsPage() {
         id: String(Date.now()),
         name: data.name,
         description: data.description,
-        customers: Math.floor(Math.random() * 200) // Mock customer count
+        customers: Math.floor(Math.random() * 200), // Mock customer count
+        root: data.root,
     }]);
 
     setIsSaving(false);
     setCreateDialogOpen(false);
+    setInitialSegmentData(null);
     toast({
         title: "Segment Created",
         description: `The segment "${data.name}" has been successfully created.`,
     });
   }
 
-  const openCreateDialog = (data?: { name: string, description: string }) => {
+  const openCreateDialog = (data: Partial<Segment> | null = null) => {
     setInitialSegmentData(data);
     setCreateDialogOpen(true);
   }
   
+  const handleSuggestionClick = (suggestion: SuggestedSegment) => {
+    const segmentData = {
+      name: suggestion.name,
+      description: suggestion.description,
+      root: suggestion.suggestedConditions,
+    };
+    openCreateDialog(segmentData);
+  };
+
   return (
     <div className="space-y-6">
     <Card>
@@ -118,7 +147,12 @@ export default function SegmentsPage() {
         </CardContent>
     </Card>
 
-    <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+    <Dialog open={isCreateDialogOpen} onOpenChange={(isOpen) => {
+      setCreateDialogOpen(isOpen);
+      if (!isOpen) {
+        setInitialSegmentData(null);
+      }
+    }}>
       <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
           <DialogTitle>Create New Segment</DialogTitle>
@@ -127,7 +161,7 @@ export default function SegmentsPage() {
           </DialogDescription>
           </DialogHeader>
           <CreateSegmentForm 
-            key={initialSegmentData?.name}
+            key={initialSegmentData ? initialSegmentData.name : 'new'}
             initialData={initialSegmentData}
             onSave={handleSaveSegment} 
             onCancel={() => setCreateDialogOpen(false)}
@@ -136,7 +170,7 @@ export default function SegmentsPage() {
       </DialogContent>
     </Dialog>
 
-    <SegmentationClient onSuggestionClick={openCreateDialog} />
+    <SegmentationClient onSuggestionClick={handleSuggestionClick} />
 
     </div>
   );

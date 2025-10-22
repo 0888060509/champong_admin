@@ -25,6 +25,7 @@ import { CreateCollectionForm } from './create-collection-form';
 import { Badge } from '@/components/ui/badge';
 import { SegmentationClient } from '../segments/segmentation-client';
 import Link from 'next/link';
+import type { SuggestedSegment } from '@/ai/flows/suggest-customer-segments-with-rules';
 
 export type CollectionCondition = {
   id?: string;
@@ -181,8 +182,15 @@ export default function CollectionsPage() {
     openForm(newCollectionData);
   }
   
-  const handleSuggestionClick = (suggestion: {name: string, description: string}) => {
-    openForm({ name: suggestion.name, description: suggestion.description });
+  const handleSuggestionClick = (suggestion: SuggestedSegment) => {
+    // The AI flow for segments returns rules for segments. We can adapt them for collections.
+    // This is a simplification. A real app might have a dedicated AI flow for collection rules.
+    const collectionData = {
+      name: suggestion.name,
+      description: suggestion.description,
+      root: suggestion.suggestedConditions as CollectionGroup, // Cast needed, as criteria differ
+    };
+    openForm(collectionData);
   }
 
   return (
