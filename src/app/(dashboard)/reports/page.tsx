@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // Mock Data
 const productPerformanceData = [
@@ -448,4 +448,5 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+    
     
