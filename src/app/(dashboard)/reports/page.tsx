@@ -13,7 +13,7 @@ import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis, LineChart, Line, ReferenceLine } from 'recharts';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -101,6 +101,10 @@ const customerTrendsData = [
     { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
 ];
 
+const generateProductPerformanceData = () => {
+    return allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) }));
+};
+
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
@@ -123,17 +127,13 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // Simulate initial data fetch
-    setProductData(allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) })));
+    setProductData(generateProductPerformanceData());
   }, []);
 
   useEffect(() => {
     if (!isClient) return;
-    // This is a simulation of data filtering.
-    // In a real app, you would fetch new data based on `date` and `selectedBranch`.
     console.log(`Filtering data for branch: ${selectedBranch} and date range:`, date);
-    // Just re-randomize data to show a change
-    setProductData(allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) })));
+    setProductData(generateProductPerformanceData());
   }, [date, selectedBranch, isClient]);
 
   const filteredAndSortedProductData = useMemo(() => {
@@ -189,6 +189,22 @@ export default function ReportsPage() {
     const categoryName = data.name;
     setSelectedCategory(current => current === categoryName ? null : categoryName);
   };
+  
+  const branchAverages = useMemo(() => {
+    const totalRevenue = branchPerformanceData.reduce((acc, branch) => acc + branch.netRevenue, 0);
+    const totalOrders = branchPerformanceData.reduce((acc, branch) => acc + branch.totalOrders, 0);
+    return {
+        avgRevenue: totalRevenue / branchPerformanceData.length,
+        avgOrders: totalOrders / branchPerformanceData.length,
+    }
+  }, []);
+  
+  const branchMaxValues = useMemo(() => {
+      return {
+          maxRevenue: Math.max(...branchPerformanceData.map(b => b.netRevenue)),
+          maxOrders: Math.max(...branchPerformanceData.map(b => b.totalOrders)),
+      }
+  }, []);
 
 
   return (
@@ -287,7 +303,7 @@ export default function ReportsPage() {
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    outerRadius={100}
+                                    outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="value"
                                     onClick={handlePieClick}
@@ -303,7 +319,7 @@ export default function ReportsPage() {
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value, name) => [`${value}%`, name]}/>
-                                <Legend onClick={(data) => handlePieClick(data)}/>
+                                <Legend onClick={(e) => handlePieClick(e.payload)} />
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -397,6 +413,8 @@ export default function ReportsPage() {
                                 <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" />
                                 <Tooltip />
                                 <Legend />
+                                <ReferenceLine yAxisId="left" y={branchAverages.avgRevenue} label="Avg Revenue" stroke="hsl(var(--chart-1))" strokeDasharray="3 3" />
+                                <ReferenceLine yAxisId="right" y={branchAverages.avgOrders} label="Avg Orders" stroke="hsl(var(--chart-2))" strokeDasharray="3 3" />
                                 <Bar yAxisId="left" dataKey="netRevenue" fill="hsl(var(--chart-1))" name="Net Revenue" />
                                 <Bar yAxisId="right" dataKey="totalOrders" fill="hsl(var(--chart-2))" name="Total Orders" />
                                 <Bar yAxisId="right" dataKey="aov" fill="hsl(var(--chart-3))" name="AOV" />
@@ -424,8 +442,18 @@ export default function ReportsPage() {
                                 {branchPerformanceData.map((branch) => (
                                 <TableRow key={branch.name}>
                                     <TableCell className="font-medium">{branch.name}</TableCell>
-                                    <TableCell className="text-right">${branch.netRevenue.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right">{branch.totalOrders.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="relative h-6">
+                                            <div className="absolute left-0 top-0 h-full bg-blue-200 dark:bg-blue-800/50 rounded" style={{ width: `${(branch.netRevenue / branchMaxValues.maxRevenue) * 100}%`}}></div>
+                                            <span className="absolute inset-0 flex items-center justify-end pr-2">${branch.netRevenue.toLocaleString()}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="relative h-6">
+                                            <div className="absolute left-0 top-0 h-full bg-teal-200 dark:bg-teal-800/50 rounded" style={{ width: `${(branch.totalOrders / branchMaxValues.maxOrders) * 100}%`}}></div>
+                                            <span className="absolute inset-0 flex items-center justify-end pr-2">{branch.totalOrders.toLocaleString()}</span>
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="text-right">${branch.aov.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{branch.avgRating}</TableCell>
                                     <TableCell className="text-right">{branch.onlineOfflineRatio}</TableCell>
@@ -634,3 +662,6 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+
+    
