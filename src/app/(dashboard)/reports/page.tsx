@@ -220,6 +220,12 @@ export default function ReportsPage() {
       }
   }, []);
 
+  const getRfmBadge = (segment: string) => {
+    const perfData = rfmPerformanceData.find(s => s.segment === segment);
+    if (!perfData) return <Badge variant="outline">{segment}</Badge>;
+    return <Badge className={cn('text-xs', perfData.color)}>{segment}</Badge>;
+  }
+
 
   return (
     <div className="space-y-6">
@@ -571,6 +577,7 @@ export default function ReportsPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Customer</TableHead>
+                                        <TableHead>Segment</TableHead>
                                         <TableHead className="text-right">Total Spent</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -582,9 +589,10 @@ export default function ReportsPage() {
                                                     <Avatar className="h-8 w-8">
                                                         <AvatarFallback>{customer.avatar}</AvatarFallback>
                                                     </Avatar>
-                                                    <span>{customer.name}</span>
+                                                    <span className="font-medium">{customer.name}</span>
                                                 </div>
                                             </TableCell>
+                                            <TableCell>{getRfmBadge(customer.segment)}</TableCell>
                                             <TableCell className="text-right font-medium">${customer.totalSpent.toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))}
@@ -692,3 +700,4 @@ const CustomTooltip = ({ active, payload }: any) => {
     
 
     
+
