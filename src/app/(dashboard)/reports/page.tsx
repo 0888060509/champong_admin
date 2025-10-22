@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 // Mock Data
 const productPerformanceData = [
@@ -65,6 +67,26 @@ const topCustomersData = [
     { id: '4', name: 'Olivia Smith', avatar: 'O', totalSpent: 850.75 },
     { id: '5', name: 'James Dean', avatar: 'J', totalSpent: 780.00 },
 ];
+
+const rfmPerformanceData = [
+    { segment: 'Champions', clients: 1, orders: 10, totalRevenue: 4250.5, avgRevenue: 425.05, avgRecency: 652.40, avgFrequency: 3.00, color: 'bg-yellow-300' },
+    { segment: 'Loyals', clients: 0, orders: 0, totalRevenue: 0, avgRevenue: 0, avgRecency: 0, avgFrequency: 0, color: 'bg-green-400' },
+    { segment: 'Potential Loyalists', clients: 18, orders: 129, totalRevenue: 46075.33, avgRevenue: 357.17, avgRecency: 604.36, avgFrequency: 2.12, color: 'bg-green-300' },
+    { segment: 'New', clients: 29, orders: 155, totalRevenue: 54078.16, avgRevenue: 348.89, avgRecency: 682.14, avgFrequency: 0.61, color: 'bg-green-200' },
+    { segment: 'Promising', clients: 12, orders: 63, totalRevenue: 20319.98, avgRevenue: 322.54, avgRecency: 622.10, avgFrequency: 1.21, color: 'bg-blue-200' },
+    { segment: 'Need attention', clients: 4, orders: 36, totalRevenue: 14096.16, avgRevenue: 391.56, avgRecency: 510.92, avgFrequency: 3.53, color: 'bg-orange-300' },
+    { segment: 'About to sleep', clients: 11, orders: 75, totalRevenue: 24891.87, avgRevenue: 331.89, avgRecency: 577.53, avgFrequency: 1.89, color: 'bg-red-300' },
+    { segment: 'Cannot lose them', clients: 10, orders: 99, totalRevenue: 36146.41, avgRevenue: 365.12, avgRecency: 428.27, avgFrequency: 5.45, color: 'bg-red-500 text-white' },
+    { segment: 'At risk', clients: 27, orders: 208, totalRevenue: 69808.42, avgRevenue: 335.62, avgRecency: 440.65, avgFrequency: 3.62, color: 'bg-red-400' },
+    { segment: 'Lost', clients: 14, orders: 95, totalRevenue: 30976.29, avgRevenue: 326.07, avgRecency: 559.33, avgFrequency: 1.93, color: 'bg-gray-400 text-white' },
+];
+
+const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
+    clients: acc.clients + curr.clients,
+    orders: acc.orders + curr.orders,
+    totalRevenue: acc.totalRevenue + curr.totalRevenue,
+}), { clients: 0, orders: 0, totalRevenue: 0 });
+
 
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -324,7 +346,7 @@ export default function ReportsPage() {
                                     <XAxis type="number" dataKey="x" name="Recency Score" label={{ value: 'Recency ->', position: 'insideBottom', offset: -10 }} />
                                     <YAxis type="number" dataKey="y" name="Frequency & Monetary Score" label={{ value: 'Freq & Monetary ->', angle: -90, position: 'insideLeft' }}/>
                                     <ZAxis type="number" dataKey="z" range={[100, 1000]} name="customers" />
-                                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={CustomTooltip} />
+                                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                                     <Legend formatter={(value, entry) => <span className="text-muted-foreground">{entry.payload?.name}</span>}/>
                                     <Scatter name="Segments" data={rfmSegmentsData} fill="hsl(var(--primary))" />
                                 </ScatterChart>
@@ -362,6 +384,51 @@ export default function ReportsPage() {
                         </CardContent>
                     </Card>
                  </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Overview of RFM Segments</CardTitle>
+                        <CardDescription>Detailed performance metrics for each customer segment.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Segments</TableHead>
+                                    <TableHead className="text-right"># Clients</TableHead>
+                                    <TableHead className="text-right"># Orders</TableHead>
+                                    <TableHead className="text-right">Total Revenue</TableHead>
+                                    <TableHead className="text-right">Avg Revenue</TableHead>
+                                    <TableHead className="text-right">Avg Recency</TableHead>
+                                    <TableHead className="text-right">Avg Frequency</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {rfmPerformanceData.map((item) => (
+                                    <TableRow key={item.segment}>
+                                        <TableCell>
+                                            <Badge className={cn('text-xs', item.color)}>{item.segment}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">{item.clients}</TableCell>
+                                        <TableCell className="text-right">{item.orders}</TableCell>
+                                        <TableCell className="text-right">${item.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                        <TableCell className="text-right">${item.avgRevenue.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">{item.avgRecency.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">{item.avgFrequency.toFixed(2)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <CardFooter className="font-bold">
+                                <TableRow>
+                                    <TableCell>Total</TableCell>
+                                    <TableCell className="text-right">{rfmTotals.clients}</TableCell>
+                                    <TableCell className="text-right">{rfmTotals.orders}</TableCell>
+                                    <TableCell className="text-right">${rfmTotals.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                    <TableCell colSpan={3}></TableCell>
+                                </TableRow>
+                            </CardFooter>
+                        </Table>
+                    </CardContent>
+                </Card>
             </TabsContent>
         </Tabs>
     </div>
@@ -380,3 +447,5 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    
