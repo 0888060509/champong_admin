@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { CreateCollectionForm } from './create-collection-form';
 
 type Collection = {
   id: string;
@@ -41,11 +42,23 @@ export default function CollectionsPage() {
   const { toast } = useToast();
 
   const handleSaveCollection = async (data: any) => {
-    // This will be implemented in a future step
+    setIsSaving(true);
     console.log("Saving collection", data);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setCollections(prev => [...prev, {
+        id: String(Date.now()),
+        name: data.name,
+        productCount: Math.floor(Math.random() * 20), // Mock customer count
+        type: 'Dynamic'
+    }]);
+
+    setIsSaving(false);
+    setCreateDialogOpen(false);
     toast({
         title: "Collection Created",
-        description: `The collection has been successfully created.`,
+        description: `The collection "${data.name}" has been successfully created.`,
     });
   }
   
@@ -66,10 +79,14 @@ export default function CollectionsPage() {
                 <DialogHeader>
                 <DialogTitle>Create New Collection</DialogTitle>
                 <DialogDescription>
-                    Define a new product collection.
+                    Create a dynamic collection by defining rules and conditions.
                 </DialogDescription>
                 </DialogHeader>
-                <p className="text-center py-8">The form to create dynamic collections will be implemented here.</p>
+                 <CreateCollectionForm 
+                    onSave={handleSaveCollection} 
+                    onCancel={() => setCreateDialogOpen(false)}
+                    isSaving={isSaving}
+                />
             </DialogContent>
             </Dialog>
         </CardHeader>
