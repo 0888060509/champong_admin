@@ -39,7 +39,7 @@ const revenueByCategoryData = [
     { name: 'Drinks', value: 15 },
 ];
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
+const PIE_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
 const commonlyBoughtWithData = [
     { name: 'Fries', count: 120 },
@@ -66,6 +66,15 @@ const rfmSegmentsData = [
     { x: 1.5, y: 1.2, z: 300, name: 'Hibernating', customers: 210 },
     { x: 2.5, y: 1.8, z: 250, name: 'At Risk', customers: 180 },
 ];
+
+const RFM_COLORS: { [key: string]: string } = {
+    'Champions': 'hsl(var(--chart-1))',
+    'Loyal Customers': 'hsl(var(--chart-2))',
+    'Potential Loyalists': 'hsl(var(--chart-3))',
+    'New Customers': 'hsl(var(--chart-4))',
+    'Hibernating': 'hsl(var(--muted-foreground))',
+    'At Risk': 'hsl(var(--chart-5))',
+};
 
 const allTopCustomers = [
     { id: '1', name: 'Noah Williams', avatar: 'N', totalSpent: 2300.00, segment: 'Champions' },
@@ -126,6 +135,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setIsClient(true);
+    setProductData(generateProductPerformanceData());
   }, []);
 
   useEffect(() => {
@@ -315,7 +325,7 @@ export default function ReportsPage() {
                                     {revenueByCategoryData.map((entry, index) => (
                                         <Cell 
                                             key={`cell-${index}`} 
-                                            fill={COLORS[index % COLORS.length]} 
+                                            fill={PIE_COLORS[index % PIE_COLORS.length]} 
                                             className="cursor-pointer"
                                             stroke={selectedCategory === entry.name ? 'hsl(var(--foreground))' : ''}
                                             strokeWidth={2}
@@ -520,8 +530,19 @@ export default function ReportsPage() {
                                     <YAxis type="number" dataKey="y" name="Frequency & Monetary Score" label={{ value: 'Freq & Monetary ->', angle: -90, position: 'insideLeft' }}/>
                                     <ZAxis type="number" dataKey="z" range={[100, 1000]} name="customers" />
                                     <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                                    <Legend formatter={(value, entry) => <span className="text-muted-foreground">{entry.payload?.name}</span>}/>
-                                    <Scatter name="Segments" data={rfmSegmentsData} fill="hsl(var(--primary))" className="cursor-pointer" onClick={handleScatterClick} />
+                                    <Legend />
+                                    <Scatter name="Segments" data={rfmSegmentsData} className="cursor-pointer" onClick={handleScatterClick} >
+                                        {rfmSegmentsData.map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={RFM_COLORS[entry.name] || 'hsl(var(--primary))'}
+                                                className={cn(
+                                                    "transition-opacity",
+                                                    selectedRfmSegment && selectedRfmSegment !== entry.name ? "opacity-30" : "opacity-100"
+                                                )}
+                                            />
+                                        ))}
+                                    </Scatter>
                                 </ScatterChart>
                             </ResponsiveContainer>
                         </CardContent>
