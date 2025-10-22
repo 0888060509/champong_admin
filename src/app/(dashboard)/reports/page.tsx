@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -127,7 +126,6 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setIsClient(true);
-    setProductData(generateProductPerformanceData());
   }, []);
 
   useEffect(() => {
@@ -179,8 +177,8 @@ export default function ReportsPage() {
     
     const percentage = (profit - minProfit) / range;
     
-    if (percentage > 0.8) return 'bg-green-200 dark:bg-green-900/50';
-    if (percentage < 0.2) return 'bg-red-200 dark:bg-red-900/50';
+    if (percentage > 0.8) return 'bg-green-200/50 dark:bg-green-900/50';
+    if (percentage < 0.2) return 'bg-red-200/50 dark:bg-red-900/50';
     
     return '';
   }
@@ -190,6 +188,12 @@ export default function ReportsPage() {
     setSelectedCategory(current => current === categoryName ? null : categoryName);
   };
   
+  const handleScatterClick = (data: any) => {
+    if (data && data.name) {
+      setSelectedRfmSegment(current => current === data.name ? null : data.name);
+    }
+  };
+
   const branchAverages = useMemo(() => {
     const totalRevenue = branchPerformanceData.reduce((acc, branch) => acc + branch.netRevenue, 0);
     const totalOrders = branchPerformanceData.reduce((acc, branch) => acc + branch.totalOrders, 0);
@@ -306,7 +310,7 @@ export default function ReportsPage() {
                                     outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="value"
-                                    onClick={handlePieClick}
+                                    onClick={(e) => handlePieClick(e)}
                                 >
                                     {revenueByCategoryData.map((entry, index) => (
                                         <Cell 
@@ -319,7 +323,7 @@ export default function ReportsPage() {
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value, name) => [`${value}%`, name]}/>
-                                <Legend onClick={(e) => handlePieClick(e.payload)} />
+                                <Legend onClick={(e) => handlePieClick(e.payload as any)} />
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -506,7 +510,7 @@ export default function ReportsPage() {
                     <Card className="lg:col-span-3">
                         <CardHeader>
                             <CardTitle className="font-headline">RFM Customer Segmentation</CardTitle>
-                            <CardDescription>Recency, Frequency & Monetary analysis.</CardDescription>
+                            <CardDescription>Recency, Frequency & Monetary analysis. Click a bubble or table row to filter.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <ResponsiveContainer width="100%" height={350}>
@@ -517,7 +521,7 @@ export default function ReportsPage() {
                                     <ZAxis type="number" dataKey="z" range={[100, 1000]} name="customers" />
                                     <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                                     <Legend formatter={(value, entry) => <span className="text-muted-foreground">{entry.payload?.name}</span>}/>
-                                    <Scatter name="Segments" data={rfmSegmentsData} fill="hsl(var(--primary))" />
+                                    <Scatter name="Segments" data={rfmSegmentsData} fill="hsl(var(--primary))" className="cursor-pointer" onClick={handleScatterClick} />
                                 </ScatterChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -594,7 +598,7 @@ export default function ReportsPage() {
                                             "cursor-pointer",
                                             selectedRfmSegment === item.segment && "bg-muted/80"
                                         )}
-                                        onClick={() => setSelectedRfmSegment(item.segment)}
+                                        onClick={() => setSelectedRfmSegment(current => current === item.segment ? null : item.segment)}
                                     >
                                         <TableCell>
                                             <Badge className={cn('text-xs', item.color)}>{item.segment}</Badge>
@@ -663,5 +667,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+
+    
 
     
