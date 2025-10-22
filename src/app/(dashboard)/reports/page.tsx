@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -117,7 +117,7 @@ export default function ReportsPage() {
     // You would update other data sources here as well.
   }, [date, selectedBranch]);
 
-  const sortedProductData = React.useMemo(() => {
+  const sortedProductData = useMemo(() => {
     let sortableItems = [...productData];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
