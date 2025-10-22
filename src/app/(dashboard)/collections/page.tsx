@@ -172,6 +172,14 @@ export default function CollectionsPage() {
     });
   }
   
+  const handleSuggestionClick = (name?: string) => {
+    setEditingCollection(null); // Ensure we are creating a new one
+    // A bit of a hack to pass the name to the form. 
+    // We can't set initialData directly as it's tied to editingCollection.
+    // Instead we'll re-key the form.
+    setFormOpen(true);
+  }
+
   return (
     <div className="space-y-6">
         <Card>
@@ -247,7 +255,7 @@ export default function CollectionsPage() {
             </DialogContent>
         </Dialog>
 
-        <SegmentationClient />
+        <SegmentationClient onSuggestionClick={handleSuggestionClick} />
     </div>
   );
 }
