@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,11 +18,11 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 // Mock Data
-const productPerformanceData = [
-  { name: 'Classic Burger', category: 'Main Course', quantity: 150, grossRevenue: 1948.50, discount: 50.00, netRevenue: 1898.50, cogs: 750, profit: 1148.50 },
-  { name: 'Caesar Salad', category: 'Appetizers', quantity: 200, grossRevenue: 1798.00, discount: 25.50, netRevenue: 1772.50, cogs: 600, profit: 1172.50 },
-  { name: 'Chocolate Lava Cake', category: 'Desserts', quantity: 120, grossRevenue: 900.00, discount: 12.00, netRevenue: 888.00, cogs: 300, profit: 588.00 },
-  { name: 'Iced Tea', category: 'Drinks', quantity: 300, grossRevenue: 1050.00, discount: 0, netRevenue: 1050.00, cogs: 150, profit: 900.00 },
+const generateProductPerformanceData = () => [
+  { name: 'Classic Burger', category: 'Main Course', quantity: 150 + Math.floor(Math.random() * 50), grossRevenue: 1948.50, discount: 50.00, netRevenue: 1898.50, cogs: 750, profit: 1148.50 },
+  { name: 'Caesar Salad', category: 'Appetizers', quantity: 200 + Math.floor(Math.random() * 50), grossRevenue: 1798.00, discount: 25.50, netRevenue: 1772.50, cogs: 600, profit: 1172.50 },
+  { name: 'Chocolate Lava Cake', category: 'Desserts', quantity: 120 + Math.floor(Math.random() * 30), grossRevenue: 900.00, discount: 12.00, netRevenue: 888.00, cogs: 300, profit: 588.00 },
+  { name: 'Iced Tea', category: 'Drinks', quantity: 300 + Math.floor(Math.random() * 100), grossRevenue: 1050.00, discount: 0, netRevenue: 1050.00, cogs: 150, profit: 900.00 },
 ];
 
 const revenueByCategoryData = [
@@ -81,12 +81,6 @@ const rfmPerformanceData = [
     { segment: 'Lost', clients: 14, orders: 95, totalRevenue: 30976.29, avgRevenue: 326.07, avgRecency: 559.33, avgFrequency: 1.93, color: 'bg-gray-400 text-white' },
 ];
 
-const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
-    clients: acc.clients + curr.clients,
-    orders: acc.orders + curr.orders,
-    totalRevenue: acc.totalRevenue + curr.totalRevenue,
-}), { clients: 0, orders: 0, totalRevenue: 0 });
-
 const customerTrendsData = [
     { month: 'Jan', newCustomers: 120, returningCustomers: 450, averageClv: 280 },
     { month: 'Feb', newCustomers: 150, returningCustomers: 480, averageClv: 285 },
@@ -96,12 +90,29 @@ const customerTrendsData = [
     { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
 ];
 
-
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
+  const [selectedBranch, setSelectedBranch] = useState('all');
+  
+  const [filteredProductData, setFilteredProductData] = useState(generateProductPerformanceData());
+
+  const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
+      clients: acc.clients + curr.clients,
+      orders: acc.orders + curr.orders,
+      totalRevenue: acc.totalRevenue + curr.totalRevenue,
+  }), { clients: 0, orders: 0, totalRevenue: 0 });
+
+  useEffect(() => {
+    // This is a simulation of data filtering.
+    // In a real app, you would fetch new data based on `date` and `selectedBranch`.
+    console.log(`Filtering data for branch: ${selectedBranch} and date range:`, date);
+    setFilteredProductData(generateProductPerformanceData());
+    // You would update other data sources here as well.
+  }, [date, selectedBranch]);
+
 
   return (
     <div className="space-y-6">
@@ -152,7 +163,7 @@ export default function ReportsPage() {
                     />
                     </PopoverContent>
                 </Popover>
-                <Select defaultValue="all">
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                     <SelectTrigger className="w-[200px]">
                         <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
@@ -217,7 +228,7 @@ export default function ReportsPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {productPerformanceData.map((item) => (
+                                    {filteredProductData.map((item) => (
                                     <TableRow key={item.name} className="cursor-pointer hover:bg-muted">
                                         <TableCell className="font-medium">{item.name}</TableCell>
                                         <TableCell>{item.category}</TableCell>
@@ -480,3 +491,5 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    
