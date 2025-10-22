@@ -425,6 +425,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: C
         
         <div>
           <FormLabel>Conditions</FormLabel>
+           <FormDescription>Customers must match these conditions to be included in the segment.</FormDescription>
           <div className="mt-2">
             <ConditionGroup path="root" />
           </div>
