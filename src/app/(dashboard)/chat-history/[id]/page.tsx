@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { mockChatSessions } from '@/lib/mock-data';
 import type { ChatSession, ChatMessage } from '@/lib/types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ChatHistoryDetailsPage() {
@@ -27,6 +27,39 @@ export default function ChatHistoryDetailsPage() {
             console.log("Chat session not found!");
         }
     }, [sessionId]);
+
+    const handleExport = () => {
+        if (!session) return;
+
+        let content = `Chat Session Export\n`;
+        content += `====================\n`;
+        content += `Session ID: ${session.id}\n`;
+        content += `Customer: ${session.customerName} (ID: ${session.customerId})\n`;
+        content += `Branch: ${session.branchName}\n`;
+        content += `Handled By: ${session.staffName}\n`;
+        content += `Status: ${session.status}\n`;
+        content += `Last Updated: ${session.lastUpdatedAt.toDate().toLocaleString()}\n`;
+        content += `====================\n\n`;
+
+        session.messages.forEach(msg => {
+            const time = msg.timestamp.toDate().toLocaleString();
+            if (msg.senderType === 'System') {
+                 content += `[${time}] --- ${msg.message} ---\n`;
+            } else {
+                 content += `[${time}] ${msg.senderName}: ${msg.message}\n`;
+            }
+        });
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat_session_${session.id}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     if (!session) {
         return <div>Loading chat details...</div>;
@@ -70,13 +103,19 @@ export default function ChatHistoryDetailsPage() {
 
     return (
         <div className="grid gap-6">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" asChild>
-                    <Link href="/chat-history">
-                        <ArrowLeft className="h-4 w-4" />
-                    </Link>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" asChild>
+                        <Link href="/chat-history">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <h1 className="text-xl font-semibold">Chat Details</h1>
+                </div>
+                 <Button variant="outline" onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export file
                 </Button>
-                <h1 className="text-xl font-semibold">Chat Details</h1>
             </div>
              <Card>
                 <CardHeader>
