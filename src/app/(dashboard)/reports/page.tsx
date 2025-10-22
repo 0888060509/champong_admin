@@ -97,6 +97,20 @@ const customerTrendsData = [
     { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
 ];
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+      {`${name} (${(percent * 100).toFixed(0)}%)`}
+    </text>
+  );
+};
+
+
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
@@ -153,6 +167,20 @@ export default function ReportsPage() {
     }
     setSortConfig({ key, direction });
   };
+  
+  const getProfitCellStyle = (profit: number) => {
+    const profits = sortedProductData.map(p => p.profit);
+    const maxProfit = Math.max(...profits);
+    const minProfit = Math.min(...profits);
+    
+    if (profit === maxProfit) {
+        return 'bg-green-100 dark:bg-green-900/50';
+    }
+    if (profit === minProfit) {
+        return 'bg-red-100 dark:bg-red-900/50';
+    }
+    return '';
+  }
 
 
   return (
@@ -239,14 +267,13 @@ export default function ReportsPage() {
                                     outerRadius={100}
                                     fill="#8884d8"
                                     dataKey="value"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    label={renderCustomizedLabel}
                                 >
                                     {revenueByCategoryData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value, name) => [`${value}%`, name]}/>
-                                <Legend />
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -292,7 +319,7 @@ export default function ReportsPage() {
                                         <TableCell className="text-right">{item.quantity}</TableCell>
                                         <TableCell className="text-right">${item.netRevenue.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">${item.cogs.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">${item.profit.toFixed(2)}</TableCell>
+                                        <TableCell className={cn("text-right", getProfitCellStyle(item.profit))}>${item.profit.toFixed(2)}</TableCell>
                                     </TableRow>
                                     ))}
                                 </TableBody>
