@@ -27,55 +27,94 @@ import { Badge } from '@/components/ui/badge';
 import { SegmentationClient } from '../segments/segmentation-client';
 
 type CollectionCondition = {
+  type: 'condition';
   criteria: string;
   operator: string;
   value: any;
 };
 
-type CollectionLogic = 'AND' | 'OR';
-
-type CollectionRule = {
-    logic: CollectionLogic;
-    conditions: (CollectionCondition | CollectionRule)[];
+type CollectionGroup = {
+    type: 'group';
+    logic: 'AND' | 'OR';
+    conditions: (CollectionCondition | CollectionGroup)[];
 };
 
 type Collection = {
   id: string;
   name: string;
   productCount: number;
-  rules: CollectionRule;
+  rules: CollectionGroup;
 };
 
-const formatCondition = (condition: any): string => {
+const operatorMap: { [key: string]: string } = {
+  eq: '=',
+  neq: '!=',
+  gte: '>=',
+  lte: '<=',
+  contains: 'contains',
+};
+
+const criteriaMap: { [key: string]: string } = {
+    category: 'Category',
+    price: 'Price',
+    profit_margin: 'Profit Margin',
+    stock_level: 'Stock Level',
+    tags: 'Tags'
+}
+
+
+const formatCondition = (condition: CollectionCondition | CollectionGroup): string => {
     if (condition.type === 'group') {
         const nested = condition.conditions.map(formatCondition).join(` ${condition.logic} `);
         return `(${nested})`;
     }
-    return `\`${condition.criteria}\` ${condition.operator} \`${condition.value}\``;
+    const { criteria, operator, value } = condition;
+    const formattedCriteria = criteriaMap[criteria] || criteria;
+    const formattedOperator = operatorMap[operator] || operator;
+    const formattedValue = typeof value === 'string' ? `'${value}'` : value;
+
+    return `${formattedCriteria} ${formattedOperator} ${formattedValue}`;
 }
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([
     { 
       id: '1', 
-      name: 'Best Sellers', 
-      productCount: 5, 
-      rules: { logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
+      name: 'High Profit Items', 
+      productCount: 12, 
+      rules: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
     },
     { 
       id: '2', 
-      name: 'New Arrivals', 
+      name: 'Low Stock Specials', 
       productCount: 8, 
-      rules: { logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
+      rules: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
     },
     { 
       id: '3', 
-      name: 'Weekend Specials', 
+      name: 'Weekend Dessert Specials', 
       productCount: 4, 
-      rules: { logic: 'OR', conditions: [
-          {type: 'condition', criteria: 'tags', operator: 'contains', value: 'special'},
-          {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
-      ]}
+      rules: { 
+          type: 'group',
+          logic: 'OR', 
+          conditions: [
+              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'special'},
+              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
+          ]
+      }
+    },
+     { 
+      id: '4', 
+      name: 'Premium Main Courses', 
+      productCount: 7, 
+      rules: { 
+          type: 'group',
+          logic: 'AND', 
+          conditions: [
+              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Main Course'},
+              {type: 'condition', criteria: 'price', operator: 'gte', value: 25}
+          ]
+      }
     },
   ]);
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
@@ -156,7 +195,7 @@ export default function CollectionsPage() {
                         <TableRow key={collection.id}>
                             <TableCell className="font-medium">{collection.name}</TableCell>
                             <TableCell>
-                                <Badge variant="outline">{formatCondition(collection.rules)}</Badge>
+                                <Badge variant="outline" className="font-mono text-xs">{formatCondition(collection.rules)}</Badge>
                             </TableCell>
                             <TableCell className="text-right">{collection.productCount}</TableCell>
                             <TableCell className="text-right">
