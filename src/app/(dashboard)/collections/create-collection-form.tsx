@@ -32,6 +32,7 @@ import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import type { Collection } from './page';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -55,6 +56,8 @@ const collectionFormSchema = z.object({
     message: 'Collection name must be at least 2 characters.',
   }),
   description: z.string().optional(),
+  publicTitle: z.string().optional(),
+  publicSubtitle: z.string().optional(),
   isActive: z.boolean(),
   root: conditionGroupSchema,
 });
@@ -353,6 +356,8 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     defaultValues: initialData ? {
         name: initialData.name || '',
         description: initialData.description || '',
+        publicTitle: initialData.publicTitle || '',
+        publicSubtitle: initialData.publicSubtitle || '',
         isActive: initialData.isActive !== undefined ? initialData.isActive : true,
         root: initialData.root || {
             id: crypto.randomUUID(),
@@ -365,6 +370,8 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     } : {
       name: '',
       description: '',
+      publicTitle: '',
+      publicSubtitle: '',
       isActive: true,
       root: {
         id: crypto.randomUUID(),
@@ -385,6 +392,7 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
+            <h3 className="text-lg font-medium font-headline">Internal Details</h3>
             <FormField
             control={form.control}
             name="name"
@@ -394,6 +402,7 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
                 <FormControl>
                     <Input placeholder="e.g., Best Sellers, Weekend Specials" {...field} />
                 </FormControl>
+                <FormDescription>This name is for internal use and management.</FormDescription>
                 <FormMessage />
                 </FormItem>
             )}
@@ -412,11 +421,46 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
                 </FormItem>
             )}
             />
+        </div>
+
+        <Separator />
+
+         <div className="space-y-4">
+            <h3 className="text-lg font-medium font-headline">Public Display</h3>
+            <FormDescription>This is what customers will see in the app.</FormDescription>
+
+            <FormField
+            control={form.control}
+            name="publicTitle"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Public Title</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Chef's Recommendations" {...field} />
+                </FormControl>
+                 <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="publicSubtitle"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Public Subtitle (Optional)</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Limited time only!" {...field} />
+                </FormControl>
+                 <FormMessage />
+                </FormItem>
+            )}
+            />
+
              <FormField
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-4">
                     <div className="space-y-0.5">
                         <FormLabel>Status</FormLabel>
                         <FormDescription>
@@ -434,8 +478,10 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
                 />
         </div>
         
+        <Separator />
+
         <div>
-          <FormLabel>Conditions</FormLabel>
+          <h3 className="text-lg font-medium font-headline">Conditions</h3>
           <FormDescription>Products must match these conditions to be included in the collection.</FormDescription>
           <div className="mt-2">
             <ConditionGroup path="root" />

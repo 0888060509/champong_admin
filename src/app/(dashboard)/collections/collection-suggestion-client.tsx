@@ -105,16 +105,17 @@ export function CollectionSuggestionClient({ onSuggestionClick }: CollectionSugg
             <p className="text-sm text-muted-foreground mb-4">Click a suggestion to pre-fill the creation form.</p>
             {isLoading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 p-4 border rounded-lg animate-pulse">
-                        <div className="bg-muted h-5 w-1/2 rounded-md"></div>
-                        <div className="bg-muted h-4 w-3/4 rounded-md"></div>
-                        <div className="bg-muted h-8 w-full rounded-md mt-2"></div>
-                    </div>
-                     <div className="space-y-2 p-4 border rounded-lg animate-pulse">
-                        <div className="bg-muted h-5 w-1/2 rounded-md"></div>
-                        <div className="bg-muted h-4 w-3/4 rounded-md"></div>
-                        <div className="bg-muted h-8 w-full rounded-md mt-2"></div>
-                    </div>
+                    {[...Array(2)].map((_, i) => (
+                      <Card key={i} className="animate-pulse">
+                        <CardHeader>
+                          <div className="bg-muted h-5 w-3/4 rounded-md"></div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="bg-muted h-4 w-full rounded-md"></div>
+                          <div className="bg-muted h-4 w-1/2 rounded-md mt-2"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
             )}
             {suggestions.length > 0 && (
@@ -126,11 +127,12 @@ export function CollectionSuggestionClient({ onSuggestionClick }: CollectionSugg
                             onClick={() => onSuggestionClick(suggestion)}
                         >
                            <CardHeader>
-                               <CardTitle className="text-base font-headline">{suggestion.name}</CardTitle>
-                               <CardDescription className="text-xs">{suggestion.description}</CardDescription>
+                               <CardTitle className="text-base font-headline">{suggestion.publicTitle}</CardTitle>
+                               <CardDescription className="text-xs">{suggestion.publicSubtitle}</CardDescription>
                            </CardHeader>
                            <CardContent>
-                               <Badge variant="outline" className="font-mono text-xs p-1">
+                                <p className="text-xs text-muted-foreground mb-2">Internal Name: {suggestion.name}</p>
+                               <Badge variant="outline" className="font-mono text-xs p-1 whitespace-normal">
                                 {formatCondition(suggestion.suggestedConditions)}
                                </Badge>
                            </CardContent>

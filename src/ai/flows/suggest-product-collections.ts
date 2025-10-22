@@ -35,8 +35,10 @@ const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
 
 // Define the schema for a single suggested collection
 const SuggestedCollectionSchema = z.object({
-    name: z.string().describe("A concise, descriptive name for the product collection."),
-    description: z.string().describe("A short, insightful description for the product collection."),
+    name: z.string().describe("A concise, descriptive name for internal admin use."),
+    description: z.string().describe("A short, insightful description for internal admin use."),
+    publicTitle: z.string().describe("A customer-facing, attractive title for the collection (e.g., 'Weekend Specials')."),
+    publicSubtitle: z.string().describe("A short, catchy subtitle for marketing purposes (e.g., 'Limited time only!')."),
     suggestedConditions: conditionGroupSchema.describe("The set of rules that defines this collection. This should be a logical starting point based on the collection name and description."),
 });
 
@@ -49,7 +51,7 @@ export type ProductCollectionSuggestionInput = z.infer<typeof ProductCollectionS
 const ProductCollectionSuggestionOutputSchema = z.object({
   suggestions: z
     .array(SuggestedCollectionSchema)
-    .describe("An array of 2-3 suggested product collections, each with a name, description, and a set of pre-defined conditions."),
+    .describe("An array of 2-3 suggested product collections, each with internal names, public titles, and a set of pre-defined conditions."),
 });
 export type ProductCollectionSuggestionOutput = z.infer<typeof ProductCollectionSuggestionOutputSchema>;
 export type SuggestedCollection = z.infer<typeof SuggestedCollectionSchema>;
@@ -69,11 +71,15 @@ const prompt = ai.definePrompt({
 Given the user's description, you will suggest 2-3 distinct and relevant product collections.
 
 For each collection, you MUST provide:
-1.  A clear and concise 'name'.
-2.  A brief 'description' for internal use.
-3.  A set of 'suggestedConditions' that logically defines the collection based on the available product criteria.
+1.  'name': A clear and concise name for INTERNAL, administrative use (e.g., "Low Stock Items", "High Profit Mains"). This should be purely logical.
+2.  'description': A brief description for INTERNAL use.
+3.  'publicTitle': An attractive, customer-facing title for display on the app (e.g., "Last Chance to Buy!", "Chef's Recommendations"). This should be marketing-friendly.
+4.  'publicSubtitle': A short, catchy marketing subtitle.
+5.  'suggestedConditions': A set of logical rules that defines the collection.
 
-For conditions, the 'type' field must be either 'condition' for a single rule or 'group' for a nested set of rules.
+IMPORTANT: The internal 'name' and the public 'publicTitle' serve different purposes and should be different. One is for management, the other for marketing. For example, if the user asks for "món bán ế" (slow-selling items), the internal 'name' could be "Slow-Sellers", but the 'publicTitle' should be something appealing like "Limited Stock Specials" or "Last Call".
+
+For conditions, the 'type' field must be either 'condition' or 'group'.
 
 Available criteria for product rules and their value types:
 - 'category': string (e.g., 'Main Course', 'Appetizers', 'Desserts', 'Drinks')

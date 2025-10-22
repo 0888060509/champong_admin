@@ -46,6 +46,8 @@ export type Collection = {
   id: string;
   name: string;
   description?: string;
+  publicTitle?: string;
+  publicSubtitle?: string;
   productCount: number;
   root: CollectionGroup;
   isActive: boolean;
@@ -85,7 +87,8 @@ export default function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([
     { 
       id: '1', 
-      name: 'High Profit Items', 
+      name: 'High Profit Items',
+      publicTitle: "Chef's Recommendations",
       description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
       root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-1', criteria: 'profit_margin', operator: 'gte', value: 40}]},
@@ -94,6 +97,7 @@ export default function CollectionsPage() {
     { 
       id: '2', 
       name: 'Low Stock Specials', 
+      publicTitle: "Last Chance to Buy!",
       description: 'Clear out items that are low in stock.',
       productCount: 8, 
       root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-2', criteria: 'stock_level', operator: 'lte', value: 10}]},
@@ -102,6 +106,7 @@ export default function CollectionsPage() {
     { 
       id: '3', 
       name: 'Weekend Dessert Specials', 
+      publicTitle: "Sweet Weekend Deals",
       description: 'Special desserts featured only on weekends.',
       productCount: 4, 
       root: { 
@@ -118,6 +123,7 @@ export default function CollectionsPage() {
       id: '4', 
       name: 'Premium Main Courses', 
       productCount: 7, 
+      publicTitle: "Premium Entrees",
       description: 'Top-tier main courses for discerning customers.',
       root: { 
           type: 'group',
@@ -154,11 +160,8 @@ export default function CollectionsPage() {
     } else { // We are creating
         setCollections(prev => [...prev, {
             id: String(Date.now()),
-            name: data.name,
-            description: data.description,
             productCount: Math.floor(Math.random() * 20), // Mock customer count
-            root: data.root,
-            isActive: data.isActive,
+            ...data,
         }]);
         toast({
             title: "Collection Created",
@@ -190,9 +193,11 @@ export default function CollectionsPage() {
   }
   
   const handleSuggestionClick = (suggestion: SuggestedCollection) => {
-    const collectionData = {
+    const collectionData: Partial<Collection> = {
       name: suggestion.name,
       description: suggestion.description,
+      publicTitle: suggestion.publicTitle,
+      publicSubtitle: suggestion.publicSubtitle,
       root: suggestion.suggestedConditions,
     };
     openForm(collectionData);
@@ -215,6 +220,7 @@ export default function CollectionsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Collection Name</TableHead>
+                            <TableHead>Public Title</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Conditions</TableHead>
                             <TableHead className="text-right">Products</TableHead>
@@ -230,6 +236,7 @@ export default function CollectionsPage() {
                                 </Link>
                                 <p className="text-xs text-muted-foreground">{collection.description}</p>
                             </TableCell>
+                            <TableCell>{collection.publicTitle}</TableCell>
                             <TableCell>
                                 <Badge variant={collection.isActive ? 'default' : 'secondary'}>
                                     {collection.isActive ? 'Active' : 'Inactive'}
