@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -417,7 +417,7 @@ export default function ReportsPage() {
                                     </TableRow>
                                 ))}
                             </TableBody>
-                            <CardFooter className="font-bold">
+                            <TableFooter className="font-bold">
                                 <TableRow>
                                     <TableCell>Total</TableCell>
                                     <TableCell className="text-right">{rfmTotals.clients}</TableCell>
@@ -425,7 +425,7 @@ export default function ReportsPage() {
                                     <TableCell className="text-right">${rfmTotals.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                                     <TableCell colSpan={3}></TableCell>
                                 </TableRow>
-                            </CardFooter>
+                            </TableFooter>
                         </Table>
                     </CardContent>
                 </Card>
@@ -449,4 +449,6 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
     
+    
+
     
