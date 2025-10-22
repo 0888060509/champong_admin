@@ -171,6 +171,15 @@ export default function CollectionsPage() {
         variant: "destructive"
     });
   }
+
+  const handleDuplicateCollection = (collection: Collection) => {
+    const newCollectionData = {
+        ...collection,
+        id: undefined, // Remove ID to indicate it's a new entity
+        name: `Copy of ${collection.name}`
+    };
+    openForm(newCollectionData);
+  }
   
   const handleSuggestionClick = (suggestion: {name: string, description: string}) => {
     openForm({ name: suggestion.name, description: suggestion.description });
@@ -221,7 +230,7 @@ export default function CollectionsPage() {
                                     <DropdownMenuContent align="end">
                                         <Link href={`/collections/${collection.id}`} passHref><DropdownMenuItem>View Products</DropdownMenuItem></Link>
                                         <DropdownMenuItem onClick={() => openForm(collection)}>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDuplicateCollection(collection)}>Duplicate</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDeleteCollection(collection.id)} className="text-destructive">Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
