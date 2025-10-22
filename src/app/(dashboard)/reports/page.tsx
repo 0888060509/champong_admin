@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Download } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, ArrowUpDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
@@ -24,6 +24,9 @@ const generateProductPerformanceData = () => [
   { name: 'Chocolate Lava Cake', category: 'Desserts', quantity: 120 + Math.floor(Math.random() * 30), grossRevenue: 900.00, discount: 12.00, netRevenue: 888.00, cogs: 300, profit: 588.00 },
   { name: 'Iced Tea', category: 'Drinks', quantity: 300 + Math.floor(Math.random() * 100), grossRevenue: 1050.00, discount: 0, netRevenue: 1050.00, cogs: 150, profit: 900.00 },
 ];
+
+type ProductPerformanceData = ReturnType<typeof generateProductPerformanceData>[0];
+type SortKey = keyof ProductPerformanceData;
 
 const revenueByCategoryData = [
     { name: 'Main Course', value: 45 },
@@ -97,7 +100,8 @@ export default function ReportsPage() {
   });
   const [selectedBranch, setSelectedBranch] = useState('all');
   
-  const [filteredProductData, setFilteredProductData] = useState<ReturnType<typeof generateProductPerformanceData>>([]);
+  const [productData, setProductData] = useState<ProductPerformanceData[]>([]);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
 
   const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
       clients: acc.clients + curr.clients,
@@ -109,9 +113,33 @@ export default function ReportsPage() {
     // This is a simulation of data filtering.
     // In a real app, you would fetch new data based on `date` and `selectedBranch`.
     console.log(`Filtering data for branch: ${selectedBranch} and date range:`, date);
-    setFilteredProductData(generateProductPerformanceData());
+    setProductData(generateProductPerformanceData());
     // You would update other data sources here as well.
   }, [date, selectedBranch]);
+
+  const sortedProductData = React.useMemo(() => {
+    let sortableItems = [...productData];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [productData, sortConfig]);
+
+  const requestSort = (key: SortKey) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
 
   return (
@@ -221,14 +249,30 @@ export default function ReportsPage() {
                                     <TableRow>
                                         <TableHead>Product</TableHead>
                                         <TableHead>Category</TableHead>
-                                        <TableHead className="text-right">Qty Sold</TableHead>
-                                        <TableHead className="text-right">Net Revenue</TableHead>
-                                        <TableHead className="text-right">COGS</TableHead>
-                                        <TableHead className="text-right">Gross Profit</TableHead>
+                                        <TableHead className="text-right">
+                                            <Button variant="ghost" onClick={() => requestSort('quantity')}>
+                                                Qty Sold <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            <Button variant="ghost" onClick={() => requestSort('netRevenue')}>
+                                                Net Revenue <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            <Button variant="ghost" onClick={() => requestSort('cogs')}>
+                                                COGS <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            <Button variant="ghost" onClick={() => requestSort('profit')}>
+                                                Gross Profit <ArrowUpDown className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredProductData.map((item) => (
+                                    {sortedProductData.map((item) => (
                                     <TableRow key={item.name} className="cursor-pointer hover:bg-muted">
                                         <TableCell className="font-medium">{item.name}</TableCell>
                                         <TableCell>{item.category}</TableCell>
