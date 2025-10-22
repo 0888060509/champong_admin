@@ -97,7 +97,7 @@ export default function ReportsPage() {
   });
   const [selectedBranch, setSelectedBranch] = useState('all');
   
-  const [filteredProductData, setFilteredProductData] = useState(generateProductPerformanceData());
+  const [filteredProductData, setFilteredProductData] = useState<ReturnType<typeof generateProductPerformanceData>>([]);
 
   const rfmTotals = rfmPerformanceData.reduce((acc, curr) => ({
       clients: acc.clients + curr.clients,
