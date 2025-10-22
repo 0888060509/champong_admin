@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -16,7 +17,7 @@ import { z } from 'genkit';
 // Define the schema for a single condition (replicates form logic)
 const conditionSchema = z.object({
   id: z.string().optional(),
-  type: z.literal('condition'),
+  type: z.string().describe("Must be the string 'condition'"),
   criteria: z.enum(['totalSpend', 'lastVisit', 'orderFrequency', 'membershipLevel']),
   operator: z.enum(['gte', 'lte', 'eq', 'neq', 'before', 'after']),
   value: z.union([z.string(), z.number(), z.date()]),
@@ -26,7 +27,7 @@ const conditionSchema = z.object({
 const conditionGroupSchema: z.ZodTypeAny = z.lazy(() =>
   z.object({
     id: z.string().optional(),
-    type: z.literal('group'),
+    type: z.string().describe("Must be the string 'group'"),
     logic: z.enum(['AND', 'OR']),
     conditions: z.array(z.union([conditionSchema, conditionGroupSchema])),
   })
@@ -71,6 +72,8 @@ For each segment, you MUST provide:
 1.  A clear and concise 'name'.
 2.  A brief 'description' for internal use.
 3.  A set of 'suggestedConditions' that logically defines the segment. These conditions must follow the provided schema.
+
+For conditions, the 'type' field must be either 'condition' for a single rule or 'group' for a nested set of rules.
 
 Available criteria and their types:
 - 'totalSpend': number (e.g., 500)
