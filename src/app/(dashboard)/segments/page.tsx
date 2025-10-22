@@ -17,12 +17,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreateSegmentForm } from './create-segment-form';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SegmentationClient } from './segmentation-client';
 
 type Segment = {
   id: string;
@@ -39,6 +39,7 @@ export default function SegmentsPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const [initialSegmentName, setInitialSegmentName] = useState<string | undefined>(undefined);
 
   const handleSaveSegment = async (data: any) => {
     setIsSaving(true);
@@ -59,34 +60,23 @@ export default function SegmentsPage() {
         description: `The segment "${data.name}" has been successfully created.`,
     });
   }
+
+  const openCreateDialog = (name?: string) => {
+    setInitialSegmentName(name);
+    setCreateDialogOpen(true);
+  }
   
   return (
+    <div className="space-y-6">
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
             <CardTitle className="font-headline">Customer Segments</CardTitle>
             <CardDescription>Create and manage your customer segments.</CardDescription>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-                <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Create Segment
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
-                <DialogHeader>
-                <DialogTitle>Create New Segment</DialogTitle>
-                <DialogDescription>
-                    Define a new customer segment by adding conditions.
-                </DialogDescription>
-                </DialogHeader>
-                <CreateSegmentForm 
-                onSave={handleSaveSegment} 
-                onCancel={() => setCreateDialogOpen(false)}
-                isSaving={isSaving}
-                />
-            </DialogContent>
-            </Dialog>
+            <Button onClick={() => openCreateDialog()}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Segment
+            </Button>
         </CardHeader>
         <CardContent>
             <Table>
@@ -123,5 +113,27 @@ export default function SegmentsPage() {
             </Table>
         </CardContent>
     </Card>
+
+    <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+      <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+          <DialogTitle>Create New Segment</DialogTitle>
+          <DialogDescription>
+              Define a new customer segment by adding conditions.
+          </DialogDescription>
+          </DialogHeader>
+          <CreateSegmentForm 
+            key={initialSegmentName}
+            initialData={{ name: initialSegmentName }}
+            onSave={handleSaveSegment} 
+            onCancel={() => setCreateDialogOpen(false)}
+            isSaving={isSaving}
+          />
+      </DialogContent>
+    </Dialog>
+
+    <SegmentationClient onSuggestionClick={openCreateDialog} />
+
+    </div>
   );
 }

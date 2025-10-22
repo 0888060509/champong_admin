@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -17,7 +18,11 @@ import { Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
-export function SegmentationClient() {
+interface SegmentationClientProps {
+    onSuggestionClick: (suggestion: string) => void;
+}
+
+export function SegmentationClient({ onSuggestionClick }: SegmentationClientProps) {
   const [description, setDescription] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +112,12 @@ export function SegmentationClient() {
             {suggestions.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {suggestions.map((suggestion, index) => (
-                        <Badge key={index} variant="outline" className="text-base p-2 cursor-pointer hover:bg-muted">
+                        <Badge 
+                            key={index} 
+                            variant="outline" 
+                            className="text-base p-2 cursor-pointer hover:bg-muted"
+                            onClick={() => onSuggestionClick(suggestion)}
+                        >
                             {suggestion}
                         </Badge>
                     ))}

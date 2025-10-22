@@ -90,6 +90,7 @@ interface CreateSegmentFormProps {
   onSave: (data: SegmentFormValues) => void;
   onCancel: () => void;
   isSaving: boolean;
+  initialData?: { name?: string };
 }
 
 const renderValueInput = (path: string, index: number) => {
@@ -356,11 +357,11 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
 }
 
 
-export function CreateSegmentForm({ onSave, onCancel, isSaving }: CreateSegmentFormProps) {
+export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: CreateSegmentFormProps) {
   const form = useForm<SegmentFormValues>({
     resolver: zodResolver(segmentFormSchema),
     defaultValues: {
-      name: '',
+      name: initialData?.name || '',
       root: {
         id: crypto.randomUUID(),
         type: 'group',
