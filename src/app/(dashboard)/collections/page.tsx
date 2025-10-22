@@ -24,6 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { CreateCollectionForm } from './create-collection-form';
 import { Badge } from '@/components/ui/badge';
 import { SegmentationClient } from '../segments/segmentation-client';
+import Link from 'next/link';
 
 export type CollectionCondition = {
   id?: string;
@@ -196,7 +197,11 @@ export default function CollectionsPage() {
                     <TableBody>
                         {collections.map(collection => (
                         <TableRow key={collection.id}>
-                            <TableCell className="font-medium">{collection.name}</TableCell>
+                            <TableCell className="font-medium">
+                                <Link href={`/collections/${collection.id}`} className="hover:underline">
+                                    {collection.name}
+                                </Link>
+                            </TableCell>
                             <TableCell>
                                 <Badge variant="outline" className="font-mono text-xs">{formatCondition(collection.root)}</Badge>
                             </TableCell>
@@ -210,6 +215,7 @@ export default function CollectionsPage() {
                                     </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <Link href={`/collections/${collection.id}`} passHref><DropdownMenuItem>View Products</DropdownMenuItem></Link>
                                         <DropdownMenuItem onClick={() => openForm(collection)}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDeleteCollection(collection.id)} className="text-destructive">Delete</DropdownMenuItem>
