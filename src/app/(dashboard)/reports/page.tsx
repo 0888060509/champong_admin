@@ -250,7 +250,7 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
             </TabsContent>
-            <TabsContent value="customer">
+            <TabsContent value="customer" className="mt-6">
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Customer Analysis</CardTitle>
@@ -265,5 +265,7 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+    
 
     
