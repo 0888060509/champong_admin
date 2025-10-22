@@ -31,6 +31,7 @@ import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import type { Collection } from './page';
+import { Switch } from '@/components/ui/switch';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -54,6 +55,7 @@ const collectionFormSchema = z.object({
     message: 'Collection name must be at least 2 characters.',
   }),
   description: z.string().optional(),
+  isActive: z.boolean(),
   root: conditionGroupSchema,
 });
 
@@ -351,6 +353,7 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     defaultValues: initialData ? {
         name: initialData.name || '',
         description: initialData.description || '',
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
         root: initialData.root || {
             id: crypto.randomUUID(),
             type: 'group',
@@ -362,6 +365,7 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     } : {
       name: '',
       description: '',
+      isActive: true,
       root: {
         id: crypto.randomUUID(),
         type: 'group',
@@ -380,33 +384,55 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Collection Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Best Sellers, Weekend Specials" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-4">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Collection Name</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Best Sellers, Weekend Specials" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="An internal description for this collection." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
+                <FormControl>
+                    <Textarea placeholder="An internal description for this collection." {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+             <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                        <FormLabel>Status</FormLabel>
+                        <FormDescription>
+                        Set whether this collection is active and visible on the client app.
+                        </FormDescription>
+                    </div>
+                    <FormControl>
+                        <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        />
+                    </FormControl>
+                    </FormItem>
+                )}
+                />
+        </div>
         
         <div>
           <FormLabel>Conditions</FormLabel>

@@ -48,6 +48,7 @@ export type Collection = {
   description?: string;
   productCount: number;
   root: CollectionGroup;
+  isActive: boolean;
 };
 
 const operatorMap: { [key: string]: string } = {
@@ -87,14 +88,16 @@ export default function CollectionsPage() {
       name: 'High Profit Items', 
       description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]},
+      isActive: true,
     },
     { 
       id: '2', 
       name: 'Low Stock Specials', 
       description: 'Clear out items that are low in stock.',
       productCount: 8, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]},
+      isActive: true,
     },
     { 
       id: '3', 
@@ -108,7 +111,8 @@ export default function CollectionsPage() {
               {type: 'condition', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
               {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
           ]
-      }
+      },
+      isActive: false,
     },
      { 
       id: '4', 
@@ -121,7 +125,8 @@ export default function CollectionsPage() {
               {type: 'condition', criteria: 'category', operator: 'eq', value: 'Main Course'},
               {type: 'condition', criteria: 'price', operator: 'gte', value: 25}
           ]
-      }
+      },
+      isActive: true,
     },
   ]);
   const [isFormOpen, setFormOpen] = useState(false);
@@ -140,7 +145,7 @@ export default function CollectionsPage() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (editingCollection && editingCollection.id) { // We are editing
-        setCollections(prev => prev.map(c => c.id === editingCollection.id ? { ...c, ...data, root: data.root, description: data.description } : c));
+        setCollections(prev => prev.map(c => c.id === editingCollection.id ? { ...c, ...data, isActive: data.isActive } : c));
         toast({
             title: "Collection Updated",
             description: `The collection "${data.name}" has been successfully updated.`,
@@ -152,6 +157,7 @@ export default function CollectionsPage() {
             description: data.description,
             productCount: Math.floor(Math.random() * 20), // Mock customer count
             root: data.root,
+            isActive: data.isActive,
         }]);
         toast({
             title: "Collection Created",
@@ -210,6 +216,7 @@ export default function CollectionsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Collection Name</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead>Conditions</TableHead>
                             <TableHead className="text-right">Products</TableHead>
                             <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -222,6 +229,12 @@ export default function CollectionsPage() {
                                 <Link href={`/collections/${collection.id}`} className="hover:underline">
                                     {collection.name}
                                 </Link>
+                                <p className="text-xs text-muted-foreground">{collection.description}</p>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={collection.isActive ? 'default' : 'secondary'}>
+                                    {collection.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
                             </TableCell>
                             <TableCell>
                                 <Badge variant="outline" className="font-mono text-xs">{formatCondition(collection.root)}</Badge>
