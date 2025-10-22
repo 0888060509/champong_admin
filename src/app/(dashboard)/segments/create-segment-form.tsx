@@ -300,7 +300,7 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
   const conditions = watch(`${path}.conditions`);
 
   return (
-    <div className="p-4 border rounded-lg space-y-4">
+    <div className="p-4 border rounded-lg space-y-4 bg-muted/20">
       <div className="flex items-center justify-between gap-4">
         <div className='flex gap-2'>
             <Button
@@ -354,6 +354,9 @@ function ConditionGroup({ path, onRemoveGroup }: { path: string; onRemoveGroup?:
                 )}
             </React.Fragment>
         ))}
+         {fields.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">This group is empty. Add a condition or a new group.</p>
+        )}
       </div>
     </div>
   );
