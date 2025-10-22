@@ -110,21 +110,16 @@ export default function ChatHistoryDetailsPage() {
                             <ArrowLeft className="h-4 w-4" />
                         </Link>
                     </Button>
-                    <h1 className="text-xl font-semibold">Chat Details</h1>
+                    <div>
+                        <h1 className="text-xl font-semibold font-headline">Chat with {session.customerName}</h1>
+                        <p className="text-sm text-muted-foreground">Session ID: {session.id}</p>
+                    </div>
                 </div>
                  <Button variant="outline" onClick={handleExport}>
                     <Download className="mr-2 h-4 w-4" />
                     Export file
                 </Button>
             </div>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Session: {session.id}</CardTitle>
-                    <CardDescription>
-                        Conversation between <span className="font-medium">{session.customerName}</span> and staff at <span className="font-medium">{session.branchName}</span>.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
 
             <Card>
                  <CardContent className="p-4 md:p-6">
