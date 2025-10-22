@@ -124,11 +124,11 @@ export default function CollectionsPage() {
     },
   ]);
   const [isFormOpen, setFormOpen] = useState(false);
-  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [editingCollection, setEditingCollection] = useState<Partial<Collection> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   
-  const openForm = (collection: Collection | null = null) => {
+  const openForm = (collection: Partial<Collection> | null = null) => {
     setEditingCollection(collection);
     setFormOpen(true);
   }
@@ -138,7 +138,7 @@ export default function CollectionsPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    if (editingCollection) { // We are editing
+    if (editingCollection && editingCollection.id) { // We are editing
         setCollections(prev => prev.map(c => c.id === editingCollection.id ? { ...c, ...data, root: data.root, description: data.description } : c));
         toast({
             title: "Collection Updated",
@@ -172,12 +172,8 @@ export default function CollectionsPage() {
     });
   }
   
-  const handleSuggestionClick = (name?: string) => {
-    setEditingCollection(null); // Ensure we are creating a new one
-    // A bit of a hack to pass the name to the form. 
-    // We can't set initialData directly as it's tied to editingCollection.
-    // Instead we'll re-key the form.
-    setFormOpen(true);
+  const handleSuggestionClick = (suggestion: {name: string, description: string}) => {
+    openForm({ name: suggestion.name, description: suggestion.description });
   }
 
   return (
@@ -240,13 +236,13 @@ export default function CollectionsPage() {
         <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
-                <DialogTitle>{editingCollection ? "Edit Collection" : "Create New Collection"}</DialogTitle>
+                <DialogTitle>{editingCollection && editingCollection.id ? "Edit Collection" : "Create New Collection"}</DialogTitle>
                 <DialogDescription>
-                    {editingCollection ? "Modify the rules for this dynamic collection." : "Create a dynamic collection by defining rules and conditions."}
+                    {editingCollection && editingCollection.id ? "Modify the rules for this dynamic collection." : "Create a dynamic collection by defining rules and conditions."}
                 </DialogDescription>
                 </DialogHeader>
                 <CreateCollectionForm 
-                    key={editingCollection?.id || 'new'}
+                    key={editingCollection?.id || editingCollection?.name}
                     onSave={handleSaveCollection} 
                     onCancel={() => setFormOpen(false)}
                     isSaving={isSaving}

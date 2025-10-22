@@ -27,19 +27,20 @@ import { SegmentationClient } from './segmentation-client';
 type Segment = {
   id: string;
   name: string;
+  description?: string;
   customers: number;
 };
 
 export default function SegmentsPage() {
   const [segments, setSegments] = useState<Segment[]>([
-    { id: '1', name: 'High Spenders', customers: 42 },
-    { id: '2', name: 'Recent Visitors', customers: 128 },
-    { id: '3', name: 'Lapsed Customers', customers: 19 },
+    { id: '1', name: 'High Spenders', customers: 42, description: 'Customers who have spent a significant amount.' },
+    { id: '2', name: 'Recent Visitors', customers: 128, description: 'Customers who have visited in the last 30 days.' },
+    { id: '3', name: 'Lapsed Customers', customers: 19, description: 'Customers who have not visited in the last 90 days.' },
   ]);
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const [initialSegmentName, setInitialSegmentName] = useState<string | undefined>(undefined);
+  const [initialSegmentData, setInitialSegmentData] = useState<{ name?: string, description?: string } | undefined>(undefined);
 
   const handleSaveSegment = async (data: any) => {
     setIsSaving(true);
@@ -50,6 +51,7 @@ export default function SegmentsPage() {
     setSegments(prev => [...prev, {
         id: String(Date.now()),
         name: data.name,
+        description: data.description,
         customers: Math.floor(Math.random() * 200) // Mock customer count
     }]);
 
@@ -61,8 +63,8 @@ export default function SegmentsPage() {
     });
   }
 
-  const openCreateDialog = (name?: string) => {
-    setInitialSegmentName(name);
+  const openCreateDialog = (data?: { name: string, description: string }) => {
+    setInitialSegmentData(data);
     setCreateDialogOpen(true);
   }
   
@@ -83,6 +85,7 @@ export default function SegmentsPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Segment Name</TableHead>
+                        <TableHead>Description</TableHead>
                         <TableHead>Customers</TableHead>
                         <TableHead><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
@@ -91,6 +94,7 @@ export default function SegmentsPage() {
                     {segments.map(segment => (
                     <TableRow key={segment.id}>
                         <TableCell className="font-medium">{segment.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{segment.description}</TableCell>
                         <TableCell>{segment.customers}</TableCell>
                         <TableCell className="text-right">
                             <DropdownMenu>
@@ -123,8 +127,8 @@ export default function SegmentsPage() {
           </DialogDescription>
           </DialogHeader>
           <CreateSegmentForm 
-            key={initialSegmentName}
-            initialData={{ name: initialSegmentName }}
+            key={initialSegmentData?.name}
+            initialData={initialSegmentData}
             onSave={handleSaveSegment} 
             onCancel={() => setCreateDialogOpen(false)}
             isSaving={isSaving}

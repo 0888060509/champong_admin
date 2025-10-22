@@ -14,18 +14,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { suggestCustomerSegments } from "@/ai/flows/customer-segmentation-suggestion";
+import { generateSegmentDescription } from "@/ai/flows/generate-segment-description";
 import { Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 interface SegmentationClientProps {
-    onSuggestionClick: (suggestion: string) => void;
+    onSuggestionClick: (suggestion: { name: string, description: string }) => void;
 }
 
 export function SegmentationClient({ onSuggestionClick }: SegmentationClientProps) {
   const [description, setDescription] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -56,6 +58,25 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
       setIsLoading(false);
     }
   };
+
+  const handleSuggestionClick = async (segmentName: string) => {
+    setIsGeneratingDesc(segmentName);
+    try {
+      const result = await generateSegmentDescription({ name: segmentName });
+      onSuggestionClick({ name: segmentName, description: result.description });
+    } catch (error) {
+        console.error("Failed to generate description:", error);
+        toast({
+            title: "AI Error",
+            description: "Failed to generate a description for the segment. Please try again.",
+            variant: "destructive"
+        });
+        // Fallback to just the name if description generation fails
+        onSuggestionClick({ name: segmentName, description: "" });
+    } finally {
+        setIsGeneratingDesc(null);
+    }
+  }
 
   return (
     <Card>
@@ -116,8 +137,11 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
                             key={index} 
                             variant="outline" 
                             className="text-base p-2 cursor-pointer hover:bg-muted"
-                            onClick={() => onSuggestionClick(suggestion)}
+                            onClick={() => handleSuggestionClick(suggestion)}
                         >
+                            {isGeneratingDesc === suggestion ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
                             {suggestion}
                         </Badge>
                     ))}

@@ -98,7 +98,7 @@ interface CreateCollectionFormProps {
   onSave: (data: CollectionFormValues) => void;
   onCancel: () => void;
   isSaving: boolean;
-  initialData: Collection | null;
+  initialData: Partial<Collection> | null;
 }
 
 const renderValueInput = (path: string, index: number) => {
@@ -349,9 +349,16 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
   const form = useForm<CollectionFormValues>({
     resolver: zodResolver(collectionFormSchema),
     defaultValues: initialData ? {
-        name: initialData.name,
+        name: initialData.name || '',
         description: initialData.description || '',
-        root: initialData.root,
+        root: initialData.root || {
+            id: crypto.randomUUID(),
+            type: 'group',
+            logic: 'AND',
+            conditions: [
+              { id: crypto.randomUUID(), type: 'condition', criteria: 'price', operator: 'gte', value: 10 },
+            ],
+        },
     } : {
       name: '',
       description: '',

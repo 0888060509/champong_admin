@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
+import { Textarea } from '@/components/ui/textarea';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -51,6 +52,7 @@ const segmentFormSchema = z.object({
   name: z.string().min(2, {
     message: 'Segment name must be at least 2 characters.',
   }),
+  description: z.string().optional(),
   root: conditionGroupSchema,
 });
 
@@ -90,7 +92,7 @@ interface CreateSegmentFormProps {
   onSave: (data: SegmentFormValues) => void;
   onCancel: () => void;
   isSaving: boolean;
-  initialData?: { name?: string };
+  initialData?: { name?: string, description?: string };
 }
 
 const renderValueInput = (path: string, index: number) => {
@@ -362,6 +364,7 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: C
     resolver: zodResolver(segmentFormSchema),
     defaultValues: {
       name: initialData?.name || '',
+      description: initialData?.description || '',
       root: {
         id: crypto.randomUUID(),
         type: 'group',
@@ -393,6 +396,20 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: C
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (Optional)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="A brief description of this customer segment." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <div>
           <FormLabel>Conditions</FormLabel>
@@ -411,7 +428,3 @@ export function CreateSegmentForm({ onSave, onCancel, isSaving, initialData }: C
     </Form>
   );
 }
-
-    
-
-    
