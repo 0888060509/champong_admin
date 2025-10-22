@@ -8,8 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { mockChatSessions } from '@/lib/mock-data';
 import type { ChatSession, ChatMessage } from '@/lib/types';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, User } from 'lucide-react';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 export default function ChatHistoryDetailsPage() {
     const params = useParams();
@@ -64,6 +65,15 @@ export default function ChatHistoryDetailsPage() {
     if (!session) {
         return <div>Loading chat details...</div>;
     }
+    
+    const getStatusBadge = (status: 'Open' | 'Closed') => {
+        switch (status) {
+            case 'Open':
+                return <Badge>Open</Badge>;
+            case 'Closed':
+                return <Badge variant="secondary">Closed</Badge>;
+        }
+    };
 
     const renderMessage = (msg: ChatMessage) => {
         const isCustomer = msg.senderType === 'Customer';
@@ -102,7 +112,7 @@ export default function ChatHistoryDetailsPage() {
     };
 
     return (
-        <div className="grid gap-6">
+        <div className="flex flex-col gap-6 h-full">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" asChild>
@@ -121,13 +131,55 @@ export default function ChatHistoryDetailsPage() {
                 </Button>
             </div>
 
-            <Card>
-                 <CardContent className="p-4 md:p-6">
-                    <div className="space-y-4">
-                        {session.messages.map(msg => renderMessage(msg))}
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="grid lg:grid-cols-3 gap-6 flex-1">
+                <div className="lg:col-span-2 flex flex-col">
+                    <Card className="flex-1">
+                        <CardContent className="p-4 md:p-6 flex flex-col h-full">
+                            <div className="flex-1 space-y-4 overflow-y-auto">
+                                {session.messages.map(msg => renderMessage(msg))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Session Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <h4 className="font-semibold">Customer</h4>
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarFallback>{session.customerName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{session.customerName}</span>
+                                        <Link href={`/customers/${session.customerId}`} className="text-xs text-muted-foreground hover:underline">View Profile</Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <h4 className="font-semibold">Status</h4>
+                                {getStatusBadge(session.status)}
+                            </div>
+                             <div className="space-y-1">
+                                <h4 className="font-semibold">Branch</h4>
+                                <p className="text-sm text-muted-foreground">{session.branchName}</p>
+                            </div>
+                             <div className="space-y-1">
+                                <h4 className="font-semibold">Handled By</h4>
+                                <p className="text-sm text-muted-foreground">{session.staffName}</p>
+                            </div>
+                             <div className="space-y-1">
+                                <h4 className="font-semibold">Last Updated</h4>
+                                <p className="text-sm text-muted-foreground">{session.lastUpdatedAt.toDate().toLocaleString()}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 }
