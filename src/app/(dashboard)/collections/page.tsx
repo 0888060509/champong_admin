@@ -23,9 +23,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CreateCollectionForm } from './create-collection-form';
 import { Badge } from '@/components/ui/badge';
-import { SegmentationClient } from '../segments/segmentation-client';
 import Link from 'next/link';
-import type { SuggestedSegment } from '@/ai/flows/suggest-customer-segments-with-rules';
+import type { SuggestedCollection } from '@/ai/flows/suggest-product-collections';
+import { CollectionSuggestionClient } from './collection-suggestion-client';
 
 export type CollectionCondition = {
   id?: string;
@@ -88,7 +88,7 @@ export default function CollectionsPage() {
       name: 'High Profit Items', 
       description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]},
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-1', criteria: 'profit_margin', operator: 'gte', value: 40}]},
       isActive: true,
     },
     { 
@@ -96,7 +96,7 @@ export default function CollectionsPage() {
       name: 'Low Stock Specials', 
       description: 'Clear out items that are low in stock.',
       productCount: 8, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]},
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-2', criteria: 'stock_level', operator: 'lte', value: 10}]},
       isActive: true,
     },
     { 
@@ -108,8 +108,8 @@ export default function CollectionsPage() {
           type: 'group',
           logic: 'AND', 
           conditions: [
-              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
-              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
+              {type: 'condition', id: 'cond-3a', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
+              {type: 'condition', id: 'cond-3b', criteria: 'category', operator: 'eq', value: 'Desserts'}
           ]
       },
       isActive: false,
@@ -118,12 +118,13 @@ export default function CollectionsPage() {
       id: '4', 
       name: 'Premium Main Courses', 
       productCount: 7, 
+      description: 'Top-tier main courses for discerning customers.',
       root: { 
           type: 'group',
           logic: 'AND', 
           conditions: [
-              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Main Course'},
-              {type: 'condition', criteria: 'price', operator: 'gte', value: 25}
+              {type: 'condition', id: 'cond-4a', criteria: 'category', operator: 'eq', value: 'Main Course'},
+              {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
           ]
       },
       isActive: true,
@@ -188,13 +189,11 @@ export default function CollectionsPage() {
     openForm(newCollectionData);
   }
   
-  const handleSuggestionClick = (suggestion: SuggestedSegment) => {
-    // The AI flow for segments returns rules for segments. We can adapt them for collections.
-    // This is a simplification. A real app might have a dedicated AI flow for collection rules.
+  const handleSuggestionClick = (suggestion: SuggestedCollection) => {
     const collectionData = {
       name: suggestion.name,
       description: suggestion.description,
-      root: suggestion.suggestedConditions as CollectionGroup, // Cast needed, as criteria differ
+      root: suggestion.suggestedConditions,
     };
     openForm(collectionData);
   }
@@ -263,7 +262,12 @@ export default function CollectionsPage() {
             </CardContent>
         </Card>
 
-        <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
+        <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
+          setFormOpen(isOpen);
+          if (!isOpen) {
+            setEditingCollection(null);
+          }
+        }}>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
                 <DialogTitle>{editingCollection && editingCollection.id ? "Edit Collection" : "Create New Collection"}</DialogTitle>
@@ -281,7 +285,7 @@ export default function CollectionsPage() {
             </DialogContent>
         </Dialog>
 
-        <SegmentationClient onSuggestionClick={handleSuggestionClick} />
+        <CollectionSuggestionClient onSuggestionClick={handleSuggestionClick} />
     </div>
   );
 }
