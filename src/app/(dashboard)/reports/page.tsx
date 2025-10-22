@@ -12,7 +12,8 @@ import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 // Mock Data
 const productPerformanceData = [
@@ -41,6 +42,28 @@ const branchPerformanceData = [
     { name: 'Main Street Cafe', netRevenue: 45231, totalOrders: 1234, aov: 36.65, avgRating: 4.8, onlineOfflineRatio: '60/40' },
     { name: 'Downtown Deli', netRevenue: 38765, totalOrders: 1102, aov: 35.18, avgRating: 4.6, onlineOfflineRatio: '75/25' },
     { name: 'Seaside Grill', netRevenue: 52109, totalOrders: 1450, aov: 35.94, avgRating: 4.9, onlineOfflineRatio: '50/50' },
+];
+
+const customerRatioData = [
+    { name: 'New Customers', value: 35, fill: 'hsl(var(--chart-1))' },
+    { name: 'Returning Customers', value: 65, fill: 'hsl(var(--chart-2))' },
+];
+
+const rfmSegmentsData = [
+    { x: 4.5, y: 4.5, z: 150, name: 'Champions', customers: 42 },
+    { x: 3.8, y: 4.2, z: 120, name: 'Loyal Customers', customers: 85 },
+    { x: 2.1, y: 2.5, z: 200, name: 'Potential Loyalists', customers: 150 },
+    { x: 4.8, y: 1.5, z: 80, name: 'New Customers', customers: 60 },
+    { x: 1.5, y: 1.2, z: 300, name: 'Hibernating', customers: 210 },
+    { x: 2.5, y: 1.8, z: 250, name: 'At Risk', customers: 180 },
+];
+
+const topCustomersData = [
+    { id: '1', name: 'Noah Williams', avatar: 'N', totalSpent: 2300.00 },
+    { id: '2', name: 'Liam Johnson', avatar: 'L', totalSpent: 1250.50 },
+    { id: '3', name: 'Sophia Loren', avatar: 'S', totalSpent: 1100.25 },
+    { id: '4', name: 'Olivia Smith', avatar: 'O', totalSpent: 850.75 },
+    { id: '5', name: 'James Dean', avatar: 'J', totalSpent: 780.00 },
 ];
 
 export default function ReportsPage() {
@@ -250,22 +273,110 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
             </TabsContent>
-            <TabsContent value="customer" className="mt-6">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Customer Analysis</CardTitle>
-                        <CardDescription>Insights into customer segments and behavior.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Customer analysis reports will be displayed here.</p>
-                    </CardContent>
-                </Card>
+            <TabsContent value="customer" className="space-y-6 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Customer Mix</CardTitle>
+                            <CardDescription>New vs. Returning</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={150}>
+                                <PieChart>
+                                    <Pie data={customerRatioData} dataKey="value" nameKey="name" innerRadius={40} outerRadius={60} paddingAngle={5}>
+                                        {customerRatioData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend iconSize={10} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                         <CardHeader>
+                            <CardTitle className="font-headline text-lg">Avg. Purchase Frequency</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-3xl font-bold">2.4</p>
+                            <p className="text-sm text-muted-foreground">times per month</p>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                         <CardHeader>
+                            <CardTitle className="font-headline text-lg">Estimated CLV</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-3xl font-bold">$287.50</p>
+                            <p className="text-sm text-muted-foreground">per customer</p>
+                        </CardContent>
+                    </Card>
+                </div>
+                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <Card className="lg:col-span-3">
+                        <CardHeader>
+                            <CardTitle className="font-headline">RFM Customer Segmentation</CardTitle>
+                            <CardDescription>Recency, Frequency & Monetary analysis.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <ResponsiveContainer width="100%" height={350}>
+                                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid />
+                                    <XAxis type="number" dataKey="x" name="Recency Score" label={{ value: 'Recency ->', position: 'insideBottom', offset: -10 }} />
+                                    <YAxis type="number" dataKey="y" name="Frequency & Monetary Score" label={{ value: 'Freq & Monetary ->', angle: -90, position: 'insideLeft' }}/>
+                                    <ZAxis type="number" dataKey="z" range={[100, 1000]} name="customers" />
+                                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={CustomTooltip} />
+                                    <Legend formatter={(value, entry) => <span className="text-muted-foreground">{entry.payload?.name}</span>}/>
+                                    <Scatter name="Segments" data={rfmSegmentsData} fill="hsl(var(--primary))" />
+                                </ScatterChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle className="font-headline">Top Spending Customers</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Customer</TableHead>
+                                        <TableHead className="text-right">Total Spent</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {topCustomersData.map(customer => (
+                                        <TableRow key={customer.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarFallback>{customer.avatar}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span>{customer.name}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium">${customer.totalSpent.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                 </div>
             </TabsContent>
         </Tabs>
     </div>
   );
 }
 
-    
-
-    
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-background border shadow-sm rounded-lg p-3">
+        <p className="font-bold text-lg">{data.name}</p>
+        <p className="text-sm text-muted-foreground">{data.customers} customers</p>
+      </div>
+    );
+  }
+  return null;
+};
