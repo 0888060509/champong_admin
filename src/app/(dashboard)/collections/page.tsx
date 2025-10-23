@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import type { SuggestedCollection } from '@/ai/flows/suggest-product-collections';
 import { CollectionSuggestionClient } from './collection-suggestion-client';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export type CollectionCondition = {
   id?: string;
@@ -282,13 +283,15 @@ export default function CollectionsPage() {
                     {editingCollection && editingCollection.id ? "Modify the rules for this dynamic collection." : "Create a dynamic collection by defining rules and conditions."}
                 </DialogDescription>
                 </DialogHeader>
-                <CreateCollectionForm 
-                    key={editingCollection?.id || editingCollection?.name}
-                    onSave={handleSaveCollection} 
-                    onCancel={() => setFormOpen(false)}
-                    isSaving={isSaving}
-                    initialData={editingCollection}
-                />
+                <ScrollArea className="max-h-[70vh] pr-6">
+                    <CreateCollectionForm 
+                        key={editingCollection?.id || editingCollection?.name}
+                        onSave={handleSaveCollection} 
+                        onCancel={() => setFormOpen(false)}
+                        isSaving={isSaving}
+                        initialData={editingCollection}
+                    />
+                </ScrollArea>
             </DialogContent>
         </Dialog>
 

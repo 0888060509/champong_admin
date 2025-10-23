@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SegmentationClient } from './segmentation-client';
 import type { SuggestedSegment } from '@/ai/flows/suggest-customer-segments-with-rules';
 import type { z } from 'zod';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export type Condition = {
   id?: string;
@@ -160,13 +161,15 @@ export default function SegmentsPage() {
               Define a new customer segment by adding conditions.
           </DialogDescription>
           </DialogHeader>
-          <CreateSegmentForm 
-            key={initialSegmentData ? initialSegmentData.name : 'new'}
-            initialData={initialSegmentData}
-            onSave={handleSaveSegment} 
-            onCancel={() => setCreateDialogOpen(false)}
-            isSaving={isSaving}
-          />
+          <ScrollArea className="max-h-[70vh] pr-6">
+            <CreateSegmentForm 
+              key={initialSegmentData ? initialSegmentData.name : 'new'}
+              initialData={initialSegmentData}
+              onSave={handleSaveSegment} 
+              onCancel={() => setCreateDialogOpen(false)}
+              isSaving={isSaving}
+            />
+          </ScrollArea>
       </DialogContent>
     </Dialog>
 
