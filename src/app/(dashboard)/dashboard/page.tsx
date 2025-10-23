@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -24,7 +26,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
-const data = [
+const generateChartData = () => [
   { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Feb", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
@@ -37,9 +39,15 @@ const data = [
   { name: "Oct", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Nov", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Dec", total: Math.floor(Math.random() * 5000) + 1000 },
-]
+];
 
 export default function DashboardPage() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateChartData());
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">

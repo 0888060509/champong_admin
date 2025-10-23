@@ -114,10 +114,7 @@ const generateProductPerformanceData = () => {
 };
 
 export default function ReportsPage() {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -136,6 +133,10 @@ export default function ReportsPage() {
   useEffect(() => {
     setIsClient(true);
     setProductData(generateProductPerformanceData());
+    setDate({
+        from: addDays(new Date(), -30),
+        to: new Date(),
+    })
   }, []);
 
   useEffect(() => {
@@ -226,6 +227,9 @@ export default function ReportsPage() {
     return <Badge className={cn('text-xs', perfData.color)}>{segment}</Badge>;
   }
 
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <div className="space-y-6">
@@ -695,5 +699,3 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
-
-    
