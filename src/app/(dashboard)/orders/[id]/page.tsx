@@ -46,19 +46,6 @@ export default function OrderDetailsPage() {
         }
     }, [orderId, router, toast]);
 
-    const getStatusBadge = (status: Order['status']) => {
-         switch (status) {
-            case 'Completed':
-                return <Badge>Completed</Badge>;
-            case 'Processing':
-                return <Badge variant="secondary">Processing</Badge>;
-            case 'Cancelled':
-                return <Badge variant="destructive">Cancelled</Badge>;
-            case 'Pending':
-                return <Badge variant="outline">Pending</Badge>;
-        }
-    }
-
     const handleEditToggle = () => {
         if (isEditing) {
             // Cancel editing
@@ -159,10 +146,6 @@ export default function OrderDetailsPage() {
     }
 
     const currentSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
-
-    if (!order || !customer) {
-        return <div>Loading...</div>;
-    }
     
     const handleStatusChange = (newStatus: Order['status']) => {
         if (!order || order.status === newStatus) return;
@@ -190,6 +173,10 @@ export default function OrderDetailsPage() {
         
         toast({ title: 'Status Updated', description: `Order status changed to ${newStatus}`});
     };
+
+    if (!order || !customer) {
+        return <div>Loading...</div>;
+    }
 
     const { discount = 0, shippingFee = 0, amountPaid = 0 } = order;
     const priceAfterDiscount = currentSubtotal - discount;
@@ -240,10 +227,10 @@ export default function OrderDetailsPage() {
                         </div>
                         <div>
                             <p className="text-muted-foreground">Payment</p>
-                            <div className="font-semibold flex items-center">{remainingAmount > 0 ? (
-                                <Badge variant="destructive">Unpaid</Badge>
-                            ) : (
+                            <div className="font-semibold flex items-center">{remainingAmount <= 0 ? (
                                 <Badge>Paid</Badge>
+                            ) : (
+                                <Badge variant="destructive">Unpaid</Badge>
                             )}</div>
                         </div>
                          <div>
@@ -259,7 +246,7 @@ export default function OrderDetailsPage() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="font-headline">Order Items</CardTitle>
@@ -358,7 +345,20 @@ export default function OrderDetailsPage() {
                                 </div>
                             )}
                         </CardContent>
-                        <CardFooter>
+                        <CardFooter className="flex-col items-stretch gap-4">
+                            {order.note && (
+                                <>
+                                    <Separator />
+                                    <div className="flex items-start gap-3">
+                                        <StickyNote className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                        <div>
+                                            <h4 className="font-medium text-sm">Order Note</h4>
+                                            <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <Separator />
                            <div className="w-full flex justify-end">
                                 <div className="w-full max-w-sm space-y-3">
                                      <div className="flex justify-between">
@@ -391,13 +391,13 @@ export default function OrderDetailsPage() {
                         </CardFooter>
                     </Card>
                 </div>
-                <div className="lg:col-span-1 space-y-6">
+                <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-lg">Shipping &amp; Notes</CardTitle>
+                            <CardTitle className="font-headline text-lg">Shipping Details</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             {order.shippingAddress && (
+                            {order.shippingAddress ? (
                                 <div className="flex items-start gap-3">
                                     <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                                     <div>
@@ -405,19 +405,9 @@ export default function OrderDetailsPage() {
                                         <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
                                     </div>
                                 </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center">This is a pickup order.</p>
                             )}
-                            {order.note && (
-                                <div className="flex items-start gap-3">
-                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium text-sm">Order Note</h4>
-                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
-                                    </div>
-                                </div>
-                            )}
-                             {!order.shippingAddress && !order.note && (
-                                <p className="text-sm text-muted-foreground text-center">No shipping address or notes for this order.</p>
-                             )}
                         </CardContent>
                     </Card>
                     <Card>
@@ -425,24 +415,26 @@ export default function OrderDetailsPage() {
                             <CardTitle className="font-headline text-lg">Change History</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Timestamp</TableHead>
-                                        <TableHead>User</TableHead>
-                                        <TableHead>Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
-                                        <TableRow key={entry.id}>
-                                            <TableCell className="text-xs">{new Date(entry.timestamp).toLocaleString()}</TableCell>
-                                            <TableCell className="text-xs">{entry.user}</TableCell>
-                                            <TableCell className="text-xs">{entry.action}</TableCell>
+                            <div className="max-h-60 overflow-y-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Timestamp</TableHead>
+                                            <TableHead>User</TableHead>
+                                            <TableHead>Action</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
+                                            <TableRow key={entry.id}>
+                                                <TableCell className="text-xs">{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                                <TableCell className="text-xs">{entry.user}</TableCell>
+                                                <TableCell className="text-xs">{entry.action}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
