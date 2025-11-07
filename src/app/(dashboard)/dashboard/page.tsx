@@ -43,10 +43,16 @@ const generateChartData = () => [
 
 export default function DashboardPage() {
   const [data, setData] = useState<any[]>([]);
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     setData(generateChartData());
   }, []);
+  
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -208,3 +214,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+    

@@ -141,7 +141,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (!isClient) return;
-    console.log(`Filtering data for branch: ${selectedBranch} and date range:`, date);
+    // Mock data fetching based on filters
     setProductData(generateProductPerformanceData());
   }, [date, selectedBranch, isClient]);
 
@@ -699,3 +699,5 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    

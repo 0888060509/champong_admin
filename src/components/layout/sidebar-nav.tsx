@@ -67,6 +67,10 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
+    // Exact match for dashboard, otherwise prefix match
+    if (href === '/dashboard') {
+        return pathname === href;
+    }
     return pathname.startsWith(href);
   };
   
@@ -171,3 +175,5 @@ export function SidebarNav() {
     </>
   );
 }
+
+    
