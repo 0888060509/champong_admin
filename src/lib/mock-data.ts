@@ -15,6 +15,7 @@ export const mockCustomers: Customer[] = [
     { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia' },
     { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah' },
     { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma' },
+    { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john' },
 ];
 
 export const mockRoles: Role[] = [
@@ -70,12 +71,12 @@ export const mockOrders: Order[] = [
                 ]
             }
         ],
-        subtotal: 41.97,
+        subtotal: 50.47,
         discount: 5.00,
         shippingFee: 3.50,
-        total: 40.47,
+        total: 48.97,
         amountPaid: 40.47,
-        remainingAmount: 0.00,
+        remainingAmount: 8.50,
         history: [
             { id: 'hist_1', timestamp: new Date('2024-07-29T10:05:00Z'), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
             { id: 'hist_2', timestamp: new Date('2024-07-29T10:00:00Z'), user: 'system', action: 'Order created' },
@@ -336,6 +337,7 @@ export const mockCollections: Collection[] = [
       productCount: 7, 
       publicTitle: "Premium Entrees",
       description: 'Top-tier main courses for discerning customers.',
+      isActive: true,
       root: { 
           type: 'group',
           logic: 'AND',
@@ -343,8 +345,7 @@ export const mockCollections: Collection[] = [
               {type: 'condition', id: 'cond-4a', criteria: 'category', operator: 'eq', value: 'Main Course'},
               {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
           ]
-      },
-      isActive: true
+      }
     },
   ];
 
