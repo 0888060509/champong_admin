@@ -45,6 +45,8 @@ export type OrderItem = {
   name: string;
   quantity: number;
   price: number;
+  isEditing?: boolean;
+  originalPrice?: number;
 };
 
 export type OrderHistory = {

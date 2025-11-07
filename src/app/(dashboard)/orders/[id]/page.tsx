@@ -1,27 +1,38 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import type { Order, OrderHistory, OrderItem } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { mockOrders } from '@/lib/mock-data';
+import { mockOrders, mockMenuItems } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, PlusCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function OrderDetailsPage() {
     const params = useParams();
+    const router = useRouter();
     const orderId = params.id as string;
     const [order, setOrder] = useState<Order | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedItems, setEditedItems] = useState<OrderItem[]>([]);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (!orderId) return;
         const foundOrder = mockOrders.find(o => o.id === orderId);
         if (foundOrder) {
             setOrder(foundOrder);
+            setEditedItems(JSON.parse(JSON.stringify(foundOrder.items))); // Deep copy
         } else {
-            console.log("No such document!");
+            toast({ title: 'Error', description: 'Order not found.', variant: 'destructive'});
+            router.push('/orders');
         }
-    }, [orderId]);
+    }, [orderId, router, toast]);
 
     const getStatusBadge = (status: Order['status']) => {
          switch (status) {
@@ -36,6 +47,94 @@ export default function OrderDetailsPage() {
         }
     }
 
+    const handleEditToggle = () => {
+        if (isEditing) {
+            // Cancel editing
+            setEditedItems(JSON.parse(JSON.stringify(order?.items || [])));
+        }
+        setIsEditing(!isEditing);
+    };
+
+    const handleItemChange = (itemId: string, field: keyof OrderItem, value: any) => {
+        setEditedItems(currentItems => {
+            return currentItems.map(item => {
+                if (item.id === itemId) {
+                    if (field === 'quantity') {
+                        return { ...item, [field]: Number(value) };
+                    }
+                    return { ...item, [field]: value };
+                }
+                return item;
+            });
+        });
+    };
+
+    const handleRemoveItem = (itemId: string) => {
+        setEditedItems(currentItems => currentItems.filter(item => item.id !== itemId));
+    };
+
+    const handleAddItem = () => {
+        const newItem: OrderItem = { 
+            id: `new_${Date.now()}`,
+            name: '',
+            price: 0,
+            quantity: 1,
+            isEditing: true, // Mark as new item being edited
+        };
+        setEditedItems(currentItems => [...currentItems, newItem]);
+    };
+
+    const handleNewItemSelect = (newItemId: string, selectedMenuItemId: string) => {
+        const selectedItem = mockMenuItems.find(mi => mi.id === selectedMenuItemId);
+        if (!selectedItem) return;
+
+        setEditedItems(currentItems => currentItems.map(item => {
+            if (item.id === newItemId) {
+                return {
+                    ...item,
+                    name: selectedItem.name,
+                    price: selectedItem.price,
+                    originalPrice: selectedItem.price,
+                    isEditing: false, // Done selecting
+                };
+            }
+            return item;
+        }));
+    };
+    
+    const handleSaveChanges = () => {
+        if (!order) return;
+        
+        const newTotal = editedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+        const updatedOrder: Order = {
+            ...order,
+            items: editedItems,
+            total: newTotal,
+            history: [
+                ...(order.history || []),
+                {
+                    id: `hist_${Date.now()}`,
+                    action: `Order edited by admin@example.com. Total changed from $${order.total.toFixed(2)} to $${newTotal.toFixed(2)}.`,
+                    user: 'admin@example.com',
+                    timestamp: new Date(),
+                }
+            ]
+        };
+
+        setOrder(updatedOrder);
+        setIsEditing(false);
+        // In a real app, you would also update the mockOrders array or send to a server
+        const orderIndex = mockOrders.findIndex(o => o.id === orderId);
+        if (orderIndex > -1) {
+            mockOrders[orderIndex] = updatedOrder;
+        }
+
+        toast({ title: 'Success', description: 'Order updated successfully.'});
+    };
+    
+    const currentTotal = editedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
     if (!order) {
         return <div>Loading...</div>;
     }
@@ -43,9 +142,23 @@ export default function OrderDetailsPage() {
     return (
         <div className="grid gap-6">
             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Order Details</CardTitle>
-                    <CardDescription>Details for order {order.id.substring(0, 7)}...</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div>
+                        <CardTitle className="font-headline">Order Details</CardTitle>
+                        <CardDescription>Details for order {order.id.substring(0, 7)}...</CardDescription>
+                    </div>
+                    {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                        <div className="flex gap-2">
+                             {isEditing ? (
+                                <>
+                                    <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
+                                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                                </>
+                            ) : (
+                                <Button onClick={handleEditToggle}>Edit Order</Button>
+                            )}
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -55,7 +168,14 @@ export default function OrderDetailsPage() {
                         </div>
                         <div>
                             <div className="text-sm flex items-center gap-2"><strong>Status:</strong> {getStatusBadge(order.status)}</div>
-                            <div className="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)}</div>
+                            <div className="text-sm">
+                                <strong>Total:</strong>
+                                {isEditing ? (
+                                    <span className="ml-2 font-mono bg-muted p-1 rounded-sm">${currentTotal.toFixed(2)}</span>
+                                ) : (
+                                    ` $${order.total.toFixed(2)}`
+                                )}
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -70,21 +190,72 @@ export default function OrderDetailsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Item</TableHead>
-                                <TableHead>Quantity</TableHead>
-                                <TableHead className="text-right">Price</TableHead>
+                                <TableHead className="w-24">Quantity</TableHead>
+                                <TableHead className="text-right w-32">Price</TableHead>
+                                <TableHead className="text-right w-32">Subtotal</TableHead>
+                                {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {order.items.map((item: OrderItem) => (
+                            {editedItems.map((item: OrderItem) => (
                                 <TableRow key={item.id}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell>{item.quantity}</TableCell>
+                                    <TableCell>
+                                        {item.isEditing ? (
+                                             <Select onValueChange={(val) => handleNewItemSelect(item.id, val)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a product" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {mockMenuItems.map(mi => (
+                                                        <SelectItem key={mi.id} value={mi.id}>{mi.name} - ${mi.price.toFixed(2)}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            item.name
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {isEditing ? (
+                                            <Input 
+                                                type="number" 
+                                                value={item.quantity} 
+                                                onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
+                                                className="h-8"
+                                                min="1"
+                                            />
+                                        ) : (
+                                            item.quantity
+                                        )}
+                                    </TableCell>
                                     <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                     {isEditing && (
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </TableCell>
+                                     )}
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
+                    {isEditing && (
+                        <div className="mt-4">
+                            <Button variant="outline" size="sm" onClick={handleAddItem}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Item
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
+                 <CardFooter className="justify-end bg-muted/50 p-4">
+                     <div className="flex items-center gap-4 text-lg font-bold">
+                        <span>Total:</span>
+                        <span>${currentTotal.toFixed(2)}</span>
+                     </div>
+                </CardFooter>
             </Card>
 
             <Card>
