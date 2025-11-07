@@ -11,11 +11,13 @@ import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard, User, Info, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -168,47 +170,38 @@ export default function OrderDetailsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold font-headline">Order {order.id.substring(0, 7)}</h1>
-                    <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
+            <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
+                            <span>Order {order.id.substring(0, 7)}</span>
+                            {getStatusBadge(order.status)}
+                        </h1>
+                        <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
+                    </div>
                 </div>
+                 {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                    <div className="flex gap-2">
+                        {isEditing ? (
+                            <>
+                                <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
+                                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                            </>
+                        ) : (
+                            <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
+                        )}
+                    </div>
+                )}
             </div>
-
-             {order.note && (
-                <Card>
-                    <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                         <StickyNote className="h-5 w-5"/>
-                        <CardTitle className="font-headline text-lg">Ghi chú Đơn hàng</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground italic">"{order.note}"</p>
-                    </CardContent>
-                </Card>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="font-headline">Order Items</CardTitle>
-                                {order.status !== 'Completed' && order.status !== 'Cancelled' && (
-                                    <div className="flex gap-2">
-                                        {isEditing ? (
-                                            <>
-                                                <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
-                                                <Button onClick={handleSaveChanges}>Save Changes</Button>
-                                            </>
-                                        ) : (
-                                            <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                            <CardTitle className="font-headline">Order Items</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -292,13 +285,7 @@ export default function OrderDetailsPage() {
                                 </div>
                             )}
                         </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                             <CardTitle className="font-headline">Financial Summary</CardTitle>
-                        </CardHeader>
-                         <CardContent className="space-y-3">
+                        <CardFooter className="flex-col items-stretch space-y-3">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Tổng cộng:</span>
                                 <span>${currentSubtotal.toFixed(2)}</span>
@@ -306,10 +293,6 @@ export default function OrderDetailsPage() {
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Giá giảm:</span>
                                 <span>-${discount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Giá sau giảm:</span>
-                                <span>${priceAfterDiscount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Phí giao hàng:</span>
@@ -331,124 +314,126 @@ export default function OrderDetailsPage() {
                                     ${remainingAmount.toFixed(2)}
                                 </span>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Change History</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Timestamp</TableHead>
-                                        <TableHead>User</TableHead>
-                                        <TableHead>Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
-                                        <TableRow key={entry.id}>
-                                            <TableCell>{new Date(entry.timestamp).toLocaleString()}</TableCell>
-                                            <TableCell>{entry.user}</TableCell>
-                                            <TableCell>{entry.action}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
+                        </CardFooter>
                     </Card>
                 </div>
                 <div className="lg:col-span-1 space-y-6">
                      <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg">Order Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {getStatusBadge(order.status)}
-                        </CardContent>
-                    </Card>
-                    {customer && (
-                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline text-lg">Customer Information</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-14 w-14">
-                                        <AvatarImage src={customer.avatarUrl} />
-                                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
-                                        <p className="text-sm text-muted-foreground">{customer.email}</p>
-                                        {customer.phone && <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-3 w-3" />{customer.phone}</p>}
-                                    </div>
-                                </div>
-                                <Separator/>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-muted-foreground">Total Spent</p>
-                                            <p className="font-medium">${customer.totalSpent.toFixed(2)}</p>
+                        <Tabs defaultValue="customer">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="customer"><User className="h-4 w-4 mr-2"/>Customer</TabsTrigger>
+                                <TabsTrigger value="details"><Info className="h-4 w-4 mr-2"/>Details</TabsTrigger>
+                                <TabsTrigger value="history"><History className="h-4 w-4 mr-2"/>History</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="customer" className="pt-4">
+                                <CardContent className="space-y-4">
+                                {customer ? (
+                                    <>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-14 w-14">
+                                                <AvatarImage src={customer.avatarUrl} />
+                                                <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
+                                                <p className="text-sm text-muted-foreground">{customer.email}</p>
+                                                {customer.phone && <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-3 w-3" />{customer.phone}</p>}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                                         <div>
-                                            <p className="text-muted-foreground">Visits</p>
-                                            <p className="font-medium">{customer.totalVisits}</p>
+                                        {customer.membershipTier && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Gem className="h-4 w-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-muted-foreground">Membership Tier</p>
+                                                    <div><Badge>{customer.membershipTier}</Badge></div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <Separator/>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-muted-foreground">Total Spent</p>
+                                                    <p className="font-medium">${customer.totalSpent.toFixed(2)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="text-muted-foreground">Visits</p>
+                                                    <p className="font-medium">{customer.totalVisits}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <div>
-                                        <p className="text-muted-foreground">Last Visit</p>
-                                        <p className="font-medium">{customer.lastVisit.toDate().toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                {customer.membershipTier && (
-                                     <div className="flex items-center gap-2 text-sm">
-                                        <Gem className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-muted-foreground">Membership Tier</p>
-                                            <div><Badge>{customer.membershipTier}</Badge></div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            <div>
+                                                <p className="text-muted-foreground">Last Visit</p>
+                                                <p className="font-medium">{customer.lastVisit.toDate().toLocaleDateString()}</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <Button variant="outline" asChild className="w-full">
+                                            <Link href={`/customers/${customer.id}`}>View Profile</Link>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Customer information not available.</p>
                                 )}
-                                 <Button variant="outline" asChild className="w-full">
-                                    <Link href={`/customers/${customer.id}`}>View Profile</Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    )}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg">Shipping & Payment</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {order.shippingAddress && (
-                                <div className="flex items-start gap-3">
-                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Shipping Address</h4>
-                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.paymentMethod && (
-                                <div className="flex items-start gap-3">
-                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Payment Method</h4>
-                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
+                                </CardContent>
+                            </TabsContent>
+                            <TabsContent value="details" className="pt-4">
+                                <CardContent className="space-y-4">
+                                    {order.note && (
+                                        <div className="flex items-start gap-3">
+                                            <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
+                                            <div>
+                                                <h4 className="font-medium">Order Note</h4>
+                                                <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {order.shippingAddress && (
+                                        <div className="flex items-start gap-3">
+                                            <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
+                                            <div>
+                                                <h4 className="font-medium">Shipping Address</h4>
+                                                <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {order.paymentMethod && (
+                                        <div className="flex items-start gap-3">
+                                            <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
+                                            <div>
+                                                <h4 className="font-medium">Payment Method</h4>
+                                                <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </TabsContent>
+                             <TabsContent value="history" className="pt-4">
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Timestamp</TableHead>
+                                                <TableHead>Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
+                                                <TableRow key={entry.id}>
+                                                    <TableCell className="text-xs">{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                                    <TableCell className="text-xs">{entry.action}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </TabsContent>
+                        </Tabs>
                     </Card>
                 </div>
             </div>
@@ -457,4 +442,5 @@ export default function OrderDetailsPage() {
 }
 
     
+
 
