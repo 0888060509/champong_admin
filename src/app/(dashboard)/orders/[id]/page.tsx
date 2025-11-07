@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard, User, Info, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -197,15 +198,6 @@ export default function OrderDetailsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <h1 className="text-xl font-bold font-headline">
-                    Order Details
-                </h1>
-            </div>
-
             <Card>
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -221,11 +213,7 @@ export default function OrderDetailsPage() {
                                 </Avatar>
                                 <div>
                                     <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
-                                    {customer.membershipTier && (
-                                        <div>
-                                            <Badge>{customer.membershipTier}</Badge>
-                                        </div>
-                                    )}
+                                    <div className="text-sm text-muted-foreground">{customer.email}</div>
                                 </div>
                             </div>
                         </div>
@@ -244,10 +232,8 @@ export default function OrderDetailsPage() {
                             </Select>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <Separator className="my-4" />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <Separator className="my-6"/>
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                             <p className="text-muted-foreground">Total Amount</p>
                             <p className="font-semibold text-lg">${finalTotal.toFixed(2)}</p>
@@ -269,7 +255,7 @@ export default function OrderDetailsPage() {
                             <p className="font-semibold">{order.shippingAddress ? 'Delivery' : 'Pickup'}</p>
                         </div>
                     </div>
-                </CardContent>
+                </CardHeader>
             </Card>
 
             <Tabs defaultValue="items">
