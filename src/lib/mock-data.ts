@@ -2,7 +2,7 @@
 
 import { Timestamp } from 'firebase/firestore';
 import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession } from './types';
-import type { Collection } from '@/app/(dashboard)/collections/page';
+import type { Collection } from '@/app/(dashboard)/collections/collections-context';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@example.com', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', role: 'Admin' },
@@ -239,7 +239,8 @@ export const mockChatSessions: ChatSession[] = [
 export const mockCollections: Collection[] = [
     { 
       id: '1', 
-      name: 'High Profit Items', 
+      name: 'High Profit Items',
+      publicTitle: "Chef's Recommendations",
       description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
       isActive: true,
@@ -248,6 +249,7 @@ export const mockCollections: Collection[] = [
     { 
       id: '2', 
       name: 'Low Stock Specials', 
+      publicTitle: "Last Chance to Buy!",
       description: 'Clear out items that are low in stock.',
       productCount: 8, 
       isActive: true,
@@ -256,6 +258,7 @@ export const mockCollections: Collection[] = [
     { 
       id: '3', 
       name: 'Weekend Dessert Specials', 
+      publicTitle: "Sweet Weekend Deals",
       description: 'Special desserts featured only on weekends.',
       productCount: 4, 
       isActive: false,
@@ -272,10 +275,11 @@ export const mockCollections: Collection[] = [
       id: '4', 
       name: 'Premium Main Courses', 
       productCount: 7, 
-      isActive: true,
+      publicTitle: "Premium Entrees",
+      description: 'Top-tier main courses for discerning customers.',
       root: { 
           type: 'group',
-          logic: 'AND', 
+          logic: 'AND',
           conditions: [
               {type: 'condition', id: 'cond-4a', criteria: 'category', operator: 'eq', value: 'Main Course'},
               {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
@@ -283,3 +287,7 @@ export const mockCollections: Collection[] = [
       }
     },
   ];
+
+
+
+    
