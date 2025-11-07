@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import type { ChatSession, ChatMessage } from '@/lib/types';
 import { ArrowLeft, Download, User } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from 'lucide-react';
 
 export default function ChatHistoryDetailsPage() {
     const params = useParams();
@@ -106,7 +108,7 @@ export default function ChatHistoryDetailsPage() {
                      <Avatar className="h-8 w-8">
                         <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                )}
+                 )}
             </div>
         );
     };
@@ -155,7 +157,7 @@ export default function ChatHistoryDetailsPage() {
                                     </Avatar>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{session.customerName}</span>
-                                        <Link href={`/customers/${session.customerId}`} className="text-xs text-muted-foreground hover:underline">View Profile</Link>
+                                        <Link href={`/customers/${session.customerId}`} className="text-xs text-primary hover:underline">View Profile</Link>
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +176,10 @@ export default function ChatHistoryDetailsPage() {
                             </div>
                              <div className="space-y-1">
                                 <h4 className="font-semibold">Last Updated</h4>
-                                <p className="text-sm text-muted-foreground">{session.lastUpdatedAt.toDate().toLocaleString()}</p>
+                                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    {session.lastUpdatedAt.toDate().toLocaleString()}
+                                </p>
                             </div>
                         </CardContent>
                     </Card>

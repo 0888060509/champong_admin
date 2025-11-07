@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -6,12 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useParams, useRouter } from 'next/navigation';
 import type { Order, OrderHistory, OrderItem } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { mockOrders, mockMenuItems } from '@/lib/mock-data';
+import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -135,154 +137,168 @@ export default function OrderDetailsPage() {
     
     const currentTotal = editedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+    const customer = mockCustomers.find(c => c.name === order?.customerName);
+
     if (!order) {
         return <div>Loading...</div>;
     }
 
     return (
-        <div className="grid gap-6">
-            <Card>
-                <CardHeader className="flex flex-row items-start justify-between">
-                    <div>
-                        <CardTitle className="font-headline">Order Details</CardTitle>
-                        <CardDescription>Details for order {order.id.substring(0, 7)}...</CardDescription>
-                    </div>
-                    {order.status !== 'Completed' && order.status !== 'Cancelled' && (
-                        <div className="flex gap-2">
-                             {isEditing ? (
-                                <>
-                                    <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
-                                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                                </>
-                            ) : (
-                                <Button onClick={handleEditToggle}>Edit Order</Button>
-                            )}
-                        </div>
-                    )}
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <div className="text-sm"><strong>Customer:</strong> {order.customerName}</div>
-                            <div className="text-sm"><strong>Date:</strong> {order.date.toDate().toLocaleString()}</div>
-                        </div>
-                        <div>
-                            <div className="text-sm flex items-center gap-2"><strong>Status:</strong> {getStatusBadge(order.status)}</div>
-                            <div className="text-sm">
-                                <strong>Total:</strong>
-                                {isEditing ? (
-                                    <span className="ml-2 font-mono bg-muted p-1 rounded-sm">${currentTotal.toFixed(2)}</span>
-                                ) : (
-                                    ` $${order.total.toFixed(2)}`
+        <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                    <h1 className="text-2xl font-bold font-headline">Order {order.id.substring(0, 7)}</h1>
+                    <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="font-headline">Order Items</CardTitle>
+                                {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                                    <div className="flex gap-2">
+                                        {isEditing ? (
+                                            <>
+                                                <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
+                                                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                                            </>
+                                        ) : (
+                                            <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
+                                        )}
+                                    </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Item</TableHead>
+                                        <TableHead className="w-24">Quantity</TableHead>
+                                        <TableHead className="text-right w-32">Price</TableHead>
+                                        <TableHead className="text-right w-32">Subtotal</TableHead>
+                                        {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {editedItems.map((item: OrderItem) => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>
+                                                {item.isEditing ? (
+                                                    <Select onValueChange={(val) => handleNewItemSelect(item.id, val)}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select a product" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {mockMenuItems.map(mi => (
+                                                                <SelectItem key={mi.id} value={mi.id}>{mi.name} - ${mi.price.toFixed(2)}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                ) : (
+                                                    item.name
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {isEditing ? (
+                                                    <Input 
+                                                        type="number" 
+                                                        value={item.quantity} 
+                                                        onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
+                                                        className="h-8"
+                                                        min="1"
+                                                    />
+                                                ) : (
+                                                    item.quantity
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                            {isEditing && (
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {isEditing && (
+                                <div className="mt-4">
+                                    <Button variant="outline" size="sm" onClick={handleAddItem}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Add Item
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                        <CardFooter className="justify-end bg-muted/50 p-4">
+                            <div className="flex items-center gap-4 text-lg font-bold">
+                                <span>Total:</span>
+                                <span>${currentTotal.toFixed(2)}</span>
+                            </div>
+                        </CardFooter>
+                    </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Order Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Item</TableHead>
-                                <TableHead className="w-24">Quantity</TableHead>
-                                <TableHead className="text-right w-32">Price</TableHead>
-                                <TableHead className="text-right w-32">Subtotal</TableHead>
-                                {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {editedItems.map((item: OrderItem) => (
-                                <TableRow key={item.id}>
-                                    <TableCell>
-                                        {item.isEditing ? (
-                                             <Select onValueChange={(val) => handleNewItemSelect(item.id, val)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a product" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {mockMenuItems.map(mi => (
-                                                        <SelectItem key={mi.id} value={mi.id}>{mi.name} - ${mi.price.toFixed(2)}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        ) : (
-                                            item.name
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {isEditing ? (
-                                            <Input 
-                                                type="number" 
-                                                value={item.quantity} 
-                                                onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                                                className="h-8"
-                                                min="1"
-                                            />
-                                        ) : (
-                                            item.quantity
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
-                                     {isEditing && (
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </TableCell>
-                                     )}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    {isEditing && (
-                        <div className="mt-4">
-                            <Button variant="outline" size="sm" onClick={handleAddItem}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Item
-                            </Button>
-                        </div>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Change History</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Timestamp</TableHead>
+                                        <TableHead>User</TableHead>
+                                        <TableHead>Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
+                                        <TableRow key={entry.id}>
+                                            <TableCell>{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                            <TableCell>{entry.user}</TableCell>
+                                            <TableCell>{entry.action}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1 space-y-6">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Order Status</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {getStatusBadge(order.status)}
+                        </CardContent>
+                    </Card>
+                    {customer && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg">Customer</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-2">
+                                <div className="font-semibold text-lg">{customer.name}</div>
+                                <div className="text-sm text-muted-foreground">{customer.email}</div>
+                                <Button variant="outline" asChild className="mt-2">
+                                    <Link href={`/customers/${customer.id}`}>View Profile</Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
                     )}
-                </CardContent>
-                 <CardFooter className="justify-end bg-muted/50 p-4">
-                     <div className="flex items-center gap-4 text-lg font-bold">
-                        <span>Total:</span>
-                        <span>${currentTotal.toFixed(2)}</span>
-                     </div>
-                </CardFooter>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Change History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Timestamp</TableHead>
-                                <TableHead>User</TableHead>
-                                <TableHead>Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
-                                <TableRow key={entry.id}>
-                                    <TableCell>{new Date(entry.timestamp).toLocaleString()}</TableCell>
-                                    <TableCell>{entry.user}</TableCell>
-                                    <TableCell>{entry.action}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }
