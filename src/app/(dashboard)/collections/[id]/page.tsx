@@ -63,6 +63,7 @@ export default function CollectionDetailPage() {
               name: `Collection ${collectionId}`, 
               description: 'Dynamic collection of products based on rules.',
               productCount: Math.floor(Math.random() * 10) + 5, 
+              isActive: true,
               root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'price', operator: 'gte', value: 20}]}
             };
             setCollection(foundCollection);

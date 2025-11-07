@@ -3,19 +3,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { mockChatSessions } from '@/lib/mock-data';
 import type { ChatSession, ChatMessage } from '@/lib/types';
-import { ArrowLeft, Download, User } from 'lucide-react';
+import { ArrowLeft, Download, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from 'lucide-react';
 
 export default function ChatHistoryDetailsPage() {
     const params = useParams();
+    const router = useRouter();
     const sessionId = params.id as string;
     const [session, setSession] = useState<ChatSession | null>(null);
 
@@ -117,10 +117,8 @@ export default function ChatHistoryDetailsPage() {
         <div className="flex flex-col gap-6 h-full">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href="/chat-history">
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
+                    <Button variant="outline" size="icon" onClick={() => router.push('/chat-history')}>
+                        <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
                         <h1 className="text-xl font-semibold font-headline">Chat with {session.customerName}</h1>

@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, ShoppingCart, BarChart2 } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, ShoppingCart, BarChart2, Calendar } from 'lucide-react';
 import type { Customer, Order } from '@/lib/types';
 import { mockCustomers, mockOrders } from '@/lib/mock-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
