@@ -11,7 +11,7 @@ import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -372,7 +372,7 @@ export default function OrderDetailsPage() {
                     {customer && (
                          <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline text-lg">Customer</CardTitle>
+                                <CardTitle className="font-headline text-lg">Customer Information</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center gap-4">
@@ -409,6 +409,15 @@ export default function OrderDetailsPage() {
                                         <p className="font-medium">{customer.lastVisit.toDate().toLocaleDateString()}</p>
                                     </div>
                                 </div>
+                                {customer.membershipTier && (
+                                     <div className="flex items-center gap-2 text-sm">
+                                        <Gem className="h-4 w-4 text-muted-foreground" />
+                                        <div>
+                                            <p className="text-muted-foreground">Membership Tier</p>
+                                            <p><Badge>{customer.membershipTier}</Badge></p>
+                                        </div>
+                                    </div>
+                                )}
                                  <Button variant="outline" asChild className="w-full">
                                     <Link href={`/customers/${customer.id}`}>View Profile</Link>
                                 </Button>

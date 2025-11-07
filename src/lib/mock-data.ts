@@ -11,11 +11,11 @@ export const mockUsers: User[] = [
 ];
 
 export const mockCustomers: Customer[] = [
-    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', totalSpent: 1250.50, totalVisits: 15, lastVisit: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=liam' },
-    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia' },
-    { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah' },
-    { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma' },
-    { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john' },
+    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', totalSpent: 1250.50, totalVisits: 15, lastVisit: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=liam', membershipTier: 'Silver' },
+    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia', membershipTier: 'Silver' },
+    { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah', membershipTier: 'Gold' },
+    { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma', membershipTier: 'Bronze' },
+    { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john', membershipTier: 'Bronze' },
 ];
 
 export const mockRoles: Role[] = [

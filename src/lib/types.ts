@@ -16,6 +16,7 @@ export type Customer = {
   totalSpent: number;
   totalVisits: number;
   lastVisit: any;
+  membershipTier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
 }
 
 export type Role = {
