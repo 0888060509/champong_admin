@@ -5,13 +5,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useParams, useRouter } from 'next/navigation';
-import type { Order, OrderHistory, OrderItem } from '@/lib/types';
+import type { Order, OrderHistory, OrderItem, Topping, SideDish } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -135,7 +135,13 @@ export default function OrderDetailsPage() {
         toast({ title: 'Success', description: 'Order updated successfully.'});
     };
     
-    const currentTotal = editedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const calculateItemSubtotal = (item: OrderItem) => {
+        const toppingsPrice = item.toppings?.reduce((acc, topping) => acc + topping.price, 0) || 0;
+        const sideDishesPrice = item.sideDishes?.reduce((acc, sideDish) => acc + sideDish.price, 0) || 0;
+        return (item.price + toppingsPrice + sideDishesPrice) * item.quantity;
+    }
+
+    const currentTotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
 
     const customer = mockCustomers.find(c => c.name === order?.customerName);
 
@@ -154,6 +160,18 @@ export default function OrderDetailsPage() {
                     <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
                 </div>
             </div>
+
+             {order.note && (
+                <Card>
+                    <CardHeader className="flex flex-row items-center gap-2 pb-2">
+                         <StickyNote className="h-5 w-5"/>
+                        <CardTitle className="font-headline text-lg">Ghi chú Đơn hàng</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground italic">"{order.note}"</p>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
@@ -180,8 +198,8 @@ export default function OrderDetailsPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Item</TableHead>
-                                        <TableHead className="w-24">Quantity</TableHead>
-                                        <TableHead className="text-right w-32">Price</TableHead>
+                                        <TableHead className="w-24 text-center">Quantity</TableHead>
+                                        <TableHead className="text-right w-32">Unit Price</TableHead>
                                         <TableHead className="text-right w-32">Subtotal</TableHead>
                                         {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
                                     </TableRow>
@@ -202,16 +220,33 @@ export default function OrderDetailsPage() {
                                                         </SelectContent>
                                                     </Select>
                                                 ) : (
-                                                    item.name
+                                                    <div>
+                                                        <span className="font-medium">{item.name}</span>
+                                                        {item.toppings && item.toppings.length > 0 && (
+                                                             <div className="text-xs text-muted-foreground">
+                                                                + Toppings: {item.toppings.map(t => `${t.name} ($${t.price.toFixed(2)})`).join(', ')}
+                                                            </div>
+                                                        )}
+                                                        {item.sideDishes && item.sideDishes.length > 0 && (
+                                                            <div className="text-xs text-muted-foreground">
+                                                                + Sides: {item.sideDishes.map(s => `${s.name} ($${s.price.toFixed(2)})`).join(', ')}
+                                                            </div>
+                                                        )}
+                                                         {item.note && (
+                                                            <div className="text-xs text-muted-foreground italic flex items-center gap-1 mt-1">
+                                                                <MessageSquare className="h-3 w-3"/> Note: {item.note}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-center">
                                                 {isEditing ? (
                                                     <Input 
                                                         type="number" 
                                                         value={item.quantity} 
                                                         onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                                                        className="h-8"
+                                                        className="h-8 w-16 mx-auto"
                                                         min="1"
                                                     />
                                                 ) : (
@@ -219,7 +254,7 @@ export default function OrderDetailsPage() {
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                            <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                            <TableCell className="text-right font-medium">${(calculateItemSubtotal(item)).toFixed(2)}</TableCell>
                                             {isEditing && (
                                                 <TableCell className="text-right">
                                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>

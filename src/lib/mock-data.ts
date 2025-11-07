@@ -40,11 +40,36 @@ export const mockOrders: Order[] = [
         id: 'ord_1',
         customerName: 'John Doe',
         date: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')),
-        total: 34.98,
+        total: 51.97,
         status: 'Completed',
+        note: 'Please provide extra napkins.',
         items: [
-            { id: 'item_1', name: 'Classic Burger', quantity: 2, price: 12.99 },
-            { id: 'item_2', name: 'Fries', quantity: 2, price: 4.50 },
+            { 
+                id: 'item_1', 
+                name: 'Classic Burger', 
+                quantity: 2, 
+                price: 12.99,
+                note: 'One well-done, one medium-rare.',
+                toppings: [
+                    { id: 'top_1', name: 'Extra Cheese', price: 1.50 },
+                    { id: 'top_2', name: 'Bacon', price: 2.00 }
+                ]
+            },
+            { 
+                id: 'item_2', 
+                name: 'Fries', 
+                quantity: 1, 
+                price: 4.50 
+            },
+            {
+                id: 'item_combo_1',
+                name: 'Salad Combo',
+                quantity: 1,
+                price: 12.99,
+                sideDishes: [
+                    { id: 'side_1', name: 'Grilled Chicken', price: 4.00 }
+                ]
+            }
         ],
         history: [
             { id: 'hist_1', timestamp: new Date('2024-07-29T10:05:00Z'), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
@@ -77,6 +102,27 @@ export const mockOrders: Order[] = [
          history: [
             { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
             { id: 'hist_5', timestamp: new Date('2024-07-28T18:00:00Z'), user: 'system', action: 'Order created' },
+        ]
+    },
+    {
+        id: 'ord_4',
+        customerName: 'Liam Johnson',
+        date: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')),
+        total: 25.98,
+        status: 'Completed',
+        items: [
+             { id: 'item_1', name: 'Classic Burger', quantity: 2, price: 12.99 },
+        ]
+    },
+    {
+        id: 'ord_5',
+        customerName: 'Olivia Smith',
+        date: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')),
+        total: 16.49,
+        status: 'Completed',
+        items: [
+            { id: 'item_3', name: 'Caesar Salad', quantity: 1, price: 8.99 },
+            { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
         ]
     }
 ];
@@ -284,7 +330,8 @@ export const mockCollections: Collection[] = [
               {type: 'condition', id: 'cond-4a', criteria: 'category', operator: 'eq', value: 'Main Course'},
               {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
           ]
-      }
+      },
+      isActive: true
     },
   ];
 

@@ -40,6 +40,18 @@ export type AuditLog = {
   timestamp: string;
 };
 
+export type Topping = {
+    id: string;
+    name: string;
+    price: number;
+}
+
+export type SideDish = {
+    id: string;
+    name: string;
+    price: number;
+}
+
 export type OrderItem = {
   id: string;
   name: string;
@@ -47,6 +59,9 @@ export type OrderItem = {
   price: number;
   isEditing?: boolean;
   originalPrice?: number;
+  note?: string;
+  toppings?: Topping[];
+  sideDishes?: SideDish[];
 };
 
 export type OrderHistory = {
@@ -64,6 +79,7 @@ export type Order = {
   status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
   items: OrderItem[];
   history?: OrderHistory[];
+  note?: string;
 };
 
 export type Booking = {
