@@ -10,12 +10,19 @@ import { MoreHorizontal } from "lucide-react";
 import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { mockOrders } from '@/lib/mock-data';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [isCancelAlertOpen, setCancelAlertOpen] = useState(false);
+    const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+    const [cancellationReason, setCancellationReason] = useState('');
+    const [cancellationNotes, setCancellationNotes] = useState('');
 
     useEffect(() => {
-        // In a real app, you might fetch this data, but for now we use mocks
         const sortedOrders = [...mockOrders].sort((a, b) => b.date.toMillis() - a.date.toMillis());
         setOrders(sortedOrders);
     }, []);
@@ -33,11 +40,12 @@ export default function OrdersPage() {
         }
     };
     
-    const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+    const handleStatusChange = (orderId: string, newStatus: Order['status'], details?: string) => {
        setOrders(currentOrders => {
            const newOrders = [...currentOrders];
            const orderIndex = newOrders.findIndex(o => o.id === orderId);
            if (orderIndex > -1) {
+               const originalStatus = newOrders[orderIndex].status;
                newOrders[orderIndex] = {
                    ...newOrders[orderIndex],
                    status: newStatus,
@@ -45,7 +53,7 @@ export default function OrdersPage() {
                        ...(newOrders[orderIndex].history || []),
                        {
                            id: `hist_${Date.now()}`,
-                           action: `Status changed from ${newOrders[orderIndex].status} to ${newStatus}`,
+                           action: `Status changed from ${originalStatus} to ${newStatus}${details ? `. ${details}` : ''}`,
                            user: 'admin@example.com', // Replace with actual user
                            timestamp: new Date(),
                        }
@@ -55,58 +63,124 @@ export default function OrdersPage() {
            return newOrders;
        })
     };
+    
+    const openCancelDialog = (order: Order) => {
+        setOrderToCancel(order);
+        setCancelAlertOpen(true);
+        setCancellationReason('');
+        setCancellationNotes('');
+    }
+
+    const handleConfirmCancel = () => {
+        if (orderToCancel && cancellationReason) {
+            const details = `Reason: ${cancellationReason}${cancellationNotes ? ` - Notes: ${cancellationNotes}` : ''}`;
+            handleStatusChange(orderToCancel.id, 'Cancelled', details);
+        }
+        setCancelAlertOpen(false);
+        setOrderToCancel(null);
+    }
+
 
     return (
-        <Card>
-        <CardHeader>
-            <CardTitle className="font-headline">Order Manager</CardTitle>
-            <CardDescription>View and manage all customer orders.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead><span className="sr-only">Actions</span></TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {orders.map((order) => (
-                <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                        <Link href={`/orders/${order.id}`} className="hover:underline">
-                            {order.id.substring(0, 7)}...
-                        </Link>
-                    </TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>{order.date.toDate().toLocaleDateString()}</TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
-                                <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Cancelled')} className="text-destructive">Cancel Order</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
-                </TableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </CardContent>
-        </Card>
+        <>
+            <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Order Manager</CardTitle>
+                <CardDescription>View and manage all customer orders.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {orders.map((order) => (
+                    <TableRow key={order.id}>
+                        <TableCell className="font-medium">
+                            <Link href={`/orders/${order.id}`} className="hover:underline">
+                                {order.id.substring(0, 7)}...
+                            </Link>
+                        </TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell>{order.date.toDate().toLocaleDateString()}</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </CardContent>
+            </Card>
+
+            <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Order</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Please provide a reason for cancelling order <span className="font-mono">{orderToCancel?.id.substring(0,7)}...</span>. This action cannot be undone.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                             <Label htmlFor="cancellation-reason">Reason</Label>
+                             <Select onValueChange={setCancellationReason} value={cancellationReason}>
+                                <SelectTrigger id="cancellation-reason">
+                                    <SelectValue placeholder="Select a reason" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Customer Request">Customer Request</SelectItem>
+                                    <SelectItem value="Out of Stock">Item Out of Stock</SelectItem>
+                                    <SelectItem value="Payment Issue">Payment Issue</SelectItem>
+                                    <SelectItem value="Fraudulent Order">Fraudulent Order</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                             </Select>
+                        </div>
+                         <div className="space-y-2">
+                             <Label htmlFor="cancellation-notes">Notes (Optional)</Label>
+                             <Textarea 
+                                id="cancellation-notes" 
+                                placeholder="Add any additional notes here..."
+                                value={cancellationNotes}
+                                onChange={(e) => setCancellationNotes(e.target.value)}
+                            />
+                         </div>
+                    </div>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Close</AlertDialogCancel>
+                    <AlertDialogAction 
+                        onClick={handleConfirmCancel} 
+                        disabled={!cancellationReason}
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    >
+                        Confirm Cancellation
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
