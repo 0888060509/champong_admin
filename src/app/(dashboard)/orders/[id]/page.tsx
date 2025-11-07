@@ -383,7 +383,7 @@ export default function OrderDetailsPage() {
                                     <div>
                                         <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
                                         <p className="text-sm text-muted-foreground">{customer.email}</p>
-                                        {customer.phone && <p className="text-sm text-muted-foreground">{customer.phone}</p>}
+                                        {customer.phone && <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-3 w-3" />{customer.phone}</p>}
                                     </div>
                                 </div>
                                 <Separator/>
@@ -415,7 +415,7 @@ export default function OrderDetailsPage() {
                                         <Gem className="h-4 w-4 text-muted-foreground" />
                                         <div>
                                             <p className="text-muted-foreground">Membership Tier</p>
-                                            <p><Badge>{customer.membershipTier}</Badge></p>
+                                            <div><Badge>{customer.membershipTier}</Badge></div>
                                         </div>
                                     </div>
                                 )}
@@ -457,3 +457,4 @@ export default function OrderDetailsPage() {
 }
 
     
+
