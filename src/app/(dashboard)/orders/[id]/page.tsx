@@ -11,10 +11,11 @@ import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -370,10 +371,35 @@ export default function OrderDetailsPage() {
                             <CardHeader>
                                 <CardTitle className="font-headline text-lg">Customer</CardTitle>
                             </CardHeader>
-                            <CardContent className="flex flex-col gap-2">
-                                <Link href={`/customers/${customer.id}`} className="font-semibold text-lg hover:underline">{customer.name}</Link>
-                                <div className="text-sm text-muted-foreground">{customer.email}</div>
-                                <Button variant="outline" asChild className="mt-2">
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-14 w-14">
+                                        <AvatarImage src={customer.avatarUrl} />
+                                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
+                                        <p className="text-sm text-muted-foreground">{customer.email}</p>
+                                    </div>
+                                </div>
+                                <Separator/>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                        <div>
+                                            <p className="text-muted-foreground">Total Spent</p>
+                                            <p className="font-medium">${customer.totalSpent.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                                         <div>
+                                            <p className="text-muted-foreground">Visits</p>
+                                            <p className="font-medium">{customer.totalVisits}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <Button variant="outline" asChild className="w-full">
                                     <Link href={`/customers/${customer.id}`}>View Profile</Link>
                                 </Button>
                             </CardContent>
