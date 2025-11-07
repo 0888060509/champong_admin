@@ -40,16 +40,16 @@ export const mockOrders: Order[] = [
         id: 'ord_1',
         customerName: 'John Doe',
         date: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')),
-        total: 51.97,
+        total: 55.47,
         status: 'Completed',
-        note: 'Please provide extra napkins.',
+        note: 'Please provide extra napkins and disposable utensils.',
         items: [
             { 
                 id: 'item_1', 
                 name: 'Classic Burger', 
                 quantity: 2, 
                 price: 12.99,
-                note: 'One well-done, one medium-rare.',
+                note: 'One well-done, one medium-rare. No onions on the medium-rare one.',
                 toppings: [
                     { id: 'top_1', name: 'Extra Cheese', price: 1.50 },
                     { id: 'top_2', name: 'Bacon', price: 2.00 }
@@ -63,9 +63,9 @@ export const mockOrders: Order[] = [
             },
             {
                 id: 'item_combo_1',
-                name: 'Salad Combo',
+                name: 'Caesar Salad',
                 quantity: 1,
-                price: 12.99,
+                price: 8.99,
                 sideDishes: [
                     { id: 'side_1', name: 'Grilled Chicken', price: 4.00 }
                 ]
@@ -100,7 +100,7 @@ export const mockOrders: Order[] = [
             { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
         ],
          history: [
-            { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
+            { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled. Reason: Customer Request.' },
             { id: 'hist_5', timestamp: new Date('2024-07-28T18:00:00Z'), user: 'system', action: 'Order created' },
         ]
     },
