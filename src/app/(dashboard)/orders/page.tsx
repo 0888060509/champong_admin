@@ -1,12 +1,12 @@
 
 'use client';
-import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Search, X as XIcon, Calendar as CalendarIcon } from "lucide-react";
 import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { mockOrders } from '@/lib/mock-data';
@@ -14,6 +14,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format, addDays } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -21,11 +28,46 @@ export default function OrdersPage() {
     const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
     const [cancellationReason, setCancellationReason] = useState('');
     const [cancellationNotes, setCancellationNotes] = useState('');
+    const [activeTab, setActiveTab] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
     useEffect(() => {
         const sortedOrders = [...mockOrders].sort((a, b) => b.date.toMillis() - a.date.toMillis());
         setOrders(sortedOrders);
     }, []);
+
+    const filteredOrders = useMemo(() => {
+        return orders
+            .filter(order => {
+                // Status tab filter
+                if (activeTab === 'all') return true;
+                return order.status.toLowerCase() === activeTab;
+            })
+            .filter(order => {
+                // Search query filter
+                if (!searchQuery) return true;
+                const lowerCaseQuery = searchQuery.toLowerCase();
+                return (
+                    order.customerName.toLowerCase().includes(lowerCaseQuery) ||
+                    order.id.toLowerCase().includes(lowerCaseQuery)
+                );
+            })
+            .filter(order => {
+                // Date range filter
+                if (!dateRange || (!dateRange.from && !dateRange.to)) return true;
+                const orderDate = order.date.toDate();
+                if (dateRange.from && orderDate < dateRange.from) return false;
+                // Set the 'to' date to the end of the day
+                if (dateRange.to) {
+                    const toDate = new Date(dateRange.to);
+                    toDate.setHours(23, 59, 59, 999);
+                    if (orderDate > toDate) return false;
+                }
+                return true;
+            });
+    }, [orders, activeTab, searchQuery, dateRange]);
+
 
     const getStatusBadge = (status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
         switch (status) {
@@ -79,60 +121,138 @@ export default function OrdersPage() {
         setCancelAlertOpen(false);
         setOrderToCancel(null);
     }
-
+    
+    const clearFilters = () => {
+        setSearchQuery('');
+        setDateRange(undefined);
+    }
 
     return (
-        <>
+        <div className="space-y-6">
             <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">Order Manager</CardTitle>
-                <CardDescription>View and manage all customer orders.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead><span className="sr-only">Actions</span></TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {orders.map((order) => (
-                    <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                            <Link href={`/orders/${order.id}`} className="hover:underline">
-                                {order.id.substring(0, 7)}...
-                            </Link>
-                        </TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{order.date.toDate().toLocaleDateString()}</TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
-                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
-            </CardContent>
+                <CardHeader>
+                    <CardTitle className="font-headline">Order Manager</CardTitle>
+                    <CardDescription>View and manage all customer orders.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between gap-4 pb-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search by customer name or order ID..."
+                                className="pl-8"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-[300px] justify-start text-left font-normal",
+                                !dateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                dateRange.to ? (
+                                    <>
+                                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                                    {format(dateRange.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(dateRange.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Pick a date range</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        {(searchQuery || dateRange) && (
+                             <Button variant="ghost" onClick={clearFilters}>
+                                <XIcon className="mr-2 h-4 w-4"/>
+                                Clear Filters
+                            </Button>
+                        )}
+                    </div>
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        <TabsList>
+                            <TabsTrigger value="all">All</TabsTrigger>
+                            <TabsTrigger value="processing">Processing</TabsTrigger>
+                            <TabsTrigger value="completed">Completed</TabsTrigger>
+                            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value={activeTab} className="mt-4">
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Customer</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredOrders.map((order) => (
+                                    <TableRow key={order.id}>
+                                        <TableCell className="font-medium">
+                                            <Link href={`/orders/${order.id}`} className="hover:underline">
+                                                {order.id.substring(0, 7)}...
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell>{order.customerName}</TableCell>
+                                        <TableCell>{order.date.toDate().toLocaleDateString()}</TableCell>
+                                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Toggle menu</span>
+                                                </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {filteredOrders.length === 0 && (
+                                <div className="text-center text-muted-foreground py-10">
+                                    No orders found matching your criteria.
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+                 <CardFooter>
+                    <div className="text-xs text-muted-foreground">
+                        Showing <strong>{filteredOrders.length}</strong> of <strong>{orders.length}</strong> orders.
+                    </div>
+                </CardFooter>
             </Card>
 
             <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
@@ -181,6 +301,6 @@ export default function OrdersPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 }
