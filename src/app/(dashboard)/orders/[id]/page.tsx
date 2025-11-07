@@ -162,6 +162,33 @@ export default function OrderDetailsPage() {
     if (!order) {
         return <div>Loading...</div>;
     }
+    
+    const handleStatusChange = (newStatus: Order['status']) => {
+        if (!order || order.status === newStatus) return;
+
+        const updatedOrder: Order = {
+            ...order,
+            status: newStatus,
+            history: [
+                ...(order.history || []),
+                {
+                    id: `hist_${Date.now()}`,
+                    action: `Status changed from ${order.status} to ${newStatus}`,
+                    user: 'admin@example.com', // Replace with actual user
+                    timestamp: new Date(),
+                }
+            ]
+        };
+        setOrder(updatedOrder);
+
+        // Update mock data
+        const orderIndex = mockOrders.findIndex(o => o.id === orderId);
+        if (orderIndex > -1) {
+            mockOrders[orderIndex] = updatedOrder;
+        }
+        
+        toast({ title: 'Status Updated', description: `Order status changed to ${newStatus}`});
+    };
 
     const { discount = 0, shippingFee = 0, amountPaid = 0 } = order;
     const priceAfterDiscount = currentSubtotal - discount;
@@ -198,6 +225,38 @@ export default function OrderDetailsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Order Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="font-medium mb-2">Order Status</h4>
+                                    <Select onValueChange={handleStatusChange} value={order.status}>
+                                        <SelectTrigger className="w-[200px]">
+                                            <SelectValue placeholder="Select Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Pending">Pending</SelectItem>
+                                            <SelectItem value="Processing">Processing</SelectItem>
+                                            <SelectItem value="Completed">Completed</SelectItem>
+                                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            {order.note && (
+                                <div className="flex items-start gap-3">
+                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Ghi chú Đơn hàng</h4>
+                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Order Items</CardTitle>
@@ -324,71 +383,8 @@ export default function OrderDetailsPage() {
                             </div>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Change History</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Timestamp</TableHead>
-                                        <TableHead>User</TableHead>
-                                        <TableHead>Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
-                                        <TableRow key={entry.id}>
-                                            <TableCell className="text-xs">{new Date(entry.timestamp).toLocaleString()}</TableCell>
-                                            <TableCell className="text-xs">{entry.user}</TableCell>
-                                            <TableCell className="text-xs">{entry.action}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
                 </div>
                 <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Order Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <h4 className="font-medium">Order Status</h4>
-                                {getStatusBadge(order.status)}
-                            </div>
-                            {order.note && (
-                                <div className="flex items-start gap-3">
-                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Order Note</h4>
-                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.shippingAddress && (
-                                <div className="flex items-start gap-3">
-                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Shipping Address</h4>
-                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.paymentMethod && (
-                                <div className="flex items-start gap-3">
-                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Payment Method</h4>
-                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Customer Information</CardTitle>
@@ -451,10 +447,62 @@ export default function OrderDetailsPage() {
                         )}
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Shipping & Payment</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {order.shippingAddress && (
+                                <div className="flex items-start gap-3">
+                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Shipping Address</h4>
+                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.paymentMethod && (
+                                <div className="flex items-start gap-3">
+                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Payment Method</h4>
+                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Change History</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Timestamp</TableHead>
+                                        <TableHead>User</TableHead>
+                                        <TableHead>Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
+                                        <TableRow key={entry.id}>
+                                            <TableCell className="text-xs">{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                            <TableCell className="text-xs">{entry.user}</TableCell>
+                                            <TableCell className="text-xs">{entry.action}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>
     );
 }
+
+    
 
     

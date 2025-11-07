@@ -16,6 +16,7 @@ export const mockCustomers: Customer[] = [
     { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', phone: '555-0103', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah', membershipTier: 'Gold' },
     { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', phone: '555-0104', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma', membershipTier: 'Bronze' },
     { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', phone: '555-0105', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john', membershipTier: 'Bronze' },
+    { id: 'cust_6', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '555-0106', totalSpent: 320.80, totalVisits: 8, lastVisit: Timestamp.fromDate(new Date('2024-07-22T20:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=jane', membershipTier: 'Bronze' },
 ];
 
 export const mockRoles: Role[] = [
@@ -100,6 +101,7 @@ export const mockOrders: Order[] = [
         amountPaid: 22.49,
         remainingAmount: 0.00,
         paymentMethod: 'Cash on Delivery',
+        shippingAddress: '456 Pine St, Anytown, 12345',
          history: [
             { id: 'hist_3', timestamp: new Date('2024-07-29T11:30:00Z'), user: 'system', action: 'Order created' },
         ]
@@ -362,5 +364,7 @@ export const mockCollections: Collection[] = [
   ];
 
 
+
+    
 
     
