@@ -351,6 +351,44 @@ export default function OrderDetailsPage() {
                     </Card>
                 </div>
                 <div className="lg:col-span-1 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Order Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <h4 className="font-medium">Order Status</h4>
+                                {getStatusBadge(order.status)}
+                            </div>
+                            {order.note && (
+                                <div className="flex items-start gap-3">
+                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Order Note</h4>
+                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.shippingAddress && (
+                                <div className="flex items-start gap-3">
+                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Shipping Address</h4>
+                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.paymentMethod && (
+                                <div className="flex items-start gap-3">
+                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Payment Method</h4>
+                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Customer Information</CardTitle>
@@ -411,44 +449,6 @@ export default function OrderDetailsPage() {
                         ) : (
                             <p className="text-sm text-muted-foreground">Customer information not available.</p>
                         )}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Order Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <h4 className="font-medium">Order Status</h4>
-                                {getStatusBadge(order.status)}
-                            </div>
-                            {order.note && (
-                                <div className="flex items-start gap-3">
-                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Order Note</h4>
-                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.shippingAddress && (
-                                <div className="flex items-start gap-3">
-                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Shipping Address</h4>
-                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.paymentMethod && (
-                                <div className="flex items-start gap-3">
-                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Payment Method</h4>
-                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
-                                    </div>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
                 </div>
