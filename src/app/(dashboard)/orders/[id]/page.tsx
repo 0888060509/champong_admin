@@ -227,38 +227,6 @@ export default function OrderDetailsPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline">Order Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <h4 className="font-medium mb-2">Order Status</h4>
-                                    <Select onValueChange={handleStatusChange} value={order.status}>
-                                        <SelectTrigger className="w-[200px]">
-                                            <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Pending">Pending</SelectItem>
-                                            <SelectItem value="Processing">Processing</SelectItem>
-                                            <SelectItem value="Completed">Completed</SelectItem>
-                                            <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            {order.note && (
-                                <div className="flex items-start gap-3">
-                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium">Ghi chú Đơn hàng</h4>
-                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
                             <CardTitle className="font-headline">Order Items</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -449,14 +417,28 @@ export default function OrderDetailsPage() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline">Shipping & Payment</CardTitle>
+                            <CardTitle className="font-headline">Order Details</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                             <div>
+                                <h4 className="font-medium mb-2 text-sm">Order Status</h4>
+                                <Select onValueChange={handleStatusChange} value={order.status}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="Processing">Processing</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             {order.shippingAddress && (
                                 <div className="flex items-start gap-3">
                                     <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                                     <div>
-                                        <h4 className="font-medium">Shipping Address</h4>
+                                        <h4 className="font-medium text-sm">Shipping Address</h4>
                                         <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
                                     </div>
                                 </div>
@@ -465,8 +447,17 @@ export default function OrderDetailsPage() {
                                 <div className="flex items-start gap-3">
                                     <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
                                     <div>
-                                        <h4 className="font-medium">Payment Method</h4>
+                                        <h4 className="font-medium text-sm">Payment Method</h4>
                                         <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.note && (
+                                <div className="flex items-start gap-3">
+                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium text-sm">Order Note</h4>
+                                        <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
                                     </div>
                                 </div>
                             )}
