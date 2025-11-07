@@ -11,11 +11,11 @@ export const mockUsers: User[] = [
 ];
 
 export const mockCustomers: Customer[] = [
-    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', totalSpent: 1250.50, totalVisits: 15, lastVisit: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=liam', membershipTier: 'Silver' },
-    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia', membershipTier: 'Silver' },
-    { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah', membershipTier: 'Gold' },
-    { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma', membershipTier: 'Bronze' },
-    { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john', membershipTier: 'Bronze' },
+    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', phone: '555-0101', totalSpent: 1250.50, totalVisits: 15, lastVisit: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=liam', membershipTier: 'Silver' },
+    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', phone: '555-0102', totalSpent: 850.75, totalVisits: 10, lastVisit: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=olivia', membershipTier: 'Silver' },
+    { id: 'cust_3', name: 'Noah Williams', email: 'noah@example.com', phone: '555-0103', totalSpent: 2300.00, totalVisits: 22, lastVisit: Timestamp.fromDate(new Date('2024-07-29T12:15:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=noah', membershipTier: 'Gold' },
+    { id: 'cust_4', name: 'Emma Brown', email: 'emma@example.com', phone: '555-0104', totalSpent: 450.20, totalVisits: 5, lastVisit: Timestamp.fromDate(new Date('2024-06-15T18:45:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=emma', membershipTier: 'Bronze' },
+    { id: 'cust_5', name: 'John Doe', email: 'john.doe@example.com', phone: '555-0105', totalSpent: 182.30, totalVisits: 3, lastVisit: Timestamp.fromDate(new Date('2024-07-20T11:00:00Z')), avatarUrl: 'https://i.pravatar.cc/150?u=john', membershipTier: 'Bronze' },
 ];
 
 export const mockRoles: Role[] = [
@@ -43,6 +43,8 @@ export const mockOrders: Order[] = [
         date: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')),
         status: 'Completed',
         note: 'Please provide extra napkins and disposable utensils.',
+        shippingAddress: '123 Ocean View, Anytown, 12345',
+        paymentMethod: 'Credit Card (**** **** **** 4242)',
         items: [
             { 
                 id: 'item_1', 
@@ -75,8 +77,8 @@ export const mockOrders: Order[] = [
         discount: 5.00,
         shippingFee: 3.50,
         total: 48.97,
-        amountPaid: 40.47,
-        remainingAmount: 8.50,
+        amountPaid: 48.97,
+        remainingAmount: 0.00,
         history: [
             { id: 'hist_1', timestamp: new Date('2024-07-29T10:05:00Z'), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
             { id: 'hist_2', timestamp: new Date('2024-07-29T10:00:00Z'), user: 'system', action: 'Order created' },
@@ -95,8 +97,9 @@ export const mockOrders: Order[] = [
         discount: 0,
         shippingFee: 5.00,
         total: 22.49,
-        amountPaid: 0.00,
-        remainingAmount: 22.49,
+        amountPaid: 22.49,
+        remainingAmount: 0.00,
+        paymentMethod: 'Cash on Delivery',
          history: [
             { id: 'hist_3', timestamp: new Date('2024-07-29T11:30:00Z'), user: 'system', action: 'Order created' },
         ]
@@ -111,6 +114,9 @@ export const mockOrders: Order[] = [
         ],
         subtotal: 7.50,
         total: 7.50,
+        amountPaid: 0,
+        remainingAmount: 0,
+        paymentMethod: 'Credit Card',
          history: [
             { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled. Reason: Customer Request.' },
             { id: 'hist_5', timestamp: new Date('2024-07-28T18:00:00Z'), user: 'system', action: 'Order created' },
@@ -126,6 +132,9 @@ export const mockOrders: Order[] = [
         ],
         subtotal: 25.98,
         total: 25.98,
+        amountPaid: 25.98,
+        remainingAmount: 0,
+        paymentMethod: 'Credit Card',
     },
     {
         id: 'ord_5',
@@ -138,6 +147,9 @@ export const mockOrders: Order[] = [
         ],
         subtotal: 16.49,
         total: 16.49,
+        amountPaid: 16.49,
+        remainingAmount: 0,
+        paymentMethod: 'Cash on Delivery',
     }
 ];
 

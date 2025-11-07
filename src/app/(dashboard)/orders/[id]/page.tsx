@@ -11,7 +11,7 @@ import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -383,6 +383,7 @@ export default function OrderDetailsPage() {
                                     <div>
                                         <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
                                         <p className="text-sm text-muted-foreground">{customer.email}</p>
+                                        {customer.phone && <p className="text-sm text-muted-foreground">{customer.phone}</p>}
                                     </div>
                                 </div>
                                 <Separator/>
@@ -424,6 +425,31 @@ export default function OrderDetailsPage() {
                             </CardContent>
                         </Card>
                     )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Shipping & Payment</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {order.shippingAddress && (
+                                <div className="flex items-start gap-3">
+                                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Shipping Address</h4>
+                                        <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {order.paymentMethod && (
+                                <div className="flex items-start gap-3">
+                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div>
+                                        <h4 className="font-medium">Payment Method</h4>
+                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>

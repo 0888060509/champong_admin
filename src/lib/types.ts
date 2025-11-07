@@ -12,6 +12,7 @@ export type Customer = {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   avatarUrl?: string;
   totalSpent: number;
   totalVisits: number;
@@ -80,6 +81,8 @@ export type Order = {
   items: OrderItem[];
   history?: OrderHistory[];
   note?: string;
+  shippingAddress?: string;
+  paymentMethod?: string;
   
   // Financial fields
   subtotal: number;
