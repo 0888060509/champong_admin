@@ -159,7 +159,7 @@ export default function OrderDetailsPage() {
 
     const currentSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
 
-    if (!order) {
+    if (!order || !customer) {
         return <div>Loading...</div>;
     }
     
@@ -197,24 +197,89 @@ export default function OrderDetailsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
-                            <span>Order {order.id.substring(0, 7)}</span>
-                        </h1>
-                        <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
-                    </div>
-                </div>
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" onClick={() => router.push('/orders')}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-xl font-bold font-headline">
+                    Order Details
+                </h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column */}
-                <div className="lg:col-span-2 space-y-6">
-                    <Card>
+            <Card>
+                <CardHeader>
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                             <CardTitle className="font-headline text-2xl mb-1">Order {order.id.substring(0, 7)}</CardTitle>
+                             <p className="text-sm text-muted-foreground">
+                                Placed on {order.date.toDate().toLocaleString()}
+                            </p>
+                            <div className="mt-4 flex items-center gap-4">
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={customer.avatarUrl} />
+                                    <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
+                                    {customer.membershipTier && (
+                                        <div>
+                                            <Badge>{customer.membershipTier}</Badge>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="w-full md:w-auto">
+                            <Label htmlFor="order-status">Order Status</Label>
+                            <Select onValueChange={handleStatusChange} value={order.status}>
+                                <SelectTrigger id="order-status" className="w-full md:w-[200px]">
+                                    <SelectValue placeholder="Select Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Processing">Processing</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Separator className="my-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <p className="text-muted-foreground">Total Amount</p>
+                            <p className="font-semibold text-lg">${finalTotal.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground">Payment</p>
+                            <p className="font-semibold flex items-center">{remainingAmount > 0 ? (
+                                <Badge variant="destructive">Unpaid</Badge>
+                            ) : (
+                                <Badge>Paid</Badge>
+                            )}</p>
+                        </div>
+                         <div>
+                            <p className="text-muted-foreground">Payment Method</p>
+                            <p className="font-semibold">{order.paymentMethod || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground">Delivery Method</p>
+                            <p className="font-semibold">{order.shippingAddress ? 'Delivery' : 'Pickup'}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Tabs defaultValue="items">
+                <TabsList>
+                    <TabsTrigger value="items">Order Items ({order.items.length})</TabsTrigger>
+                    <TabsTrigger value="details">Shipping & Notes</TabsTrigger>
+                    <TabsTrigger value="history">History ({order.history?.length || 0})</TabsTrigger>
+                </TabsList>
+                <TabsContent value="items">
+                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="font-headline">Order Items</CardTitle>
                             {order.status !== 'Completed' && order.status !== 'Cancelled' && (
@@ -312,145 +377,43 @@ export default function OrderDetailsPage() {
                                 </div>
                             )}
                         </CardContent>
+                        <CardFooter>
+                           <div className="w-full flex justify-end">
+                                <div className="w-full max-w-sm space-y-3">
+                                     <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Tổng cộng:</span>
+                                        <span>${currentSubtotal.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Giá giảm:</span>
+                                        <span>-${discount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Phí giao hàng:</span>
+                                        <span>+${shippingFee.toFixed(2)}</span>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-between font-bold text-lg">
+                                        <span>Số tiền cần thanh toán:</span>
+                                        <span>${finalTotal.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                           </div>
+                        </CardFooter>
                     </Card>
+                </TabsContent>
+                <TabsContent value="details">
                      <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline">Financial Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Tổng cộng:</span>
-                                <span>${currentSubtotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Giá giảm:</span>
-                                <span>-${discount.toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Giá sau giảm:</span>
-                                <span>${priceAfterDiscount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Phí giao hàng:</span>
-                                <span>+${shippingFee.toFixed(2)}</span>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between font-bold text-lg">
-                                <span>Số tiền cần thanh toán:</span>
-                                <span>${finalTotal.toFixed(2)}</span>
-                            </div>
-                             <Separator />
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Số tiền đã thanh toán:</span>
-                                <span>${amountPaid.toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between font-semibold">
-                                <span>Số tiền còn lại:</span>
-                                <span className={remainingAmount > 0 ? 'text-destructive' : 'text-green-600'}>
-                                    ${remainingAmount.toFixed(2)}
-                                </span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-                {/* Right Column */}
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Customer Information</CardTitle>
+                            <CardTitle className="font-headline">Details</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                        {customer ? (
-                            <>
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-14 w-14">
-                                        <AvatarImage src={customer.avatarUrl} />
-                                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
-                                        <p className="text-sm text-muted-foreground">{customer.email}</p>
-                                        {customer.phone && <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-3 w-3" />{customer.phone}</p>}
-                                    </div>
-                                </div>
-                                
-                                {customer.membershipTier && (
-                                     <div className="flex items-center gap-2 text-sm">
-                                        <Gem className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-muted-foreground">Membership Tier</p>
-                                            <div><Badge>{customer.membershipTier}</Badge></div>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <Separator/>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-muted-foreground">Total Spent</p>
-                                            <p className="font-medium">${customer.totalSpent.toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-muted-foreground">Visits</p>
-                                            <p className="font-medium">{customer.totalVisits}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <div>
-                                        <p className="text-muted-foreground">Last Visit</p>
-                                        <p className="font-medium">{customer.lastVisit.toDate().toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                <Button variant="outline" asChild className="w-full">
-                                    <Link href={`/customers/${customer.id}`}>View Profile</Link>
-                                </Button>
-                            </>
-                        ) : (
-                            <p className="text-sm text-muted-foreground">Customer information not available.</p>
-                        )}
-                        </CardContent>
-                    </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Order Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div>
-                                <h4 className="font-medium mb-2 text-sm">Order Status</h4>
-                                <Select onValueChange={handleStatusChange} value={order.status}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Pending">Pending</SelectItem>
-                                        <SelectItem value="Processing">Processing</SelectItem>
-                                        <SelectItem value="Completed">Completed</SelectItem>
-                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            {order.shippingAddress && (
+                             {order.shippingAddress && (
                                 <div className="flex items-start gap-3">
                                     <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                                     <div>
                                         <h4 className="font-medium text-sm">Shipping Address</h4>
                                         <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {order.paymentMethod && (
-                                <div className="flex items-start gap-3">
-                                    <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
-                                    <div>
-                                        <h4 className="font-medium text-sm">Payment Method</h4>
-                                        <p className="text-sm text-muted-foreground">{order.paymentMethod}</p>
                                     </div>
                                 </div>
                             )}
@@ -465,6 +428,8 @@ export default function OrderDetailsPage() {
                             )}
                         </CardContent>
                     </Card>
+                </TabsContent>
+                 <TabsContent value="history">
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Change History</CardTitle>
@@ -490,13 +455,8 @@ export default function OrderDetailsPage() {
                             </Table>
                         </CardContent>
                     </Card>
-                </div>
-            </div>
+                 </TabsContent>
+            </Tabs>
         </div>
     );
 }
-
-    
-
-    
-
