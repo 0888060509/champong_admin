@@ -9,11 +9,11 @@ import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import type { Collection, CollectionCondition, CollectionGroup } from '../page';
+import type { Collection, CollectionCondition, CollectionGroup } from '../collections-context';
 import { mockMenuItems } from '@/lib/mock-data';
 import type { MenuItem } from '@/lib/types';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
+import { useCollections } from '../collections-context';
 
 // Helper function from collections/page.tsx - ideally this would be in a shared lib
 const operatorMap: { [key: string]: string } = {
@@ -51,21 +51,17 @@ export default function CollectionDetailPage() {
     const router = useRouter();
     const collectionId = params.id as string;
     
-    // In a real app, you would fetch this data. For now, we'll simulate it.
+    const { getCollectionById, openForm, deleteCollection } = useCollections();
     const [collection, setCollection] = useState<Collection | null>(null);
     const [products, setProducts] = useState<MenuItem[]>([]);
     
     useEffect(() => {
         if (collectionId) {
-            // Simulate finding the collection. In a real app, this would be a context or fetch call.
-            const foundCollection: Collection = { 
-              id: collectionId, 
-              name: `Collection ${collectionId}`, 
-              description: 'Dynamic collection of products based on rules.',
-              productCount: Math.floor(Math.random() * 10) + 5, 
-              isActive: true,
-              root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'price', operator: 'gte', value: 20}]}
-            };
+            const foundCollection = getCollectionById(collectionId);
+            if (!foundCollection) {
+                router.push('/collections');
+                return;
+            }
             setCollection(foundCollection);
 
             // Simulate fetching products for this collection
@@ -73,7 +69,14 @@ export default function CollectionDetailPage() {
             const shuffled = [...mockMenuItems].sort(() => 0.5 - Math.random());
             setProducts(shuffled.slice(0, foundCollection.productCount));
         }
-    }, [collectionId]);
+    }, [collectionId, getCollectionById, router]);
+    
+    const handleDelete = () => {
+        if (collection) {
+            deleteCollection(collection.id);
+            router.push('/collections');
+        }
+    }
 
     if (!collection) {
         return <div>Loading collection...</div>
@@ -87,8 +90,8 @@ export default function CollectionDetailPage() {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <CardTitle className="font-headline text-2xl">{collection.name}</CardTitle>
-                        <CardDescription>{collection.description}</CardDescription>
+                        <CardTitle className="font-headline text-2xl">{collection.publicTitle || collection.name}</CardTitle>
+                        <CardDescription>{collection.publicSubtitle || collection.description}</CardDescription>
                     </div>
                 </div>
                  <DropdownMenu>
@@ -99,13 +102,8 @@ export default function CollectionDetailPage() {
                     </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {/* In a real app, the edit action would need to pass the collection data */}
-                        <DropdownMenuItem>Edit Collection</DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                            // Logic to delete would be here
-                            router.push('/collections');
-                        }} className="text-destructive">Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openForm(collection)}>Edit Collection</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDelete} className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
