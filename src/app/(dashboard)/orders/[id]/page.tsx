@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useParams, useRouter } from 'next/navigation';
-import type { Order, OrderHistory, OrderItem, Topping, SideDish } from '@/lib/types';
+import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ export default function OrderDetailsPage() {
     const router = useRouter();
     const orderId = params.id as string;
     const [order, setOrder] = useState<Order | null>(null);
+    const [customer, setCustomer] = useState<Customer | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedItems, setEditedItems] = useState<OrderItem[]>([]);
     const { toast } = useToast();
@@ -32,6 +33,10 @@ export default function OrderDetailsPage() {
         if (foundOrder) {
             setOrder(foundOrder);
             setEditedItems(JSON.parse(JSON.stringify(foundOrder.items))); // Deep copy
+            const foundCustomer = mockCustomers.find(c => c.name === foundOrder.customerName);
+            if (foundCustomer) {
+                setCustomer(foundCustomer);
+            }
         } else {
             toast({ title: 'Error', description: 'Order not found.', variant: 'destructive'});
             router.push('/orders');
@@ -151,8 +156,6 @@ export default function OrderDetailsPage() {
     }
 
     const currentSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
-
-    const customer = mockCustomers.find(c => c.name === order?.customerName);
 
     if (!order) {
         return <div>Loading...</div>;
