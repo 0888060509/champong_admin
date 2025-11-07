@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -259,14 +258,9 @@ export default function OrderDetailsPage() {
                 </CardHeader>
             </Card>
 
-            <Tabs defaultValue="items">
-                <TabsList>
-                    <TabsTrigger value="items">Order Items ({order.items.length})</TabsTrigger>
-                    <TabsTrigger value="details">Shipping & Notes</TabsTrigger>
-                    <TabsTrigger value="history">History ({order.history?.length || 0})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="items">
-                     <Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="font-headline">Order Items</CardTitle>
                             {order.status !== 'Completed' && order.status !== 'Cancelled' && (
@@ -368,31 +362,39 @@ export default function OrderDetailsPage() {
                            <div className="w-full flex justify-end">
                                 <div className="w-full max-w-sm space-y-3">
                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Tổng cộng:</span>
+                                        <span className="text-muted-foreground">Subtotal:</span>
                                         <span>${currentSubtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Giá giảm:</span>
+                                        <span className="text-muted-foreground">Discount:</span>
                                         <span>-${discount.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Phí giao hàng:</span>
+                                        <span className="text-muted-foreground">Shipping:</span>
                                         <span>+${shippingFee.toFixed(2)}</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between font-bold text-lg">
-                                        <span>Số tiền cần thanh toán:</span>
+                                        <span>Total:</span>
                                         <span>${finalTotal.toFixed(2)}</span>
+                                    </div>
+                                     <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Paid:</span>
+                                        <span>${amountPaid.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold">
+                                        <span>Remaining:</span>
+                                        <span>${remainingAmount.toFixed(2)}</span>
                                     </div>
                                 </div>
                            </div>
                         </CardFooter>
                     </Card>
-                </TabsContent>
-                <TabsContent value="details">
-                     <Card>
+                </div>
+                <div className="lg:col-span-1 space-y-6">
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline">Details</CardTitle>
+                            <CardTitle className="font-headline text-lg">Shipping &amp; Notes</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                              {order.shippingAddress && (
@@ -413,13 +415,14 @@ export default function OrderDetailsPage() {
                                     </div>
                                 </div>
                             )}
+                             {!order.shippingAddress && !order.note && (
+                                <p className="text-sm text-muted-foreground text-center">No shipping address or notes for this order.</p>
+                             )}
                         </CardContent>
                     </Card>
-                </TabsContent>
-                 <TabsContent value="history">
-                     <Card>
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline">Change History</CardTitle>
+                            <CardTitle className="font-headline text-lg">Change History</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -442,8 +445,8 @@ export default function OrderDetailsPage() {
                             </Table>
                         </CardContent>
                     </Card>
-                 </TabsContent>
-            </Tabs>
+                </div>
+            </div>
         </div>
     );
 }
