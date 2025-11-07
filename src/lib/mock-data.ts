@@ -40,7 +40,6 @@ export const mockOrders: Order[] = [
         id: 'ord_1',
         customerName: 'John Doe',
         date: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')),
-        total: 55.47,
         status: 'Completed',
         note: 'Please provide extra napkins and disposable utensils.',
         items: [
@@ -71,6 +70,12 @@ export const mockOrders: Order[] = [
                 ]
             }
         ],
+        subtotal: 41.97,
+        discount: 5.00,
+        shippingFee: 3.50,
+        total: 40.47,
+        amountPaid: 40.47,
+        remainingAmount: 0.00,
         history: [
             { id: 'hist_1', timestamp: new Date('2024-07-29T10:05:00Z'), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
             { id: 'hist_2', timestamp: new Date('2024-07-29T10:00:00Z'), user: 'system', action: 'Order created' },
@@ -80,12 +85,17 @@ export const mockOrders: Order[] = [
         id: 'ord_2',
         customerName: 'Jane Smith',
         date: Timestamp.fromDate(new Date('2024-07-29T11:30:00Z')),
-        total: 17.49,
         status: 'Processing',
         items: [
             { id: 'item_3', name: 'Caesar Salad', quantity: 1, price: 8.99 },
             { id: 'item_4', name: 'Iced Tea', quantity: 1, price: 8.50 },
         ],
+        subtotal: 17.49,
+        discount: 0,
+        shippingFee: 5.00,
+        total: 22.49,
+        amountPaid: 0.00,
+        remainingAmount: 22.49,
          history: [
             { id: 'hist_3', timestamp: new Date('2024-07-29T11:30:00Z'), user: 'system', action: 'Order created' },
         ]
@@ -94,11 +104,12 @@ export const mockOrders: Order[] = [
         id: 'ord_3',
         customerName: 'Peter Jones',
         date: Timestamp.fromDate(new Date('2024-07-28T18:00:00Z')),
-        total: 7.50,
         status: 'Cancelled',
         items: [
             { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
         ],
+        subtotal: 7.50,
+        total: 7.50,
          history: [
             { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled. Reason: Customer Request.' },
             { id: 'hist_5', timestamp: new Date('2024-07-28T18:00:00Z'), user: 'system', action: 'Order created' },
@@ -108,22 +119,24 @@ export const mockOrders: Order[] = [
         id: 'ord_4',
         customerName: 'Liam Johnson',
         date: Timestamp.fromDate(new Date('2024-07-25T14:00:00Z')),
-        total: 25.98,
         status: 'Completed',
         items: [
              { id: 'item_1', name: 'Classic Burger', quantity: 2, price: 12.99 },
-        ]
+        ],
+        subtotal: 25.98,
+        total: 25.98,
     },
     {
         id: 'ord_5',
         customerName: 'Olivia Smith',
         date: Timestamp.fromDate(new Date('2024-07-28T19:30:00Z')),
-        total: 16.49,
         status: 'Completed',
         items: [
             { id: 'item_3', name: 'Caesar Salad', quantity: 1, price: 8.99 },
             { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
-        ]
+        ],
+        subtotal: 16.49,
+        total: 16.49,
     }
 ];
 

@@ -75,11 +75,18 @@ export type Order = {
   id: string;
   customerName: string;
   date: any;
-  total: number;
   status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
   items: OrderItem[];
   history?: OrderHistory[];
   note?: string;
+  
+  // Financial fields
+  subtotal: number;
+  discount?: number;
+  shippingFee?: number;
+  total: number;
+  amountPaid?: number;
+  remainingAmount?: number;
 };
 
 export type Booking = {

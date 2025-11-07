@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -107,12 +108,19 @@ export default function OrderDetailsPage() {
     const handleSaveChanges = () => {
         if (!order) return;
         
-        const newTotal = editedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const newSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
+        const discount = order.discount || 0;
+        const shippingFee = order.shippingFee || 0;
+        const newTotal = newSubtotal - discount + shippingFee;
+        const amountPaid = order.amountPaid || 0;
+
 
         const updatedOrder: Order = {
             ...order,
             items: editedItems,
+            subtotal: newSubtotal,
             total: newTotal,
+            remainingAmount: newTotal - amountPaid,
             history: [
                 ...(order.history || []),
                 {
@@ -141,13 +149,18 @@ export default function OrderDetailsPage() {
         return (item.price + toppingsPrice + sideDishesPrice) * item.quantity;
     }
 
-    const currentTotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
+    const currentSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
 
     const customer = mockCustomers.find(c => c.name === order?.customerName);
 
     if (!order) {
         return <div>Loading...</div>;
     }
+
+    const { discount = 0, shippingFee = 0, amountPaid = 0 } = order;
+    const priceAfterDiscount = currentSubtotal - discount;
+    const finalTotal = priceAfterDiscount + shippingFee;
+    const remainingAmount = finalTotal - amountPaid;
 
     return (
         <div className="space-y-6">
@@ -275,12 +288,46 @@ export default function OrderDetailsPage() {
                                 </div>
                             )}
                         </CardContent>
-                        <CardFooter className="justify-end bg-muted/50 p-4">
-                            <div className="flex items-center gap-4 text-lg font-bold">
-                                <span>Total:</span>
-                                <span>${currentTotal.toFixed(2)}</span>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                             <CardTitle className="font-headline">Financial Summary</CardTitle>
+                        </CardHeader>
+                         <CardContent className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tổng cộng:</span>
+                                <span>${currentSubtotal.toFixed(2)}</span>
                             </div>
-                        </CardFooter>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Giá giảm:</span>
+                                <span>-${discount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Giá sau giảm:</span>
+                                <span>${priceAfterDiscount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Phí giao hàng:</span>
+                                <span>+${shippingFee.toFixed(2)}</span>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between font-bold text-lg">
+                                <span>Số tiền cần thanh toán:</span>
+                                <span>${finalTotal.toFixed(2)}</span>
+                            </div>
+                             <Separator />
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Số tiền đã thanh toán:</span>
+                                <span>${amountPaid.toFixed(2)}</span>
+                            </div>
+                             <div className="flex justify-between font-semibold">
+                                <span>Số tiền còn lại:</span>
+                                <span className={remainingAmount > 0 ? 'text-destructive' : 'text-green-600'}>
+                                    ${remainingAmount.toFixed(2)}
+                                </span>
+                            </div>
+                        </CardContent>
                     </Card>
 
                     <Card>
