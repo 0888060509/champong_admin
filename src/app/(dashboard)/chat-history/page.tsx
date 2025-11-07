@@ -16,8 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 export default function ChatHistoryPage() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const { toast } = useToast();
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
+        setIsClient(true);
         const sortedSessions = [...mockChatSessions].sort((a, b) => b.lastUpdatedAt.toMillis() - a.lastUpdatedAt.toMillis());
         setSessions(sortedSessions);
     }, []);
@@ -74,7 +76,7 @@ export default function ChatHistoryPage() {
                                 <TableCell>{session.branchName}</TableCell>
                                 <TableCell>{session.staffName}</TableCell>
                                 <TableCell>{getStatusBadge(session.status)}</TableCell>
-                                <TableCell>{session.lastUpdatedAt.toDate().toLocaleString()}</TableCell>
+                                <TableCell>{isClient && session.lastUpdatedAt.toDate().toLocaleString()}</TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
