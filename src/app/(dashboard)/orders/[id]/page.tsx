@@ -209,25 +209,26 @@ export default function OrderDetailsPage() {
                         <p className="text-muted-foreground">from {order.date.toDate().toLocaleString()}</p>
                     </div>
                 </div>
-                 {order.status !== 'Completed' && order.status !== 'Cancelled' && (
-                    <div className="flex gap-2">
-                        {isEditing ? (
-                            <>
-                                <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
-                                <Button onClick={handleSaveChanges}>Save Changes</Button>
-                            </>
-                        ) : (
-                            <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
-                        )}
-                    </div>
-                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="font-headline">Order Items</CardTitle>
+                            {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                                <div className="flex gap-2">
+                                    {isEditing ? (
+                                        <>
+                                            <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
+                                            <Button onClick={handleSaveChanges}>Save Changes</Button>
+                                        </>
+                                    ) : (
+                                        <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
+                                    )}
+                                </div>
+                            )}
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -352,8 +353,9 @@ export default function OrderDetailsPage() {
                         </CardContent>
                     </Card>
                 </div>
+                {/* Right Column */}
                 <div className="lg:col-span-1 space-y-6">
-                     <Card>
+                    <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Customer Information</CardTitle>
                         </CardHeader>
@@ -497,3 +499,4 @@ export default function OrderDetailsPage() {
     
 
     
+
