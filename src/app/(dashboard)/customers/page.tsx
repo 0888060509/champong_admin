@@ -1,5 +1,7 @@
 
 
+'use client';
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockCustomers } from "@/lib/mock-data";
@@ -7,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+
 
 export default function CustomersPage() {
 
@@ -37,7 +41,7 @@ export default function CustomersPage() {
                             <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <div className="font-medium">{customer.name}</div>
+                            <Link href={`/customers/${customer.id}`} className="font-medium hover:underline">{customer.name}</Link>
                             <div className="text-sm text-muted-foreground">{customer.email}</div>
                         </div>
                     </div>
@@ -54,7 +58,7 @@ export default function CustomersPage() {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <Link href={`/customers/${customer.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                             <DropdownMenuItem>View Orders</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive">Delete Customer</DropdownMenuItem>
                         </DropdownMenuContent>

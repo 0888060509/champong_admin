@@ -289,7 +289,7 @@ export default function OrderDetailsPage() {
                                 <CardTitle className="font-headline text-lg">Customer</CardTitle>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
-                                <div className="font-semibold text-lg">{customer.name}</div>
+                                <Link href={`/customers/${customer.id}`} className="font-semibold text-lg hover:underline">{customer.name}</Link>
                                 <div className="text-sm text-muted-foreground">{customer.email}</div>
                                 <Button variant="outline" asChild className="mt-2">
                                     <Link href={`/customers/${customer.id}`}>View Profile</Link>
