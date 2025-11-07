@@ -47,8 +47,8 @@ export const mockOrders: Order[] = [
             { id: 'item_2', name: 'Fries', quantity: 2, price: 4.50 },
         ],
         history: [
-            { id: 'hist_1', timestamp: Timestamp.fromDate(new Date('2024-07-29T10:05:00Z')), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
-            { id: 'hist_2', timestamp: Timestamp.fromDate(new Date('2024-07-29T10:00:00Z')), user: 'system', action: 'Order created' },
+            { id: 'hist_1', timestamp: new Date('2024-07-29T10:05:00Z'), user: 'admin@example.com', action: 'Status changed from Processing to Completed' },
+            { id: 'hist_2', timestamp: new Date('2024-07-29T10:00:00Z'), user: 'system', action: 'Order created' },
         ]
     },
     {
@@ -62,7 +62,7 @@ export const mockOrders: Order[] = [
             { id: 'item_4', name: 'Iced Tea', quantity: 1, price: 8.50 },
         ],
          history: [
-            { id: 'hist_3', timestamp: Timestamp.fromDate(new Date('2024-07-29T11:30:00Z')), user: 'system', action: 'Order created' },
+            { id: 'hist_3', timestamp: new Date('2024-07-29T11:30:00Z'), user: 'system', action: 'Order created' },
         ]
     },
     {
@@ -75,8 +75,8 @@ export const mockOrders: Order[] = [
             { id: 'item_5', name: 'Chocolate Lava Cake', quantity: 1, price: 7.50 },
         ],
          history: [
-            { id: 'hist_4', timestamp: Timestamp.fromDate(new Date('2024-07-28T18:05:00Z')), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
-            { id: 'hist_5', timestamp: Timestamp.fromDate(new Date('2_024-07-28T18:00:00Z')), user: 'system', action: 'Order created' },
+            { id: 'hist_4', timestamp: new Date('2024-07-28T18:05:00Z'), user: 'admin@example.com', action: 'Status changed from Pending to Cancelled' },
+            { id: 'hist_5', timestamp: new Date('2024-07-28T18:00:00Z'), user: 'system', action: 'Order created' },
         ]
     }
 ];
@@ -242,26 +242,29 @@ export const mockCollections: Collection[] = [
       name: 'High Profit Items', 
       description: 'Items with a high profit margin, great for upselling.',
       productCount: 12, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'profit_margin', operator: 'gte', value: 40}]}
+      isActive: true,
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-1', criteria: 'profit_margin', operator: 'gte', value: 40}]}
     },
     { 
       id: '2', 
       name: 'Low Stock Specials', 
       description: 'Clear out items that are low in stock.',
       productCount: 8, 
-      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', criteria: 'stock_level', operator: 'lte', value: 10}]}
+      isActive: true,
+      root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-2', criteria: 'stock_level', operator: 'lte', value: 10}]}
     },
     { 
       id: '3', 
       name: 'Weekend Dessert Specials', 
       description: 'Special desserts featured only on weekends.',
       productCount: 4, 
+      isActive: false,
       root: { 
           type: 'group',
           logic: 'AND', 
           conditions: [
-              {type: 'condition', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
-              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Desserts'}
+              {type: 'condition', id: 'cond-3a', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
+              {type: 'condition', id: 'cond-3b', criteria: 'category', operator: 'eq', value: 'Desserts'}
           ]
       }
     },
@@ -269,12 +272,13 @@ export const mockCollections: Collection[] = [
       id: '4', 
       name: 'Premium Main Courses', 
       productCount: 7, 
+      isActive: true,
       root: { 
           type: 'group',
           logic: 'AND', 
           conditions: [
-              {type: 'condition', criteria: 'category', operator: 'eq', value: 'Main Course'},
-              {type: 'condition', criteria: 'price', operator: 'gte', value: 25}
+              {type: 'condition', id: 'cond-4a', criteria: 'category', operator: 'eq', value: 'Main Course'},
+              {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
           ]
       }
     },

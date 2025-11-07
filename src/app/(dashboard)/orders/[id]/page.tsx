@@ -51,7 +51,7 @@ export default function OrderDetailsPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <div className="text-sm"><strong>Customer:</strong> {order.customerName}</div>
-                            <div className="text-sm"><strong>Date:</strong> {new Date(order.date).toLocaleString()}</div>
+                            <div className="text-sm"><strong>Date:</strong> {order.date.toDate().toLocaleString()}</div>
                         </div>
                         <div>
                             <div className="text-sm flex items-center gap-2"><strong>Status:</strong> {getStatusBadge(order.status)}</div>
