@@ -1,16 +1,16 @@
 
 
 'use client';
+
 import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useParams, useRouter } from 'next/navigation';
 import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard, User, Info, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 
 
 export default function OrderDetailsPage() {
@@ -217,20 +218,20 @@ export default function OrderDetailsPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full md:w-auto">
-                            <Label htmlFor="order-status">Order Status</Label>
-                            <Select onValueChange={handleStatusChange} value={order.status}>
-                                <SelectTrigger id="order-status" className="w-full md:w-[200px]">
-                                    <SelectValue placeholder="Select Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Processing">Processing</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                         <div className="w-full md:w-auto">
+                             <Label htmlFor="order-status">Order Status</Label>
+                             <Select onValueChange={handleStatusChange} value={order.status}>
+                                 <SelectTrigger id="order-status" className="w-full md:w-[200px]">
+                                     <SelectValue placeholder="Select Status" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                     <SelectItem value="Pending">Pending</SelectItem>
+                                     <SelectItem value="Processing">Processing</SelectItem>
+                                     <SelectItem value="Completed">Completed</SelectItem>
+                                     <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                 </SelectContent>
+                             </Select>
+                         </div>
                     </div>
                     <Separator className="my-6"/>
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -240,11 +241,11 @@ export default function OrderDetailsPage() {
                         </div>
                         <div>
                             <p className="text-muted-foreground">Payment</p>
-                            <p className="font-semibold flex items-center">{remainingAmount > 0 ? (
+                            <div className="font-semibold flex items-center">{remainingAmount > 0 ? (
                                 <Badge variant="destructive">Unpaid</Badge>
                             ) : (
                                 <Badge>Paid</Badge>
-                            )}</p>
+                            )}</div>
                         </div>
                          <div>
                             <p className="text-muted-foreground">Payment Method</p>
