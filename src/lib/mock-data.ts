@@ -200,7 +200,7 @@ export const mockOptionGroups: OptionGroup[] = [
 ];
 
 export const mockMenuItems: MenuItem[] = [
-    { id: 'M01', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true, optionGroups: [mockOptionGroups[1]], crossSellProductIds: ['M06'] },
+    { id: 'M01', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true, optionGroups: [mockOptionGroups[1]], crossSellGroups: [{ id: 'csg-1', name: 'Goes great with', productIds: ['M06'] }] },
     { id: 'M02', name: 'Caesar Salad', category: 'Appetizers', price: 8.99, description: 'Crisp romaine with creamy Caesar dressing.', isActive: true, optionGroups: [] },
     { id: 'M03', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true, optionGroups: [] },
     { id: 'M04', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false, optionGroups: [] },
@@ -410,4 +410,3 @@ export const mockCollections: Collection[] = [
     
 
     
-

@@ -109,6 +109,12 @@ export type Booking = {
     status: 'Confirmed' | 'Pending' | 'Cancelled';
 };
 
+export type CrossSellGroup = {
+  id: string;
+  name: string;
+  productIds: string[];
+};
+
 export type MenuItem = {
     id: string;
     name: string;
@@ -118,7 +124,7 @@ export type MenuItem = {
     imageUrl?: string;
     isActive: boolean;
     optionGroups?: OptionGroup[];
-    crossSellProductIds?: string[];
+    crossSellGroups?: CrossSellGroup[];
 }
 
 export type MenuOption = {

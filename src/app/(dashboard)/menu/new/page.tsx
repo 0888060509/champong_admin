@@ -26,7 +26,7 @@ export default function NewMenuItemPage() {
         const itemToDuplicate = mockMenuItems.find(i => i.id === duplicateId);
         if (itemToDuplicate) {
             const duplicatedData = {
-                ...itemToDuplicate,
+                ...JSON.parse(JSON.stringify(itemToDuplicate)), // Deep copy
                 name: `Copy of ${itemToDuplicate.name}`,
                 id: '', // Ensure it's treated as a new item
             };
@@ -59,7 +59,7 @@ export default function NewMenuItemPage() {
       <Card>
         <CardContent className="pt-6">
           <ItemForm
-            key={initialData?.id || 'new'}
+            key={initialData ? `duplicate-${searchParams.get('duplicateId')}` : 'new'}
             onSave={handleSaveItem}
             onCancel={() => router.push('/menu')}
             initialData={initialData}

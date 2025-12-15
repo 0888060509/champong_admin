@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { MenuItem, OptionGroup } from '@/lib/types';
+import type { MenuItem, OptionGroup, CrossSellGroup } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -61,6 +61,12 @@ const optionGroupSchema = z.object({
     options: z.array(menuOptionSchema)
 });
 
+const crossSellGroupSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Group name is required."),
+  productIds: z.array(z.string()),
+});
+
 const itemFormSchema = z.object({
   name: z.string().min(2, 'Product name must be at least 2 characters.'),
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
@@ -69,7 +75,7 @@ const itemFormSchema = z.object({
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
   optionGroups: z.array(optionGroupSchema).optional(),
-  crossSellProductIds: z.array(z.string()).optional(),
+  crossSellGroups: z.array(crossSellGroupSchema).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemFormSchema>;
@@ -92,7 +98,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
       optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
-      crossSellProductIds: initialData?.crossSellProductIds || [],
+      crossSellGroups: initialData?.crossSellGroups ? JSON.parse(JSON.stringify(initialData.crossSellGroups)) : [],
     },
   });
 
@@ -103,12 +109,10 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       name: "optionGroups"
   });
   
-  const { fields: crossSellFields, append: appendCrossSell, remove: removeCrossSell, move: moveCrossSell } = useFieldArray({
+  const { fields: crossSellGroupFields, append: appendCrossSellGroup, remove: removeCrossSellGroup, move: moveCrossSellGroup } = useFieldArray({
     control,
-    name: "crossSellProductIds"
+    name: "crossSellGroups"
   });
-  
-  const watchedCrossSellIds = watch('crossSellProductIds') || [];
 
   const handleAddGroupFromTemplate = (templateId: string) => {
     const template = allOptionGroups.find(g => g.id === templateId);
@@ -131,21 +135,20 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     });
   }
 
+  const handleAddNewCrossSellGroup = () => {
+    appendCrossSellGroup({
+      id: `cs_group_${Date.now()}`,
+      name: 'Goes great with',
+      productIds: []
+    })
+  }
+
   // Prevent already added groups from showing in the template list
   const existingGroupIds = watch('optionGroups')?.map(field => field.id) || [];
   const availableTemplates = allOptionGroups.filter(
     template => !existingGroupIds.some(id => id.includes(template.id)) // A bit tricky due to custom IDs
   );
   
-  const availableCrossSellProducts = mockMenuItems.filter(
-    item => item.id !== initialData?.id && !watchedCrossSellIds.includes(item.id)
-  );
-  
-  const selectedCrossSellProducts = watch('crossSellProductIds')?.map(id => {
-      return mockMenuItems.find(item => item.id === id)
-  }).filter(Boolean) as MenuItem[] || [];
-
-
   return (
     <FormProvider {...form}>
       <Form {...form}>
@@ -278,104 +281,23 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
            {/* Cross-sell Section */}
           <div>
             <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
-            <FormDescription>Suggest other products to customers when they view this item. You can reorder the items below.</FormDescription>
+            <FormDescription>Suggest other products to customers when they view this item. You can reorder groups and items.</FormDescription>
             
             <div className="mt-4 space-y-4">
-               <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="w-full justify-between"
-                    >
-                      Add items to suggest...
-                      <PlusCircle className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command>
-                      <CommandInput placeholder="Search products..." />
-                       <CommandList>
-                        <CommandEmpty>No products found.</CommandEmpty>
-                        <CommandGroup>
-                          {availableCrossSellProducts.map((item) => (
-                            <CommandItem
-                              key={item.id}
-                              value={item.name}
-                              onSelect={() => {
-                                appendCrossSell(item.id);
-                              }}
-                              className="!p-2"
-                            >
-                               <div className="flex items-center gap-3">
-                                <Image
-                                  src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
-                                  alt={item.name}
-                                  width={40}
-                                  height={40}
-                                  className="rounded-md object-cover"
-                                />
-                                <div>
-                                  <p className="font-medium">{item.name}</p>
-                                  <p className="text-xs text-muted-foreground">{item.category} &middot; ${item.price.toFixed(2)}</p>
-                                </div>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+              {crossSellGroupFields.map((group, groupIndex) => (
+                <CrossSellGroupCard
+                  key={group.id}
+                  groupIndex={groupIndex}
+                  initialDataId={initialData?.id}
+                  onRemoveGroup={() => removeCrossSellGroup(groupIndex)}
+                  onMoveUp={() => groupIndex > 0 && moveCrossSellGroup(groupIndex, groupIndex - 1)}
+                  onMoveDown={() => groupIndex < crossSellGroupFields.length - 1 && moveCrossSellGroup(groupIndex, groupIndex + 1)}
+                />
+              ))}
 
-                 {selectedCrossSellProducts.length > 0 && (
-                    <Card>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className='w-16'>Product</TableHead>
-                                    <TableHead>Details</TableHead>
-                                    <TableHead className="text-right w-28">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {selectedCrossSellProducts.map((item, index) => {
-                                    if (!item) return null;
-                                    return (
-                                    <TableRow key={item.id}>
-                                        <TableCell>
-                                             <Image
-                                                src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
-                                                alt={item.name}
-                                                width={48}
-                                                height={48}
-                                                className="rounded-md object-cover"
-                                                />
-                                        </TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{item.name}</p>
-                                            <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end items-center gap-1">
-                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index > 0 && moveCrossSell(index, index - 1)}>
-                                                    <ArrowUp className="h-4 w-4"/>
-                                                </Button>
-                                                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index < crossSellFields.length - 1 && moveCrossSell(index, index + 1)}>
-                                                    <ArrowDown className="h-4 w-4"/>
-                                                </Button>
-                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeCrossSell(index)}>
-                                                    <Trash2 className="h-4 w-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </Card>
-                 )}
+              <Button type="button" variant="outline" onClick={handleAddNewCrossSellGroup}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Cross-sell Group
+              </Button>
             </div>
           </div>
 
@@ -552,4 +474,161 @@ function OptionGroupCard({
             </CardContent>
         </Card>
     );
+}
+
+// Inner component for managing a single cross-sell group
+function CrossSellGroupCard({
+  groupIndex,
+  initialDataId,
+  onRemoveGroup,
+  onMoveUp,
+  onMoveDown
+}: {
+  groupIndex: number,
+  initialDataId?: string | null,
+  onRemoveGroup: () => void,
+  onMoveUp: () => void,
+  onMoveDown: () => void,
+}) {
+  const { control, watch } = useFormContext<ItemFormValues>();
+
+  const { fields, append, remove, move } = useFieldArray({
+    control,
+    name: `crossSellGroups.${groupIndex}.productIds`
+  });
+
+  const watchedProductIds = watch(`crossSellGroups.${groupIndex}.productIds`) || [];
+  
+  const availableCrossSellProducts = mockMenuItems.filter(
+    item => item.id !== initialDataId && !watchedProductIds.includes(item.id)
+  );
+
+  const selectedProducts = watchedProductIds.map(id => 
+    mockMenuItems.find(item => item.id === id)
+  ).filter(Boolean) as MenuItem[];
+
+  return (
+    <Card className="bg-muted/30 relative pl-12">
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
+            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 cursor-pointer" onClick={onMoveUp}>
+                <ArrowUp className="h-4 w-4" />
+            </Button>
+            <GripVertical className="h-6 w-6 text-muted-foreground cursor-grab" />
+            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 cursor-pointer" onClick={onMoveDown}>
+                <ArrowDown className="h-4 w-4" />
+            </Button>
+        </div>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <FormField
+            control={control}
+            name={`crossSellGroups.${groupIndex}.name`}
+            render={({ field }) => (
+                <FormItem className="flex-1">
+                    <FormControl>
+                        <Input {...field} className="text-base font-semibold font-headline tracking-tight border-dashed" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}
+          />
+          <Button variant="ghost" size="icon" onClick={onRemoveGroup} className="ml-2 shrink-0">
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Product to Group
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput placeholder="Search products..." />
+              <CommandList>
+                <CommandEmpty>No products found.</CommandEmpty>
+                <CommandGroup>
+                  {availableCrossSellProducts.map((item) => (
+                    <CommandItem
+                      key={item.id}
+                      value={item.name}
+                      onSelect={() => append(item.id)}
+                      className="!p-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Image
+                          src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
+                          alt={item.name}
+                          width={40}
+                          height={40}
+                          className="rounded-md object-cover"
+                        />
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.category} &middot; ${item.price.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {selectedProducts.length > 0 && (
+          <div className="border rounded-md">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className='w-16'>Product</TableHead>
+                        <TableHead>Details</TableHead>
+                        <TableHead className="text-right w-28">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {fields.map((field, index) => {
+                        const item = selectedProducts.find(p => p.id === field.id);
+                        if (!item) return null;
+                        return (
+                        <TableRow key={field.id}>
+                            <TableCell>
+                                    <Image
+                                    src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
+                                    alt={item.name}
+                                    width={48}
+                                    height={48}
+                                    className="rounded-md object-cover"
+                                    />
+                            </TableCell>
+                            <TableCell>
+                                <p className="font-medium">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <div className="flex justify-end items-center gap-1">
+                                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index > 0 && move(index, index - 1)}>
+                                        <ArrowUp className="h-4 w-4"/>
+                                    </Button>
+                                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index < fields.length - 1 && move(index, index + 1)}>
+                                        <ArrowDown className="h-4 w-4"/>
+                                    </Button>
+                                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => remove(index)}>
+                                        <Trash2 className="h-4 w-4"/>
+                                    </Button>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
 }
