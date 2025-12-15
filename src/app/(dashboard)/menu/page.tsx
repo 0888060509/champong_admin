@@ -12,21 +12,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import Image from 'next/image';
 import type { MenuItem, OptionGroup, MenuOption } from '@/lib/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { CreateItemForm } from './create-item-form';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
 
 export default function MenuPage() {
   const [activeTab, setActiveTab] = useState('items');
   const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems);
   const [optionGroups, setOptionGroups] = useState<OptionGroup[]>(mockOptionGroups);
-  
-  const [isItemFormOpen, setItemFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   
   const [isOptionGroupFormOpen, setOptionGroupFormOpen] = useState(false);
   const [editingOptionGroup, setEditingOptionGroup] = useState<OptionGroup | null>(null);
@@ -34,23 +31,6 @@ export default function MenuPage() {
   const { toast } = useToast();
 
   // Menu Item Handlers
-  const handleOpenItemForm = (item: MenuItem | null = null) => {
-    setEditingItem(item);
-    setItemFormOpen(true);
-  };
-  
-  const handleSaveItem = (itemData: any) => {
-    if (editingItem) {
-      setMenuItems(menuItems.map(item => item.id === editingItem.id ? { ...editingItem, ...itemData } : item));
-      toast({ title: 'Success', description: 'Menu item updated.' });
-    } else {
-      setMenuItems(prev => [{ id: `M${Date.now()}`, ...itemData }, ...prev]);
-      toast({ title: 'Success', description: 'New menu item created.' });
-    }
-    setItemFormOpen(false);
-    setEditingItem(null);
-  };
-  
   const handleDeleteItem = (itemId: string) => {
     setMenuItems(prev => prev.filter(item => item.id !== itemId));
     toast({ title: 'Success', description: 'Menu item deleted.', variant: 'destructive' });
@@ -90,10 +70,19 @@ export default function MenuPage() {
                   <TabsTrigger value="categories">Categories</TabsTrigger>
                   <TabsTrigger value="options">Option Groups</TabsTrigger>
               </TabsList>
-              <Button onClick={() => activeTab === 'items' ? handleOpenItemForm() : handleOpenOptionGroupForm()}>
+              {activeTab === 'items' ? (
+                <Button asChild>
+                  <Link href="/menu/new">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Link>
+                </Button>
+              ) : (
+                <Button onClick={() => handleOpenOptionGroupForm()}>
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  {activeTab === 'items' ? 'Add Item' : activeTab === 'options' ? 'Add Group' : 'Add Category'}
-              </Button>
+                  {activeTab === 'options' ? 'Add Group' : 'Add Category'}
+                </Button>
+              )}
           </div>
           <TabsContent value="items">
               <Card>
@@ -128,7 +117,7 @@ export default function MenuPage() {
                                   />
                               </TableCell>
                               <TableCell className="font-medium">
-                                  <div className="font-medium">{item.name}</div>
+                                  <Link href={`/menu/${item.id}/edit`} className="font-medium hover:underline">{item.name}</Link>
                                   <div className="text-sm text-muted-foreground">{item.description}</div>
                               </TableCell>
                               <TableCell>{item.category}</TableCell>
@@ -154,9 +143,11 @@ export default function MenuPage() {
                                       </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                      <DropdownMenuItem onClick={() => handleOpenItemForm(item)}>Edit</DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">Delete</DropdownMenuItem>
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <Link href={`/menu/${item.id}/edit`} passHref>
+                                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        </Link>
+                                        <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">Delete</DropdownMenuItem>
                                       </DropdownMenuContent>
                                   </DropdownMenu>
                               </TableCell>
@@ -231,27 +222,6 @@ export default function MenuPage() {
               </Card>
           </TabsContent>
       </Tabs>
-      
-      {/* Item Form Dialog */}
-      <Dialog open={isItemFormOpen} onOpenChange={setItemFormOpen}>
-          <DialogContent className="sm:max-w-3xl">
-              <DialogHeader>
-                  <DialogTitle className="font-headline">{editingItem ? 'Edit Menu Item' : 'Create New Menu Item'}</DialogTitle>
-                  <DialogDescription>
-                      Fill in the details for your product. Click save when you're done.
-                  </DialogDescription>
-              </DialogHeader>
-              <ScrollArea className="max-h-[70vh] pr-6">
-                <CreateItemForm 
-                    key={editingItem?.id}
-                    onSave={handleSaveItem}
-                    onCancel={() => setItemFormOpen(false)}
-                    initialData={editingItem}
-                    allOptionGroups={optionGroups}
-                />
-              </ScrollArea>
-          </DialogContent>
-      </Dialog>
       
       {/* Option Group Form Dialog */}
       <Dialog open={isOptionGroupFormOpen} onOpenChange={setOptionGroupFormOpen}>
@@ -413,3 +383,5 @@ function OptionGroupForm({
         </form>
     );
 }
+
+    
