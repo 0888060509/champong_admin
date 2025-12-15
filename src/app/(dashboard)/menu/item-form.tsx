@@ -719,7 +719,8 @@ function CrossSellGroupCard({
                 </TableHeader>
                 <TableBody>
                     {fields.map((field, index) => {
-                        const item = selectedProducts.find(p => p.id === field.id);
+                        const productId = watchedProductIds[index];
+                        const item = selectedProducts.find(p => p.id === productId);
                         if (!item) return null;
                         return (
                         <TableRow key={field.id}>
