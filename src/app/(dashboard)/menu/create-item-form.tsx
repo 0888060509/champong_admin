@@ -2,7 +2,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import * as z from 'zod';
 import {
   Form,
@@ -24,8 +24,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { MenuItem } from '@/lib/types';
+import type { MenuItem, OptionGroup } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 const itemFormSchema = z.object({
   name: z.string().min(2, 'Product name must be at least 2 characters.'),
@@ -34,6 +36,7 @@ const itemFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
+  optionGroups: z.array(z.any()).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemFormSchema>;
@@ -42,9 +45,10 @@ interface CreateItemFormProps {
   onSave: (data: ItemFormValues) => void;
   onCancel: () => void;
   initialData: MenuItem | null;
+  allOptionGroups: OptionGroup[];
 }
 
-export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemFormProps) {
+export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups }: CreateItemFormProps) {
   const form = useForm<ItemFormValues>({
     resolver: zodResolver(itemFormSchema),
     defaultValues: {
@@ -54,15 +58,34 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
       description: initialData?.description || '',
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
+      optionGroups: initialData?.optionGroups || [],
     },
   });
+
+  const { control, setValue, watch } = form;
+  const selectedOptionGroups = watch('optionGroups') || [];
+
+  const handleAddOptionGroup = (groupId: string) => {
+    const groupToAdd = allOptionGroups.find(g => g.id === groupId);
+    if (groupToAdd && !selectedOptionGroups.some(g => g.id === groupId)) {
+      setValue('optionGroups', [...selectedOptionGroups, groupToAdd]);
+    }
+  };
+
+  const handleRemoveOptionGroup = (groupId: string) => {
+    setValue('optionGroups', selectedOptionGroups.filter(g => g.id !== groupId));
+  };
+  
+  const availableOptionGroups = allOptionGroups.filter(
+      (group) => !selectedOptionGroups.some((selected) => selected.id === group.id)
+  );
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 p-1">
         <div className="space-y-4">
             <FormField
-              control={form.control}
+              control={control}
               name="name"
               render={({ field }) => (
                 <FormItem>
@@ -75,7 +98,7 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
               )}
             />
             <FormField
-              control={form.control}
+              control={control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -88,7 +111,7 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
               )}
             />
              <FormField
-              control={form.control}
+              control={control}
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
@@ -109,7 +132,7 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <FormField
-                control={form.control}
+                control={control}
                 name="price"
                 render={({ field }) => (
                     <FormItem>
@@ -122,7 +145,7 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
                 )}
              />
              <FormField
-                control={form.control}
+                control={control}
                 name="category"
                 render={({ field }) => (
                     <FormItem>
@@ -145,12 +168,45 @@ export function CreateItemForm({ onSave, onCancel, initialData }: CreateItemForm
                 )}
             />
         </div>
+        
+        <Separator />
+        
+        <div>
+          <FormLabel>Product Options</FormLabel>
+          <FormDescription>Attach pre-defined option groups to this product.</FormDescription>
+          <div className="mt-4 space-y-4">
+             <Select onValueChange={handleAddOptionGroup}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Add an option group..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableOptionGroups.map(group => (
+                    <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex flex-wrap gap-2">
+                {selectedOptionGroups.map(group => (
+                   <Badge key={group.id} variant="secondary" className="flex items-center gap-1 text-sm">
+                      {group.name}
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveOptionGroup(group.id)} 
+                        className="ml-1 rounded-full hover:bg-destructive/20 text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                      </button>
+                  </Badge>
+                ))}
+              </div>
+          </div>
+        </div>
 
         <FormField
-            control={form.control}
+            control={control}
             name="isActive"
             render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-6">
                 <div className="space-y-0.5">
                     <FormLabel>Status</FormLabel>
                     <FormDescription>

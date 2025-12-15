@@ -161,13 +161,6 @@ export const mockBookings: Booking[] = [
     { id: 'B003', customerName: 'Sophia Loren', bookingDate: '2023-11-12', bookingTime: '18:30', guests: 3, status: 'Cancelled' },
 ];
 
-export const mockMenuItems: MenuItem[] = [
-    { id: 'M01', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true },
-    { id: 'M02', name: 'Caesar Salad', category: 'Appetizers', price: 8.99, description: 'Crisp romaine with creamy Caesar dressing.', isActive: true },
-    { id: 'M03', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true },
-    { id: 'M04', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false },
-];
-
 export const mockOptionGroups: OptionGroup[] = [
     {
         id: 'OG01',
@@ -201,7 +194,16 @@ export const mockOptionGroups: OptionGroup[] = [
             { id: 'O11', name: 'No Sugar', priceAdjustment: 0 },
         ]
     }
-]
+];
+
+export const mockMenuItems: MenuItem[] = [
+    { id: 'M01', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true, optionGroups: [mockOptionGroups[1]] },
+    { id: 'M02', name: 'Caesar Salad', category: 'Appetizers', price: 8.99, description: 'Crisp romaine with creamy Caesar dressing.', isActive: true, optionGroups: [] },
+    { id: 'M03', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true, optionGroups: [] },
+    { id: 'M04', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false, optionGroups: [] },
+    { id: 'M05', name: 'Iced Coffee', category: 'Drinks', price: 4.50, description: 'Chilled coffee over ice.', isActive: true, optionGroups: [mockOptionGroups[0], mockOptionGroups[2]] },
+];
+
 
 export const mockBanners: Banner[] = [
     { id: 'BNR01', title: 'Happy Hour Special', imageUrl: 'https://picsum.photos/seed/banner1/1080/400', isActive: true, startDate: '2023-10-01', endDate: '2023-10-31', linkType: 'url', link: 'https://example.com/specials' },
@@ -404,4 +406,3 @@ export const mockCollections: Collection[] = [
     
 
     
-

@@ -110,6 +110,7 @@ export type MenuItem = {
     description: string;
     imageUrl?: string;
     isActive: boolean;
+    optionGroups?: OptionGroup[];
 }
 
 export type MenuOption = {

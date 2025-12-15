@@ -39,7 +39,7 @@ export default function MenuPage() {
     setItemFormOpen(true);
   };
   
-  const handleSaveItem = (itemData: Omit<MenuItem, 'id'>) => {
+  const handleSaveItem = (itemData: any) => {
     if (editingItem) {
       setMenuItems(menuItems.map(item => item.id === editingItem.id ? { ...editingItem, ...itemData } : item));
       toast({ title: 'Success', description: 'Menu item updated.' });
@@ -63,7 +63,7 @@ export default function MenuPage() {
   };
   
   const handleSaveOptionGroup = (groupData: OptionGroup) => {
-    if (groupData.id) {
+    if (groupData.id && optionGroups.some(g => g.id === groupData.id)) {
         setOptionGroups(optionGroups.map(g => g.id === groupData.id ? groupData : g));
         toast({ title: "Success", description: `Option group "${groupData.name}" updated.`});
     } else {
@@ -99,7 +99,7 @@ export default function MenuPage() {
               <Card>
                   <CardHeader>
                       <CardTitle className="font-headline">Menu Items</CardTitle>
-                      <CardDescription>Manage your menu items.</CardDescription>
+                      <CardDescription>Manage your menu items and their options.</CardDescription>
                   </CardHeader>
                   <CardContent>
                       <Table>
@@ -108,6 +108,7 @@ export default function MenuPage() {
                           <TableHead className="w-16">Image</TableHead>
                           <TableHead>Item</TableHead>
                           <TableHead>Category</TableHead>
+                          <TableHead>Options</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="text-right">Price</TableHead>
                           <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -131,6 +132,13 @@ export default function MenuPage() {
                                   <div className="text-sm text-muted-foreground">{item.description}</div>
                               </TableCell>
                               <TableCell>{item.category}</TableCell>
+                               <TableCell>
+                                <div className="flex flex-wrap gap-1">
+                                  {item.optionGroups?.map(og => (
+                                    <Badge key={og.id} variant="secondary">{og.name}</Badge>
+                                  ))}
+                                  </div>
+                              </TableCell>
                               <TableCell>
                                   <Badge variant={item.isActive ? 'default' : 'secondary'}>
                                       {item.isActive ? 'Active' : 'Inactive'}
@@ -239,6 +247,7 @@ export default function MenuPage() {
                     onSave={handleSaveItem}
                     onCancel={() => setItemFormOpen(false)}
                     initialData={editingItem}
+                    allOptionGroups={optionGroups}
                 />
               </ScrollArea>
           </DialogContent>
