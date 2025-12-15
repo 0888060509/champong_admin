@@ -137,6 +137,7 @@ export type MenuItem = {
     optionGroups?: OptionGroup[];
     crossSellGroups?: CrossSellGroup[];
     comboProducts?: ComboProduct[];
+    allowNotes?: boolean;
 }
 
 export type MenuOption = {

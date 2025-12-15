@@ -27,7 +27,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown, StickyNote } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { mockMenuItems, mockBundleTemplates } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,7 @@ const itemFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
+  allowNotes: z.boolean(),
   productType: z.enum(['single', 'combo', 'bundle']).default('single'),
   bundleTemplateId: z.string().optional(),
   optionGroups: z.array(optionGroupSchema).optional(),
@@ -109,6 +110,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       description: initialData?.description || '',
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
+      allowNotes: initialData?.allowNotes !== undefined ? initialData.allowNotes : true,
       productType: initialData?.productType || 'single',
       bundleTemplateId: initialData?.bundleTemplateId || '',
       optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
@@ -407,26 +409,48 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
 
 
           {/* Status */}
-          <FormField
-              control={control}
-              name="isActive"
-              render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-6">
-                  <div className="space-y-0.5">
-                      <FormLabel>Status</FormLabel>
-                      <FormDescription>
-                      Inactive products will not be visible to customers.
-                      </FormDescription>
-                  </div>
-                  <FormControl>
-                      <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      />
-                  </FormControl>
-                  </FormItem>
-              )}
-          />
+            <div className="space-y-4 pt-4">
+                <FormField
+                    control={control}
+                    name="isActive"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                            <FormLabel>Product Status</FormLabel>
+                            <FormDescription>
+                            Inactive products will not be visible to customers.
+                            </FormDescription>
+                        </div>
+                        <FormControl>
+                            <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        </FormItem>
+                    )}
+                />
+                 {productType === 'single' && (<FormField
+                    control={control}
+                    name="allowNotes"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                            <FormLabel>Allow Customer Notes</FormLabel>
+                            <FormDescription>
+                            Allow customers to add special instructions for this item.
+                            </FormDescription>
+                        </div>
+                        <FormControl>
+                            <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        </FormItem>
+                    )}
+                />)}
+            </div>
           
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">

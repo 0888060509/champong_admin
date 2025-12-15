@@ -318,11 +318,6 @@ export default function OrderDetailsPage() {
                                                             + Sides: {item.sideDishes.map(s => `${s.name} ($${s.price.toFixed(2)})`).join(', ')}
                                                         </div>
                                                     )}
-                                                    {item.crossSellItems && item.crossSellItems.length > 0 && (
-                                                        <div className="text-xs text-muted-foreground font-body pl-4">
-                                                            + With: {item.crossSellItems.map(cs => `${cs.name} ($${cs.price.toFixed(2)})`).join(', ')}
-                                                        </div>
-                                                    )}
                                                     {item.note && (
                                                         <div className="text-xs text-muted-foreground italic flex items-center gap-1 mt-1 font-body">
                                                             <MessageSquare className="h-3 w-3"/> Note: {item.note}
