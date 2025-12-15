@@ -71,6 +71,9 @@ export type OrderItem = {
   toppings?: Topping[];
   sideDishes?: SideDish[];
   crossSellItems?: CrossSellItem[];
+  // For combos
+  productType?: 'single' | 'combo';
+  comboProducts?: { id: string; name: string; quantity: number }[];
 };
 
 export type OrderHistory = {
@@ -115,6 +118,12 @@ export type CrossSellGroup = {
   productIds: string[];
 };
 
+export type ComboProduct = {
+  id: string;
+  name: string;
+  quantity: number;
+};
+
 export type MenuItem = {
     id: string;
     name: string;
@@ -123,8 +132,10 @@ export type MenuItem = {
     description: string;
     imageUrl?: string;
     isActive: boolean;
+    productType?: 'single' | 'combo';
     optionGroups?: OptionGroup[];
     crossSellGroups?: CrossSellGroup[];
+    comboProducts?: ComboProduct[];
 }
 
 export type MenuOption = {

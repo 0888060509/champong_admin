@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer, CrossSellItem } from '@/lib/types';
+import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer, CrossSellItem, ComboProduct } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
@@ -141,6 +141,9 @@ export default function OrderDetailsPage() {
     };
     
     const calculateItemSubtotal = (item: OrderItem) => {
+        if (item.productType === 'combo') {
+            return item.price * item.quantity;
+        }
         const toppingsPrice = item.toppings?.reduce((acc, topping) => acc + topping.price, 0) || 0;
         const sideDishesPrice = item.sideDishes?.reduce((acc, sideDish) => acc + sideDish.price, 0) || 0;
         const crossSellPrice = item.crossSellItems?.reduce((acc, crossSell) => acc + crossSell.price, 0) || 0;
@@ -293,7 +296,15 @@ export default function OrderDetailsPage() {
                                                 </Select>
                                             ) : (
                                                 <div>
-                                                    <span className="font-medium text-base font-body">{item.name}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-base font-body">{item.name}</span>
+                                                        {item.productType === 'combo' && <Badge variant="secondary">Combo</Badge>}
+                                                    </div>
+                                                    {item.comboProducts && item.comboProducts.length > 0 && (
+                                                        <div className="text-xs text-muted-foreground font-body pl-4">
+                                                            {item.comboProducts.map(cp => `${cp.quantity}x ${cp.name}`).join(', ')}
+                                                        </div>
+                                                    )}
                                                     {item.toppings && item.toppings.length > 0 && (
                                                         <div className="text-xs text-muted-foreground font-body">
                                                             + Toppings: {item.toppings.map(t => `${t.name} ($${t.price.toFixed(2)})`).join(', ')}

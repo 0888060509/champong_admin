@@ -108,7 +108,7 @@ export default function MenuPage() {
                           <TableHead className="w-16">Image</TableHead>
                           <TableHead>Item</TableHead>
                           <TableHead>Category</TableHead>
-                          <TableHead>Options</TableHead>
+                          <TableHead>Type</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="text-right">Price</TableHead>
                           <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -133,11 +133,11 @@ export default function MenuPage() {
                               </TableCell>
                               <TableCell>{item.category}</TableCell>
                                <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                  {item.optionGroups?.map(og => (
-                                    <Badge key={og.id} variant="secondary">{og.name}</Badge>
-                                  ))}
-                                  </div>
+                                {item.productType === 'combo' ? (
+                                    <Badge variant="secondary">Combo</Badge>
+                                ) : (
+                                    <Badge variant="outline">Single</Badge>
+                                )}
                               </TableCell>
                               <TableCell>
                                   <Badge variant={item.isActive ? 'default' : 'secondary'}>

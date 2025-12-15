@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { MenuItem, OptionGroup, CrossSellGroup } from '@/lib/types';
+import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/popover"
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -67,6 +68,13 @@ const crossSellGroupSchema = z.object({
   productIds: z.array(z.string()),
 });
 
+const comboProductSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+});
+
+
 const itemFormSchema = z.object({
   name: z.string().min(2, 'Product name must be at least 2 characters.'),
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
@@ -74,8 +82,10 @@ const itemFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
+  productType: z.enum(['single', 'combo']).default('single'),
   optionGroups: z.array(optionGroupSchema).optional(),
   crossSellGroups: z.array(crossSellGroupSchema).optional(),
+  comboProducts: z.array(comboProductSchema).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemFormSchema>;
@@ -97,12 +107,15 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       description: initialData?.description || '',
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
+      productType: initialData?.productType || 'single',
       optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
       crossSellGroups: initialData?.crossSellGroups ? JSON.parse(JSON.stringify(initialData.crossSellGroups)) : [],
+      comboProducts: initialData?.comboProducts ? JSON.parse(JSON.stringify(initialData.comboProducts)) : [],
     },
   });
 
   const { control, watch } = form;
+  const productType = watch('productType');
 
   const { fields: groupFields, append: appendGroup, remove: removeGroup, move: moveGroup } = useFieldArray({
       control,
@@ -156,13 +169,48 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
           {/* Basic Info */}
           <div className="space-y-4">
               <FormField
+                  control={control}
+                  name="productType"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Product Type</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex items-center space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="single" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Single Product
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="combo" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Combo / Bundle
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+              <FormField
                 control={control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product Name</FormLabel>
+                    <FormLabel>{productType === 'combo' ? 'Combo Name' : 'Product Name'}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Classic Burger" {...field} />
+                      <Input placeholder={productType === 'combo' ? 'e.g., Lunch Special' : 'e.g., Classic Burger'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -205,9 +253,9 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                   name="price"
                   render={({ field }) => (
                       <FormItem>
-                      <FormLabel>Base Price</FormLabel>
+                      <FormLabel>{productType === 'combo' ? 'Combo Price' : 'Base Price'}</FormLabel>
                       <FormControl>
-                          <Input type="number" step="0.01" placeholder="9.99" {...field} />
+                          <Input type="number" step="0.01" placeholder="99.00" {...field} />
                       </FormControl>
                       <FormMessage />
                       </FormItem>
@@ -226,6 +274,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                  {productType === 'combo' && <SelectItem value="Combo">Combo</SelectItem>}
                                   <SelectItem value="Main Course">Main Course</SelectItem>
                                   <SelectItem value="Appetizers">Appetizers</SelectItem>
                                   <SelectItem value="Desserts">Desserts</SelectItem>
@@ -237,69 +286,75 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                   )}
               />
           </div>
-          
-          <Separator />
-          
-          {/* Option Groups Section */}
-          <div>
-            <h3 className="text-lg font-medium font-headline">Product Options</h3>
-            <FormDescription>Add and customize modifiers for this product, like sizes or toppings. Drag to reorder.</FormDescription>
-            
-            <div className="space-y-4 mt-4">
-              {groupFields.map((group, groupIndex) => (
-                  <OptionGroupCard 
-                      key={group.id} 
-                      groupIndex={groupIndex} 
-                      onRemoveGroup={() => removeGroup(groupIndex)}
-                      onMoveUp={() => groupIndex > 0 && moveGroup(groupIndex, groupIndex - 1)}
-                      onMoveDown={() => groupIndex < groupFields.length - 1 && moveGroup(groupIndex, groupIndex + 1)}
-                  />
-              ))}
-            </div>
 
-            <div className="mt-4 flex gap-2">
-              <Select onValueChange={handleAddGroupFromTemplate} value="">
-                  <SelectTrigger>
-                      <SelectValue placeholder="Add options from a template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {availableTemplates.length > 0 ? availableTemplates.map(template => (
-                          <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                      )) : (
-                          <SelectItem value="none" disabled>No available templates</SelectItem>
-                      )}
-                  </SelectContent>
-              </Select>
-              <Button type="button" variant="outline" onClick={handleAddNewCustomGroup}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Custom Group
-              </Button>
-            </div>
-          </div>
-          
-          <Separator />
-          
-           {/* Cross-sell Section */}
-          <div>
-            <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
-            <FormDescription>Suggest other products to customers when they view this item. You can reorder groups and items.</FormDescription>
-            
-            <div className="mt-4 space-y-4">
-              {crossSellGroupFields.map((group, groupIndex) => (
-                <CrossSellGroupCard
-                  key={group.id}
-                  groupIndex={groupIndex}
-                  initialDataId={initialData?.id}
-                  onRemoveGroup={() => removeCrossSellGroup(groupIndex)}
-                  onMoveUp={() => groupIndex > 0 && moveCrossSellGroup(groupIndex, groupIndex - 1)}
-                  onMoveDown={() => groupIndex < crossSellGroupFields.length - 1 && moveCrossSellGroup(groupIndex, groupIndex + 1)}
-                />
-              ))}
+          {productType === 'combo' ? (
+              <ComboProductsSection />
+            ) : (
+              <>
+                <Separator />
+                
+                {/* Option Groups Section */}
+                <div>
+                  <h3 className="text-lg font-medium font-headline">Product Options</h3>
+                  <FormDescription>Add and customize modifiers for this product, like sizes or toppings. Drag to reorder.</FormDescription>
+                  
+                  <div className="space-y-4 mt-4">
+                    {groupFields.map((group, groupIndex) => (
+                        <OptionGroupCard 
+                            key={group.id} 
+                            groupIndex={groupIndex} 
+                            onRemoveGroup={() => removeGroup(groupIndex)}
+                            onMoveUp={() => groupIndex > 0 && moveGroup(groupIndex, groupIndex - 1)}
+                            onMoveDown={() => groupIndex < groupFields.length - 1 && moveGroup(groupIndex, groupIndex + 1)}
+                        />
+                    ))}
+                  </div>
 
-              <Button type="button" variant="outline" onClick={handleAddNewCrossSellGroup}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Cross-sell Group
-              </Button>
-            </div>
-          </div>
+                  <div className="mt-4 flex gap-2">
+                    <Select onValueChange={handleAddGroupFromTemplate} value="">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Add options from a template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableTemplates.length > 0 ? availableTemplates.map(template => (
+                                <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                            )) : (
+                                <SelectItem value="none" disabled>No available templates</SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" onClick={handleAddNewCustomGroup}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Custom Group
+                    </Button>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                {/* Cross-sell Section */}
+                <div>
+                  <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
+                  <FormDescription>Suggest other products to customers when they view this item. You can reorder groups and items.</FormDescription>
+                  
+                  <div className="mt-4 space-y-4">
+                    {crossSellGroupFields.map((group, groupIndex) => (
+                      <CrossSellGroupCard
+                        key={group.id}
+                        groupIndex={groupIndex}
+                        initialDataId={initialData?.id}
+                        onRemoveGroup={() => removeCrossSellGroup(groupIndex)}
+                        onMoveUp={() => groupIndex > 0 && moveCrossSellGroup(groupIndex, groupIndex - 1)}
+                        onMoveDown={() => groupIndex < crossSellGroupFields.length - 1 && moveCrossSellGroup(groupIndex, groupIndex + 1)}
+                      />
+                    ))}
+
+                    <Button type="button" variant="outline" onClick={handleAddNewCrossSellGroup}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Cross-sell Group
+                    </Button>
+                  </div>
+                </div>
+            </>
+          )}
 
 
           {/* Status */}
@@ -631,4 +686,120 @@ function CrossSellGroupCard({
       </CardContent>
     </Card>
   )
+}
+
+function ComboProductsSection() {
+    const { control, watch } = useFormContext<ItemFormValues>();
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "comboProducts"
+    });
+
+    const addedProductIds = watch('comboProducts')?.map(p => p.id) || [];
+    const availableProducts = mockMenuItems.filter(
+        item => item.productType !== 'combo' && !addedProductIds.includes(item.id)
+    );
+
+    const handleSelectProduct = (productId: string) => {
+        const product = mockMenuItems.find(p => p.id === productId);
+        if (product) {
+            append({ id: product.id, name: product.name, quantity: 1 });
+        }
+    };
+
+    return (
+        <div>
+            <h3 className="text-lg font-medium font-headline">Products in Combo</h3>
+            <FormDescription>Select the products and quantities that make up this combo.</FormDescription>
+
+            <div className="mt-4 space-y-4">
+                <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Product to Combo
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search products..." />
+                                    <CommandList>
+                                        <CommandEmpty>No products found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {availableProducts.map((item) => (
+                                                <CommandItem
+                                                    key={item.id}
+                                                    value={item.name}
+                                                    onSelect={() => handleSelectProduct(item.id)}
+                                                    className="!p-2"
+                                                >
+                                                   <div className="flex items-center gap-3">
+                                                        <Image
+                                                            src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
+                                                            alt={item.name}
+                                                            width={40}
+                                                            height={40}
+                                                            className="rounded-md object-cover"
+                                                        />
+                                                        <div>
+                                                            <p className="font-medium">{item.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{item.category} &middot; ${item.price.toFixed(2)}</p>
+                                                        </div>
+                                                    </div>
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                        
+                        {fields.length > 0 && (
+                          <div className="border rounded-md">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Product</TableHead>
+                                        <TableHead className="w-32">Quantity</TableHead>
+                                        <TableHead className="w-16 text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {fields.map((field, index) => (
+                                        <TableRow key={field.id}>
+                                            <TableCell className="font-medium">
+                                                {watch(`comboProducts.${index}.name`)}
+                                            </TableCell>
+                                            <TableCell>
+                                                <FormField
+                                                    control={control}
+                                                    name={`comboProducts.${index}.quantity`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <Input type="number" min="1" {...field} />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
 }

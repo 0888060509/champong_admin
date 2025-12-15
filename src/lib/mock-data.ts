@@ -200,12 +200,13 @@ export const mockOptionGroups: OptionGroup[] = [
 ];
 
 export const mockMenuItems: MenuItem[] = [
-    { id: 'M01', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true, optionGroups: [mockOptionGroups[1]], crossSellGroups: [{ id: 'csg-1', name: 'Goes great with', productIds: ['M06'] }] },
-    { id: 'M02', name: 'Caesar Salad', category: 'Appetizers', price: 8.99, description: 'Crisp romaine with creamy Caesar dressing.', isActive: true, optionGroups: [] },
-    { id: 'M03', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true, optionGroups: [] },
-    { id: 'M04', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false, optionGroups: [] },
-    { id: 'M05', name: 'Iced Coffee', category: 'Drinks', price: 4.50, description: 'Chilled coffee over ice.', isActive: true, optionGroups: [mockOptionGroups[0], mockOptionGroups[2]] },
-    { id: 'M06', name: 'Fries', category: 'Appetizers', price: 4.50, description: 'Crispy golden fries.', isActive: true, optionGroups: [] },
+    { id: 'M01', productType: 'single', name: 'Classic Burger', category: 'Main Course', price: 12.99, description: 'A juicy beef patty with all the fixings.', isActive: true, optionGroups: [mockOptionGroups[1]], crossSellGroups: [{ id: 'csg-1', name: 'Goes great with', productIds: ['M06'] }] },
+    { id: 'M02', productType: 'single', name: 'Caesar Salad', category: 'Appetizers', price: 8.99, description: 'Crisp romaine with creamy Caesar dressing.', isActive: true, optionGroups: [] },
+    { id: 'M03', productType: 'single', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true, optionGroups: [] },
+    { id: 'M04', productType: 'single', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false, optionGroups: [] },
+    { id: 'M05', productType: 'single', name: 'Iced Coffee', category: 'Drinks', price: 4.50, description: 'Chilled coffee over ice.', isActive: true, optionGroups: [mockOptionGroups[0], mockOptionGroups[2]] },
+    { id: 'M06', productType: 'single', name: 'Fries', category: 'Appetizers', price: 4.50, description: 'Crispy golden fries.', isActive: true, optionGroups: [] },
+    { id: 'M07', productType: 'combo', name: 'Burger Combo', category: 'Combo', price: 16.99, description: 'A classic burger with fries and a drink.', isActive: true, comboProducts: [{id: 'M01', name: 'Classic Burger', quantity: 1}, {id: 'M06', name: 'Fries', quantity: 1}, {id: 'M05', name: 'Iced Coffee', quantity: 1}] },
 ];
 
 
