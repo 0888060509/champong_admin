@@ -108,6 +108,8 @@ export type MenuItem = {
     category: string;
     price: number;
     description: string;
+    imageUrl?: string;
+    isActive: boolean;
 }
 
 export type Banner = {
