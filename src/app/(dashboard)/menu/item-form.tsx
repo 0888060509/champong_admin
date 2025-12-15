@@ -243,7 +243,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
           {/* Option Groups Section */}
           <div>
             <h3 className="text-lg font-medium font-headline">Product Options</h3>
-            <FormDescription>Add and customize modifiers for this product, like sizes or toppings.</FormDescription>
+            <FormDescription>Add and customize modifiers for this product, like sizes or toppings. Drag to reorder.</FormDescription>
             
             <div className="space-y-4 mt-4">
               {groupFields.map((group, groupIndex) => (
