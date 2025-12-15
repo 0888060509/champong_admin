@@ -427,7 +427,8 @@ export const mockBundleTemplates: BundleTemplate[] = [
             {
                 id: 'slot_main_1',
                 name: 'Choose your Main',
-                required: true,
+                minSelection: 1,
+                maxSelection: 1,
                 items: [
                     { id: 'M01', name: 'Classic Burger', upcharge: 0 },
                     { id: 'M04', name: 'Spaghetti Carbonara', upcharge: 2.00 },
@@ -436,7 +437,8 @@ export const mockBundleTemplates: BundleTemplate[] = [
             {
                 id: 'slot_drink_1',
                 name: 'Select a Drink',
-                required: true,
+                minSelection: 1,
+                maxSelection: 1,
                 items: [
                     { id: 'M05', name: 'Iced Coffee', upcharge: 0 },
                 ]
@@ -453,7 +455,8 @@ export const mockBundleTemplates: BundleTemplate[] = [
             {
                 id: 'slot_main_2',
                 name: 'Choose two Mains',
-                required: true,
+                minSelection: 2,
+                maxSelection: 2,
                 items: [
                     { id: 'M01', name: 'Classic Burger', upcharge: 0 },
                     { id: 'M02', name: 'Caesar Salad', upcharge: 0 },
@@ -463,7 +466,8 @@ export const mockBundleTemplates: BundleTemplate[] = [
             {
                 id: 'slot_side_2',
                 name: 'Choose two Sides',
-                required: true,
+                minSelection: 2,
+                maxSelection: 2,
                 items: [
                     { id: 'M06', name: 'Fries', upcharge: 0 },
                 ]
@@ -471,7 +475,8 @@ export const mockBundleTemplates: BundleTemplate[] = [
              {
                 id: 'slot_dessert_2',
                 name: 'Choose a Dessert (Optional)',
-                required: false,
+                minSelection: 0,
+                maxSelection: 1,
                 items: [
                     { id: 'M03', name: 'Chocolate Lava Cake', upcharge: 0 },
                 ]

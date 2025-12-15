@@ -178,7 +178,8 @@ function BundleTemplateForm({
         const newSlot: BundleSlot = {
             id: `slot_${Date.now()}`,
             name: 'New Slot',
-            required: true,
+            minSelection: 1,
+            maxSelection: 1,
             items: [],
         };
         handleTemplateChange('slots', [...template.slots, newSlot]);
@@ -285,13 +286,22 @@ function BundleTemplateForm({
                                             <Input id={`slot-name-${slot.id}`} value={slot.name} onChange={e => handleSlotChange(slot.id, 'name', e.target.value)} className="text-base font-semibold" />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="flex items-center space-x-2">
-                                                <Switch id={`slot-required-${slot.id}`} checked={slot.required} onCheckedChange={val => handleSlotChange(slot.id, 'required', val)} />
-                                                <Label htmlFor={`slot-required-${slot.id}`}>Required</Label>
+                                             <div className="flex items-center gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`slot-min-${slot.id}`}>Min</Label>
+                                                    <Input id={`slot-min-${slot.id}`} type="number" value={slot.minSelection} onChange={e => handleSlotChange(slot.id, 'minSelection', parseInt(e.target.value) || 0)} className="w-20" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`slot-max-${slot.id}`}>Max</Label>
+                                                    <Input id={`slot-max-${slot.id}`} type="number" value={slot.maxSelection} onChange={e => handleSlotChange(slot.id, 'maxSelection', parseInt(e.target.value) || 0)} className="w-20" />
+                                                </div>
                                             </div>
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeSlot(slot.id)} className="text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeSlot(slot.id)} className="text-destructive self-end"><Trash2 className="h-4 w-4"/></Button>
                                         </div>
                                      </div>
+                                     <CardDescription>
+                                        Set the minimum and maximum number of items a customer must/can select for this slot. Set Min to 0 for optional.
+                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Label>Selectable Items</Label>

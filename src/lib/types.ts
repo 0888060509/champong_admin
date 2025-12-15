@@ -251,7 +251,8 @@ export type BundleSlot = {
     id: string;
     name: string; // e.g., "Choose your Main", "Select a Drink"
     items: SlotItem[];
-    required: boolean;
+    minSelection: number;
+    maxSelection: number;
 };
 
 export type BundleTemplate = {
