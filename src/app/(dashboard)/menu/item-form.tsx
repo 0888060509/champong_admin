@@ -27,8 +27,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import type { MenuItem, OptionGroup } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, Trash2, GripVertical, X } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockMenuItems } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -55,6 +55,7 @@ const optionGroupSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Group name is required."),
     type: z.enum(['single', 'multiple']),
+    required: z.boolean().default(false),
     options: z.array(menuOptionSchema)
 });
 
@@ -93,9 +94,9 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     },
   });
 
-  const { control, setValue, watch } = form;
+  const { control, watch } = form;
 
-  const { fields: groupFields, append: appendGroup, remove: removeGroup } = useFieldArray({
+  const { fields: groupFields, append: appendGroup, remove: removeGroup, move: moveGroup } = useFieldArray({
       control,
       name: "optionGroups"
   });
@@ -112,7 +113,8 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     if (template) {
         appendGroup({
             id: `new_group_${Date.now()}`,
-            ...JSON.parse(JSON.stringify(template)) // Deep copy to allow independent editing
+            ...JSON.parse(JSON.stringify(template)), // Deep copy
+            required: template.required ?? false,
         });
     }
   };
@@ -122,12 +124,15 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
         id: `custom_group_${Date.now()}`,
         name: 'New Custom Group',
         type: 'single',
+        required: false,
         options: [{ id: `custom_opt_${Date.now()}`, name: 'New Option', priceAdjustment: 0 }]
     });
   }
 
+  // Prevent already added groups from showing in the template list
+  const existingGroupNames = groupFields.map(field => field.name);
   const availableTemplates = allOptionGroups.filter(
-    template => !groupFields.some(field => field.name === template.name)
+    template => !existingGroupNames.includes(template.name)
   );
   
   const availableCrossSellProducts = mockMenuItems.filter(
@@ -239,6 +244,8 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                       key={group.id} 
                       groupIndex={groupIndex} 
                       onRemoveGroup={() => removeGroup(groupIndex)}
+                      onMoveUp={() => groupIndex > 0 && moveGroup(groupIndex, groupIndex - 1)}
+                      onMoveDown={() => groupIndex < groupFields.length - 1 && moveGroup(groupIndex, groupIndex + 1)}
                   />
               ))}
             </div>
@@ -348,7 +355,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
             <Button type="submit">
-              {initialData ? 'Save Changes' : 'Create Product'}
+              {initialData?.id ? 'Save Changes' : 'Create Product'}
             </Button>
           </div>
         </form>
@@ -359,7 +366,17 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
 
 
 // Inner component for managing a single option group within the product form
-function OptionGroupCard({ groupIndex, onRemoveGroup }: { groupIndex: number, onRemoveGroup: () => void }) {
+function OptionGroupCard({ 
+    groupIndex, 
+    onRemoveGroup,
+    onMoveUp,
+    onMoveDown,
+}: { 
+    groupIndex: number, 
+    onRemoveGroup: () => void,
+    onMoveUp: () => void,
+    onMoveDown: () => void
+}) {
     const { control } = useFormContext<ItemFormValues>();
 
     const { fields: optionFields, append: appendOption, remove: removeOption } = useFieldArray({
@@ -368,9 +385,18 @@ function OptionGroupCard({ groupIndex, onRemoveGroup }: { groupIndex: number, on
     });
 
     return (
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 relative pl-12">
+            <div className="absolute left-2 top-2 flex flex-col gap-1">
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6 cursor-pointer" onClick={onMoveUp}>
+                    <ArrowUp className="h-4 w-4" />
+                </Button>
+                 <GripVertical className="h-6 w-6 text-muted-foreground cursor-grab" />
+                 <Button type="button" variant="ghost" size="icon" className="h-6 w-6 cursor-pointer" onClick={onMoveDown}>
+                    <ArrowDown className="h-4 w-4" />
+                </Button>
+            </div>
             <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between">
                      <FormField
                         control={control}
                         name={`optionGroups.${groupIndex}.name`}
@@ -383,29 +409,48 @@ function OptionGroupCard({ groupIndex, onRemoveGroup }: { groupIndex: number, on
                            </FormItem>
                         )}
                     />
-                    <Button variant="ghost" size="icon" onClick={onRemoveGroup} className="ml-2">
+                    <Button variant="ghost" size="icon" onClick={onRemoveGroup} className="ml-2 shrink-0">
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
-                 <FormField
-                    control={control}
-                    name={`optionGroups.${groupIndex}.type`}
-                    render={({ field }) => (
-                        <FormItem>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="flex items-center justify-between gap-4 pt-2">
+                    <FormField
+                        control={control}
+                        name={`optionGroups.${groupIndex}.type`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-8 w-[180px]">
+                                            <SelectValue placeholder="Selection type" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="single">Single Choice</SelectItem>
+                                        <SelectItem value="multiple">Multiple Choice</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`optionGroups.${groupIndex}.required`}
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                                 <FormControl>
-                                    <SelectTrigger className="h-8 w-[180px]">
-                                        <SelectValue placeholder="Selection type" />
-                                    </SelectTrigger>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
                                 </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="single">Single Choice</SelectItem>
-                                    <SelectItem value="multiple">Multiple Choice</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </FormItem>
-                    )}
-                />
+                                <FormLabel className="text-sm font-normal">
+                                    Required
+                                </FormLabel>
+                            </FormItem>
+                        )}
+                        />
+                </div>
             </CardHeader>
             <CardContent className="space-y-3">
                 {optionFields.map((option, optionIndex) => (
@@ -453,5 +498,3 @@ function OptionGroupCard({ groupIndex, onRemoveGroup }: { groupIndex: number, on
         </Card>
     );
 }
-
-    

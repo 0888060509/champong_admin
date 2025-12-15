@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, 'useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, Trash2, GripVertical } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Trash2, GripVertical, Copy } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockMenuItems, mockOptionGroups } from "@/lib/mock-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function MenuPage() {
   const [activeTab, setActiveTab] = useState('items');
@@ -29,11 +30,20 @@ export default function MenuPage() {
   const [editingOptionGroup, setEditingOptionGroup] = useState<OptionGroup | null>(null);
   
   const { toast } = useToast();
+  const router = useRouter();
 
   // Menu Item Handlers
   const handleDeleteItem = (itemId: string) => {
     setMenuItems(prev => prev.filter(item => item.id !== itemId));
     toast({ title: 'Success', description: 'Menu item deleted.', variant: 'destructive' });
+  };
+  
+  const handleDuplicateItem = (itemId: string) => {
+    const itemToDuplicate = menuItems.find(item => item.id === itemId);
+    if (itemToDuplicate) {
+        // By setting the state and navigating, the new page will pick it up
+        router.push(`/menu/new?duplicateId=${itemId}`);
+    }
   };
 
   // Option Group Handlers
@@ -147,6 +157,10 @@ export default function MenuPage() {
                                         <Link href={`/menu/${item.id}/edit`} passHref>
                                           <DropdownMenuItem>Edit</DropdownMenuItem>
                                         </Link>
+                                        <DropdownMenuItem onClick={() => handleDuplicateItem(item.id)}>
+                                            <Copy className="mr-2 h-4 w-4" />
+                                            Duplicate
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">Delete</DropdownMenuItem>
                                       </DropdownMenuContent>
                                   </DropdownMenu>
@@ -383,5 +397,3 @@ function OptionGroupForm({
         </form>
     );
 }
-
-    

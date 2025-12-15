@@ -131,6 +131,7 @@ export type OptionGroup = {
     id: string;
     name: string;
     type: 'single' | 'multiple';
+    required?: boolean;
     options: MenuOption[];
 }
 
