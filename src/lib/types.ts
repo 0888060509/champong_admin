@@ -112,6 +112,19 @@ export type MenuItem = {
     isActive: boolean;
 }
 
+export type MenuOption = {
+    id: string;
+    name: string;
+    priceAdjustment: number;
+}
+
+export type OptionGroup = {
+    id: string;
+    name: string;
+    type: 'single' | 'multiple';
+    options: MenuOption[];
+}
+
 export type Banner = {
     id: string;
     title: string;

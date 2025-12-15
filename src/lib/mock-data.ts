@@ -1,7 +1,7 @@
 
 
 import { Timestamp } from 'firebase/firestore';
-import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession } from './types';
+import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession, OptionGroup } from './types';
 import type { Collection } from '@/app/(dashboard)/collections/collections-context';
 
 export const mockUsers: User[] = [
@@ -167,6 +167,41 @@ export const mockMenuItems: MenuItem[] = [
     { id: 'M03', name: 'Chocolate Lava Cake', category: 'Desserts', price: 7.50, description: 'Warm chocolate cake with a molten center.', isActive: true },
     { id: 'M04', name: 'Spaghetti Carbonara', category: 'Main Course', price: 15.50, description: 'Classic pasta with pancetta and egg.', isActive: false },
 ];
+
+export const mockOptionGroups: OptionGroup[] = [
+    {
+        id: 'OG01',
+        name: 'Size',
+        type: 'single',
+        options: [
+            { id: 'O01', name: 'Small', priceAdjustment: 0 },
+            { id: 'O02', name: 'Medium', priceAdjustment: 1.50 },
+            { id: 'O03', name: 'Large', priceAdjustment: 2.50 },
+        ]
+    },
+    {
+        id: 'OG02',
+        name: 'Toppings',
+        type: 'multiple',
+        options: [
+            { id: 'O04', name: 'Extra Cheese', priceAdjustment: 1.00 },
+            { id: 'O05', name: 'Bacon', priceAdjustment: 2.00 },
+            { id: 'O06', name: 'Avocado', priceAdjustment: 1.75 },
+        ]
+    },
+    {
+        id: 'OG03',
+        name: 'Sugar Level',
+        type: 'single',
+        options: [
+            { id: 'O07', name: '100% Sugar', priceAdjustment: 0 },
+            { id: 'O08', name: '70% Sugar', priceAdjustment: 0 },
+            { id: 'O09', name: '50% Sugar', priceAdjustment: 0 },
+            { id: 'O10', name: '30% Sugar', priceAdjustment: 0 },
+            { id: 'O11', name: 'No Sugar', priceAdjustment: 0 },
+        ]
+    }
+]
 
 export const mockBanners: Banner[] = [
     { id: 'BNR01', title: 'Happy Hour Special', imageUrl: 'https://picsum.photos/seed/banner1/1080/400', isActive: true, startDate: '2023-10-01', endDate: '2023-10-31', linkType: 'url', link: 'https://example.com/specials' },
@@ -369,3 +404,4 @@ export const mockCollections: Collection[] = [
     
 
     
+
