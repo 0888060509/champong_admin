@@ -47,10 +47,10 @@ export const mockOrders: Order[] = [
         shippingAddress: '123 Ocean View, Anytown, 12345',
         paymentMethod: 'Credit Card (**** **** **** 4242)',
         items: [
-            { 
-                id: 'item_1', 
-                name: 'Classic Burger', 
-                quantity: 2, 
+            {
+                id: 'item_1',
+                name: 'Classic Burger',
+                quantity: 2,
                 price: 12.99,
                 note: 'One well-done, one medium-rare. No onions on the medium-rare one.',
                 toppings: [
@@ -61,11 +61,11 @@ export const mockOrders: Order[] = [
                     { id: 'M06', name: 'Fries', price: 0 },
                 ]
             },
-            { 
-                id: 'item_2', 
-                name: 'Fries', 
-                quantity: 1, 
-                price: 4.50 
+            {
+                id: 'item_2',
+                name: 'Fries',
+                quantity: 1,
+                price: 4.50
             },
             {
                 id: 'item_combo_1',
@@ -229,14 +229,14 @@ const generatePerformanceData = () => {
 
 
 export const mockCampaigns: Campaign[] = [
-    { 
-        id: 'CMP01', 
+    {
+        id: 'CMP01',
         name: 'Weekend BOGO',
         description: 'Buy one get one free on all appetizers this weekend.',
-        targetSegment: ['High Spenders'], 
+        targetSegment: ['High Spenders'],
         title: 'Weekend BOGO is on!',
-        message: 'Hi {customerName}, enjoy a free appetizer on us this weekend!', 
-        status: 'Completed', 
+        message: 'Hi {customerName}, enjoy a free appetizer on us this weekend!',
+        status: 'Completed',
         scheduleDate: new Date('2023-10-20T10:00:00Z').toISOString(),
         sentCount: 1250,
         openRate: 0.23, // 23%
@@ -244,14 +244,14 @@ export const mockCampaigns: Campaign[] = [
         performanceData: generatePerformanceData(),
         onClickAction: { type: 'None' }
     },
-    { 
-        id: 'CMP02', 
+    {
+        id: 'CMP02',
         name: 'New Customer Welcome',
         description: 'Welcome new users with a discount on their first order.',
-        targetSegment: ['New Customers'], 
+        targetSegment: ['New Customers'],
         title: 'Welcome to AdminWeb!',
-        message: 'Thanks for joining! Here\'s 15% off your first order.', 
-        status: 'Sending', 
+        message: 'Thanks for joining! Here\'s 15% off your first order.',
+        status: 'Sending',
         scheduleDate: null,
         sentCount: 50,
         openRate: 0.68, // 68%
@@ -260,28 +260,28 @@ export const mockCampaigns: Campaign[] = [
         performanceData: generatePerformanceData(),
         onClickAction: { type: 'Link to Voucher', value: 'VOUCHER_15OFF' }
     },
-    { 
-        id: 'CMP03', 
+    {
+        id: 'CMP03',
         name: 'Holiday Special',
         description: 'Promote holiday party bookings.',
-        targetSegment: ['All Customers'], 
+        targetSegment: ['All Customers'],
         title: 'Book Your Holiday Party!',
-        message: 'Planning a holiday event? Book with us and get a special discount.', 
-        status: 'Scheduled', 
+        message: 'Planning a holiday event? Book with us and get a special discount.',
+        status: 'Scheduled',
         scheduleDate: new Date('2023-12-01T09:00:00Z').toISOString(),
         sentCount: 0,
         openRate: 0,
         ctr: 0,
         onClickAction: { type: 'Custom Web Link', value: 'https://example.com/holiday-booking' }
     },
-     { 
-        id: 'CMP04', 
+     {
+        id: 'CMP04',
         name: 'Q4 Marketing Push',
         description: 'Re-engage lapsed customers before the end of the year.',
         targetSegment: ['Lapsed Customers'],
         title: "We've missed you!",
-        message: 'Come back and see what\'s new. Here\'s a little something to get you started.', 
-        status: 'Draft', 
+        message: 'Come back and see what\'s new. Here\'s a little something to get you started.',
+        status: 'Draft',
         scheduleDate: null,
         sentCount: 0,
         openRate: 0,
@@ -354,48 +354,48 @@ export const mockChatSessions: ChatSession[] = [
 ]
 
 export const mockCollections: Collection[] = [
-    { 
-      id: '1', 
+    {
+      id: '1',
       name: 'High Profit Items',
       publicTitle: "Chef's Recommendations",
       description: 'Items with a high profit margin, great for upselling.',
-      productCount: 12, 
+      productCount: 12,
       isActive: true,
       root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-1', criteria: 'profit_margin', operator: 'gte', value: 40}]}
     },
-    { 
-      id: '2', 
-      name: 'Low Stock Specials', 
+    {
+      id: '2',
+      name: 'Low Stock Specials',
       publicTitle: "Last Chance to Buy!",
       description: 'Clear out items that are low in stock.',
-      productCount: 8, 
+      productCount: 8,
       isActive: true,
       root: { type: 'group', logic: 'AND', conditions: [{type: 'condition', id: 'cond-2', criteria: 'stock_level', operator: 'lte', value: 10}]}
     },
-    { 
-      id: '3', 
-      name: 'Weekend Dessert Specials', 
+    {
+      id: '3',
+      name: 'Weekend Dessert Specials',
       publicTitle: "Sweet Weekend Deals",
       description: 'Special desserts featured only on weekends.',
-      productCount: 4, 
+      productCount: 4,
       isActive: false,
-      root: { 
+      root: {
           type: 'group',
-          logic: 'AND', 
+          logic: 'AND',
           conditions: [
               {type: 'condition', id: 'cond-3a', criteria: 'tags', operator: 'contains', value: 'weekend_special'},
               {type: 'condition', id: 'cond-3b', criteria: 'category', operator: 'eq', value: 'Desserts'}
           ]
       }
     },
-     { 
-      id: '4', 
-      name: 'Premium Main Courses', 
-      productCount: 7, 
+     {
+      id: '4',
+      name: 'Premium Main Courses',
+      productCount: 7,
       publicTitle: "Premium Entrees",
       description: 'Top-tier main courses for discerning customers.',
       isActive: true,
-      root: { 
+      root: {
           type: 'group',
           logic: 'AND',
           conditions: [
@@ -469,7 +469,7 @@ export const mockBundleTemplates: BundleTemplate[] = [
         ]
     }
 ]
-    
+
 // Add a mock flexible bundle item
 mockMenuItems.push({
     id: 'BNDL01',
@@ -481,7 +481,3 @@ mockMenuItems.push({
     isActive: true,
     bundleTemplateId: 'BT01'
 });
-    
-
-
-```
