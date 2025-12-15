@@ -44,6 +44,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import Image from 'next/image';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -130,7 +131,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
   }
 
   // Prevent already added groups from showing in the template list
-  const existingGroupNames = groupFields.map(field => field.name);
+  const existingGroupNames = watch('optionGroups')?.map(field => field.name) || [];
   const availableTemplates = allOptionGroups.filter(
     template => !existingGroupNames.includes(template.name)
   );
@@ -297,11 +298,25 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                           {availableCrossSellProducts.map((item) => (
                             <CommandItem
                               key={item.id}
+                              value={item.name}
                               onSelect={() => {
                                 appendCrossSell(item.id);
                               }}
+                              className="!p-2"
                             >
-                              {item.name}
+                               <div className="flex items-center gap-3">
+                                <Image
+                                  src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
+                                  alt={item.name}
+                                  width={40}
+                                  height={40}
+                                  className="rounded-md object-cover"
+                                />
+                                <div>
+                                  <p className="font-medium">{item.name}</p>
+                                  <p className="text-xs text-muted-foreground">{item.category} &middot; ${item.price.toFixed(2)}</p>
+                                </div>
+                              </div>
                             </CommandItem>
                           ))}
                         </CommandGroup>
