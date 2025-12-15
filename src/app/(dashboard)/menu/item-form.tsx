@@ -45,6 +45,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import Image from 'next/image';
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -102,7 +103,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       name: "optionGroups"
   });
   
-  const { fields: crossSellFields, append: appendCrossSell, remove: removeCrossSell } = useFieldArray({
+  const { fields: crossSellFields, append: appendCrossSell, remove: removeCrossSell, move: moveCrossSell } = useFieldArray({
     control,
     name: "crossSellProductIds"
   });
@@ -140,7 +141,11 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     item => item.id !== initialData?.id && !watchedCrossSellIds.includes(item.id)
   );
   
-  const selectedCrossSellProducts = watchedCrossSellIds.map(id => mockMenuItems.find(item => item.id === id)).filter(Boolean) as MenuItem[];
+  const selectedCrossSellProducts = crossSellFields.map(field => {
+      const id = (field as any).id; // react-hook-form's field has an id, but the value is what we stored.
+      const value = watch(`crossSellProductIds.${crossSellFields.indexOf(field)}`);
+      return mockMenuItems.find(item => item.id === value)
+  }).filter(Boolean) as MenuItem[];
 
 
   return (
@@ -275,9 +280,9 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
            {/* Cross-sell Section */}
           <div>
             <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
-            <FormDescription>Suggest other products to customers when they view this item.</FormDescription>
+            <FormDescription>Suggest other products to customers when they view this item. You can reorder the items below.</FormDescription>
             
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
                <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -325,21 +330,55 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                   </PopoverContent>
                 </Popover>
 
-                 <div className="mt-4 flex flex-wrap gap-2">
-                    {selectedCrossSellProducts.map((item, index) => (
-                      <Badge key={item.id} variant="secondary" className="flex items-center gap-1">
-                        {item.name}
-                        <button
-                          type="button"
-                          className="ml-1 rounded-full hover:bg-destructive/20 text-destructive"
-                          onClick={() => removeCrossSell(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-
+                 {selectedCrossSellProducts.length > 0 && (
+                    <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className='w-16'>Product</TableHead>
+                                    <TableHead>Details</TableHead>
+                                    <TableHead className="text-right w-28">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {crossSellFields.map((field, index) => {
+                                    const item = selectedCrossSellProducts[index];
+                                    if (!item) return null;
+                                    return (
+                                    <TableRow key={field.id}>
+                                        <TableCell>
+                                             <Image
+                                                src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
+                                                alt={item.name}
+                                                width={48}
+                                                height={48}
+                                                className="rounded-md object-cover"
+                                                />
+                                        </TableCell>
+                                        <TableCell>
+                                            <p className="font-medium">{item.name}</p>
+                                            <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end items-center gap-1">
+                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index > 0 && moveCrossSell(index, index - 1)}>
+                                                    <ArrowUp className="h-4 w-4"/>
+                                                </Button>
+                                                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => index < crossSellFields.length - 1 && moveCrossSell(index, index + 1)}>
+                                                    <ArrowDown className="h-4 w-4"/>
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeCrossSell(index)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    </Card>
+                 )}
             </div>
           </div>
 
@@ -513,5 +552,7 @@ function OptionGroupCard({
         </Card>
     );
 }
+
+    
 
     
