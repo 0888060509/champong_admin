@@ -28,7 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import type { MenuItem, OptionGroup } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { mockMenuItems } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -56,7 +56,7 @@ const menuOptionSchema = z.object({
 const optionGroupSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Group name is required."),
-    type: z.enum(['single', 'multiple']),
+    type: z.enum(['single', 'multiple', 'exclusion']),
     required: z.boolean().default(false),
     options: z.array(menuOptionSchema)
 });
@@ -132,20 +132,18 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
   }
 
   // Prevent already added groups from showing in the template list
-  const existingGroupNames = watch('optionGroups')?.map(field => field.name) || [];
+  const existingGroupIds = watch('optionGroups')?.map(field => field.id) || [];
   const availableTemplates = allOptionGroups.filter(
-    template => !existingGroupNames.includes(template.name)
+    template => !existingGroupIds.some(id => id.includes(template.id)) // A bit tricky due to custom IDs
   );
   
   const availableCrossSellProducts = mockMenuItems.filter(
     item => item.id !== initialData?.id && !watchedCrossSellIds.includes(item.id)
   );
   
-  const selectedCrossSellProducts = crossSellFields.map(field => {
-      const id = (field as any).id; // react-hook-form's field has an id, but the value is what we stored.
-      const value = watch(`crossSellProductIds.${crossSellFields.indexOf(field)}`);
-      return mockMenuItems.find(item => item.id === value)
-  }).filter(Boolean) as MenuItem[];
+  const selectedCrossSellProducts = watch('crossSellProductIds')?.map(id => {
+      return mockMenuItems.find(item => item.id === id)
+  }).filter(Boolean) as MenuItem[] || [];
 
 
   return (
@@ -341,11 +339,10 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {crossSellFields.map((field, index) => {
-                                    const item = selectedCrossSellProducts[index];
+                                {selectedCrossSellProducts.map((item, index) => {
                                     if (!item) return null;
                                     return (
-                                    <TableRow key={field.id}>
+                                    <TableRow key={item.id}>
                                         <TableCell>
                                              <Image
                                                 src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
@@ -431,12 +428,15 @@ function OptionGroupCard({
     onMoveUp: () => void,
     onMoveDown: () => void
 }) {
-    const { control } = useFormContext<ItemFormValues>();
+    const { control, watch } = useFormContext<ItemFormValues>();
+    const group = watch(`optionGroups.${groupIndex}`);
 
     const { fields: optionFields, append: appendOption, remove: removeOption } = useFieldArray({
         control,
         name: `optionGroups.${groupIndex}.options`
     });
+
+    const isExclusion = group.type === 'exclusion';
 
     return (
         <Card className="bg-muted/30 relative pl-12">
@@ -467,46 +467,45 @@ function OptionGroupCard({
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
-                <div className="flex items-center justify-between gap-4 pt-2">
-                    <FormField
+                 <div className="flex items-center justify-between gap-4 pt-2">
+                     <FormField
                         control={control}
                         name={`optionGroups.${groupIndex}.type`}
                         render={({ field }) => (
                             <FormItem>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger className="h-8 w-[180px]">
-                                            <SelectValue placeholder="Selection type" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="single">Single Choice</SelectItem>
-                                        <SelectItem value="multiple">Multiple Choice</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <FormControl>
+                                    <Badge variant={isExclusion ? "secondary" : "outline"}>
+                                        {isExclusion ? "Exclusion Group" : "Standard Group"}
+                                    </Badge>
+                                </FormControl>
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={control}
-                        name={`optionGroups.${groupIndex}.required`}
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                <FormControl>
-                                    <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <FormLabel className="text-sm font-normal">
-                                    Required
-                                </FormLabel>
-                            </FormItem>
-                        )}
+                    {!isExclusion && (
+                        <FormField
+                            control={control}
+                            name={`optionGroups.${groupIndex}.required`}
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">
+                                        Required
+                                    </FormLabel>
+                                </FormItem>
+                            )}
                         />
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="space-y-3">
+                 <CardDescription>
+                    {isExclusion ? "Customer can choose to remove these ingredients (no cost)." : "Customer can choose from these options."}
+                </CardDescription>
                 {optionFields.map((option, optionIndex) => (
                      <div key={option.id} className="flex items-center gap-2">
                         <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -520,6 +519,7 @@ function OptionGroupCard({
                                 </FormItem>
                             )}
                         />
+                        {!isExclusion && (
                          <FormField
                             control={control}
                             name={`optionGroups.${groupIndex}.options.${optionIndex}.priceAdjustment`}
@@ -535,6 +535,7 @@ function OptionGroupCard({
                                 </FormItem>
                             )}
                         />
+                        )}
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(optionIndex)}>
                             <Trash2 className="h-4 w-4 text-destructive/70" />
                         </Button>
@@ -552,7 +553,3 @@ function OptionGroupCard({
         </Card>
     );
 }
-
-    
-
-    

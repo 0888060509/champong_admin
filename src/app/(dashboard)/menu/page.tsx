@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import React, 'useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal, Trash2, GripVertical, Copy } from "lucide-react";
@@ -215,16 +216,18 @@ export default function MenuPage() {
                                       <TableHeader>
                                           <TableRow>
                                               <TableHead>Option Name</TableHead>
-                                              <TableHead className="text-right">Price Adjustment</TableHead>
+                                              {group.type !== 'exclusion' && <TableHead className="text-right">Price Adjustment</TableHead>}
                                           </TableRow>
                                       </TableHeader>
                                       <TableBody>
                                           {group.options.map(option => (
                                               <TableRow key={option.id}>
                                                   <TableCell>{option.name}</TableCell>
-                                                  <TableCell className="text-right">
-                                                      {option.priceAdjustment >= 0 ? `+$${option.priceAdjustment.toFixed(2)}` : `-$${Math.abs(option.priceAdjustment).toFixed(2)}`}
-                                                  </TableCell>
+                                                  {group.type !== 'exclusion' && (
+                                                      <TableCell className="text-right">
+                                                          {option.priceAdjustment >= 0 ? `+$${option.priceAdjustment.toFixed(2)}` : `-$${Math.abs(option.priceAdjustment).toFixed(2)}`}
+                                                      </TableCell>
+                                                  )}
                                               </TableRow>
                                           ))}
                                       </TableBody>
@@ -273,7 +276,12 @@ function OptionGroupForm({
     );
 
     const handleGroupChange = (field: keyof OptionGroup, value: any) => {
-        setGroup(prev => ({ ...prev, [field]: value }));
+        let newGroup = { ...group, [field]: value };
+        // If type is exclusion, ensure all option prices are 0
+        if (field === 'type' && value === 'exclusion') {
+            newGroup.options = newGroup.options.map(opt => ({ ...opt, priceAdjustment: 0 }));
+        }
+        setGroup(newGroup);
     };
 
     const handleOptionChange = (optionId: string, field: keyof MenuOption, value: any) => {
@@ -314,7 +322,7 @@ function OptionGroupForm({
                             <Label htmlFor="group-name">Group Name</Label>
                             <Input
                                 id="group-name"
-                                placeholder="e.g., Size, Toppings"
+                                placeholder="e.g., Size, Toppings, Exclude..."
                                 value={group.name}
                                 onChange={(e) => handleGroupChange('name', e.target.value)}
                                 required
@@ -324,14 +332,15 @@ function OptionGroupForm({
                             <Label htmlFor="group-type">Selection Type</Label>
                             <Select
                                 value={group.type}
-                                onValueChange={(value: 'single' | 'multiple') => handleGroupChange('type', value)}
+                                onValueChange={(value: 'single' | 'multiple' | 'exclusion') => handleGroupChange('type', value)}
                             >
                                 <SelectTrigger id="group-type">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="single">Single Choice (for Sizes, Sugar Level)</SelectItem>
-                                    <SelectItem value="multiple">Multiple Choice (for Toppings)</SelectItem>
+                                    <SelectItem value="single">Single Choice (e.g. Size)</SelectItem>
+                                    <SelectItem value="multiple">Multiple Choice (e.g. Toppings)</SelectItem>
+                                    <SelectItem value="exclusion">Exclusion (no cost, e.g. No onions)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -358,23 +367,25 @@ function OptionGroupForm({
                                     <div key={option.id} className="flex items-center gap-2">
                                         <GripVertical className="h-5 w-5 text-muted-foreground" />
                                         <Input
-                                            placeholder="Option Name (e.g., Large)"
+                                            placeholder={group.type === 'exclusion' ? 'e.g. Onions, Cilantro' : 'Option Name (e.g., Large)'}
                                             value={option.name}
                                             onChange={(e) => handleOptionChange(option.id, 'name', e.target.value)}
                                             required
                                         />
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                className="pl-6 w-32"
-                                                placeholder="0.00"
-                                                value={option.priceAdjustment}
-                                                onChange={(e) => handleOptionChange(option.id, 'priceAdjustment', e.target.value)}
-                                                required
-                                            />
-                                        </div>
+                                        {group.type !== 'exclusion' && (
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    className="pl-6 w-32"
+                                                    placeholder="0.00"
+                                                    value={option.priceAdjustment}
+                                                    onChange={(e) => handleOptionChange(option.id, 'priceAdjustment', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
                                         <Button
                                             type="button"
                                             variant="ghost"

@@ -130,7 +130,7 @@ export type MenuOption = {
 export type OptionGroup = {
     id: string;
     name: string;
-    type: 'single' | 'multiple';
+    type: 'single' | 'multiple' | 'exclusion';
     required?: boolean;
     options: MenuOption[];
 }
