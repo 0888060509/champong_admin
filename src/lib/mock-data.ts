@@ -1,7 +1,7 @@
 
 
 import { Timestamp } from 'firebase/firestore';
-import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession, OptionGroup } from './types';
+import type { User, Role, Branch, AuditLog, Order, Booking, MenuItem, Banner, Campaign, Customer, Notification, ChatSession, OptionGroup, BundleTemplate } from './types';
 import type { Collection } from '@/app/(dashboard)/collections/collections-context';
 
 export const mockUsers: User[] = [
@@ -406,8 +406,70 @@ export const mockCollections: Collection[] = [
     },
   ];
 
-
-
+export const mockBundleTemplates: BundleTemplate[] = [
+    {
+        id: 'BT01',
+        name: 'Lunch Special',
+        description: 'A flexible lunch combo for one person.',
+        basePrice: 15.99,
+        isActive: true,
+        slots: [
+            {
+                id: 'slot_main_1',
+                name: 'Choose your Main',
+                required: true,
+                items: [
+                    { id: 'M01', name: 'Classic Burger', upcharge: 0 },
+                    { id: 'M04', name: 'Spaghetti Carbonara', upcharge: 2.00 },
+                ],
+            },
+            {
+                id: 'slot_drink_1',
+                name: 'Select a Drink',
+                required: true,
+                items: [
+                    { id: 'M05', name: 'Iced Coffee', upcharge: 0 },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'BT02',
+        name: 'Family Feast',
+        description: 'A large meal perfect for the whole family.',
+        basePrice: 49.99,
+        isActive: true,
+        slots: [
+            {
+                id: 'slot_main_2',
+                name: 'Choose two Mains',
+                required: true,
+                items: [
+                    { id: 'M01', name: 'Classic Burger', upcharge: 0 },
+                    { id: 'M02', name: 'Caesar Salad', upcharge: 0 },
+                    { id: 'M04', name: 'Spaghetti Carbonara', upcharge: 0 },
+                ],
+            },
+            {
+                id: 'slot_side_2',
+                name: 'Choose two Sides',
+                required: true,
+                items: [
+                    { id: 'M06', name: 'Fries', upcharge: 0 },
+                ]
+            },
+             {
+                id: 'slot_dessert_2',
+                name: 'Choose a Dessert (Optional)',
+                required: false,
+                items: [
+                    { id: 'M03', name: 'Chocolate Lava Cake', upcharge: 0 },
+                ]
+            }
+        ]
+    }
+]
     
 
     
+

@@ -237,3 +237,26 @@ export type ChatSession = {
   lastUpdatedAt: any;
   messages: ChatMessage[];
 };
+
+// Types for Flexible Bundles/Combos
+export type SlotItem = {
+    id: string; // Corresponds to a MenuItem id
+    name: string;
+    upcharge: number; // Price added to the base bundle price
+};
+
+export type BundleSlot = {
+    id: string;
+    name: string; // e.g., "Choose your Main", "Select a Drink"
+    items: SlotItem[];
+    required: boolean;
+};
+
+export type BundleTemplate = {
+    id: string;
+    name: string; // e.g., "Lunch Special", "Family Feast"
+    description?: string;
+    basePrice: number;
+    slots: BundleSlot[];
+    isActive: boolean;
+};
