@@ -2,7 +2,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
 import {
   Form,
@@ -24,10 +24,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { MenuItem, OptionGroup } from '@/lib/types';
+import type { MenuItem, OptionGroup, MenuOption } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+const menuOptionSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, "Option name is required."),
+    priceAdjustment: z.coerce.number(),
+});
+
+const optionGroupSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, "Group name is required."),
+    type: z.enum(['single', 'multiple']),
+    options: z.array(menuOptionSchema)
+});
 
 const itemFormSchema = z.object({
   name: z.string().min(2, 'Product name must be at least 2 characters.'),
@@ -36,7 +49,7 @@ const itemFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
-  optionGroups: z.array(z.any()).optional(),
+  optionGroups: z.array(optionGroupSchema).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemFormSchema>;
@@ -58,31 +71,44 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
       description: initialData?.description || '',
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
-      optionGroups: initialData?.optionGroups || [],
+      optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
     },
   });
 
-  const { control, setValue, watch } = form;
-  const selectedOptionGroups = watch('optionGroups') || [];
+  const { control, setValue } = form;
 
-  const handleAddOptionGroup = (groupId: string) => {
-    const groupToAdd = allOptionGroups.find(g => g.id === groupId);
-    if (groupToAdd && !selectedOptionGroups.some(g => g.id === groupId)) {
-      setValue('optionGroups', [...selectedOptionGroups, groupToAdd]);
+  const { fields: groupFields, append: appendGroup, remove: removeGroup } = useFieldArray({
+      control,
+      name: "optionGroups"
+  });
+
+  const handleAddGroupFromTemplate = (templateId: string) => {
+    const template = allOptionGroups.find(g => g.id === templateId);
+    if (template) {
+        appendGroup({
+            id: `new_group_${Date.now()}`,
+            ...JSON.parse(JSON.stringify(template)) // Deep copy to allow independent editing
+        });
     }
   };
 
-  const handleRemoveOptionGroup = (groupId: string) => {
-    setValue('optionGroups', selectedOptionGroups.filter(g => g.id !== groupId));
-  };
-  
-  const availableOptionGroups = allOptionGroups.filter(
-      (group) => !selectedOptionGroups.some((selected) => selected.id === group.id)
+  const handleAddNewCustomGroup = () => {
+    appendGroup({
+        id: `custom_group_${Date.now()}`,
+        name: 'New Custom Group',
+        type: 'single',
+        options: [{ id: `custom_opt_${Date.now()}`, name: 'New Option', priceAdjustment: 0 }]
+    });
+  }
+
+  const availableTemplates = allOptionGroups.filter(
+    template => !groupFields.some(field => field.name === template.name)
   );
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 p-1">
+        {/* Basic Info */}
         <div className="space-y-4">
             <FormField
               control={control}
@@ -119,9 +145,6 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
                   <FormControl>
                     <Input placeholder="https://picsum.photos/seed/..." {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Provide a link to the product image.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -130,13 +153,14 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
 
         <Separator/>
 
+        {/* Pricing and Category */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <FormField
                 control={control}
                 name="price"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Price</FormLabel>
+                    <FormLabel>Base Price</FormLabel>
                     <FormControl>
                         <Input type="number" step="0.01" placeholder="9.99" {...field} />
                     </FormControl>
@@ -171,37 +195,41 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
         
         <Separator />
         
+        {/* Option Groups Section */}
         <div>
-          <FormLabel>Product Options</FormLabel>
-          <FormDescription>Attach pre-defined option groups to this product.</FormDescription>
-          <div className="mt-4 space-y-4">
-             <Select onValueChange={handleAddOptionGroup}>
+          <h3 className="text-lg font-medium font-headline">Product Options</h3>
+          <FormDescription>Customize options for this product.</FormDescription>
+          
+          <div className="space-y-4 mt-4">
+            {groupFields.map((group, groupIndex) => (
+                <OptionGroupCard 
+                    key={group.id} 
+                    groupIndex={groupIndex} 
+                    onRemoveGroup={() => removeGroup(groupIndex)}
+                />
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <Select onValueChange={handleAddGroupFromTemplate} value="">
                 <SelectTrigger>
-                  <SelectValue placeholder="Add an option group..." />
+                    <SelectValue placeholder="Add options from a template..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableOptionGroups.map(group => (
-                    <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                  ))}
+                    {availableTemplates.length > 0 ? availableTemplates.map(template => (
+                        <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                    )) : (
+                        <SelectItem value="none" disabled>No available templates</SelectItem>
+                    )}
                 </SelectContent>
-              </Select>
-              <div className="flex flex-wrap gap-2">
-                {selectedOptionGroups.map(group => (
-                   <Badge key={group.id} variant="secondary" className="flex items-center gap-1 text-sm">
-                      {group.name}
-                      <button 
-                        type="button" 
-                        onClick={() => handleRemoveOptionGroup(group.id)} 
-                        className="ml-1 rounded-full hover:bg-destructive/20 text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                      </button>
-                  </Badge>
-                ))}
-              </div>
+            </Select>
+            <Button type="button" variant="outline" onClick={handleAddNewCustomGroup}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Custom Group
+            </Button>
           </div>
         </div>
 
+        {/* Status */}
         <FormField
             control={control}
             name="isActive"
@@ -223,6 +251,7 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
             )}
         />
         
+        {/* Actions */}
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button type="submit">
@@ -232,4 +261,101 @@ export function CreateItemForm({ onSave, onCancel, initialData, allOptionGroups 
       </form>
     </Form>
   );
+}
+
+
+// Inner component for managing a single option group within the product form
+function OptionGroupCard({ groupIndex, onRemoveGroup }: { groupIndex: number, onRemoveGroup: () => void }) {
+    const { control } = useForm<ItemFormValues>(); // Note: This should ideally come from useFormContext if nested properly
+
+    const { fields: optionFields, append: appendOption, remove: removeOption } = useFieldArray({
+        control,
+        name: `optionGroups.${groupIndex}.options`
+    });
+
+    return (
+        <Card className="bg-muted/30">
+            <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                     <FormField
+                        control={control}
+                        name={`optionGroups.${groupIndex}.name`}
+                        render={({ field }) => (
+                           <FormItem className="flex-1">
+                               <FormControl>
+                                   <Input {...field} className="text-base font-semibold font-headline tracking-tight" />
+                               </FormControl>
+                               <FormMessage />
+                           </FormItem>
+                        )}
+                    />
+                    <Button variant="ghost" size="icon" onClick={onRemoveGroup} className="ml-2">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                </div>
+                 <FormField
+                    control={control}
+                    name={`optionGroups.${groupIndex}.type`}
+                    render={({ field }) => (
+                        <FormItem>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger className="h-8 w-[180px]">
+                                        <SelectValue placeholder="Selection type" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="single">Single Choice</SelectItem>
+                                    <SelectItem value="multiple">Multiple Choice</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </FormItem>
+                    )}
+                />
+            </CardHeader>
+            <CardContent className="space-y-3">
+                {optionFields.map((option, optionIndex) => (
+                     <div key={option.id} className="flex items-center gap-2">
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                        <FormField
+                            control={control}
+                            name={`optionGroups.${groupIndex}.options.${optionIndex}.name`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormControl><Input placeholder="Option name" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={control}
+                            name={`optionGroups.${groupIndex}.options.${optionIndex}.priceAdjustment`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">+ $</span>
+                                            <Input type="number" step="0.01" className="pl-8 w-28" {...field} />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(optionIndex)}>
+                            <Trash2 className="h-4 w-4 text-destructive/70" />
+                        </Button>
+                    </div>
+                ))}
+                <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => appendOption({ id: `new_opt_${Date.now()}`, name: '', priceAdjustment: 0 })}
+                >
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Option
+                </Button>
+            </CardContent>
+        </Card>
+    );
 }

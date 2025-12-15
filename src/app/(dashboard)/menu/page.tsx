@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal, Trash2, GripVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -234,7 +234,7 @@ export default function MenuPage() {
       
       {/* Item Form Dialog */}
       <Dialog open={isItemFormOpen} onOpenChange={setItemFormOpen}>
-          <DialogContent className="sm:max-w-xl">
+          <DialogContent className="sm:max-w-3xl">
               <DialogHeader>
                   <DialogTitle className="font-headline">{editingItem ? 'Edit Menu Item' : 'Create New Menu Item'}</DialogTitle>
                   <DialogDescription>
@@ -370,7 +370,7 @@ function OptionGroupForm({
                             {group.options.length === 0 ? (
                                 <p className="text-sm text-muted-foreground text-center py-4">No options yet. Add one to get started.</p>
                             ) : (
-                                group.options.map((option, index) => (
+                                group.options.map((option) => (
                                     <div key={option.id} className="flex items-center gap-2">
                                         <GripVertical className="h-5 w-5 text-muted-foreground" />
                                         <Input
