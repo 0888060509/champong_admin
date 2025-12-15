@@ -54,6 +54,12 @@ export type SideDish = {
     price: number;
 }
 
+export type CrossSellItem = {
+    id: string;
+    name: string;
+    price: number;
+}
+
 export type OrderItem = {
   id: string;
   name: string;
@@ -64,6 +70,7 @@ export type OrderItem = {
   note?: string;
   toppings?: Topping[];
   sideDishes?: SideDish[];
+  crossSellItems?: CrossSellItem[];
 };
 
 export type OrderHistory = {
@@ -111,6 +118,7 @@ export type MenuItem = {
     imageUrl?: string;
     isActive: boolean;
     optionGroups?: OptionGroup[];
+    crossSellProductIds?: string[];
 }
 
 export type MenuOption = {

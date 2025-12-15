@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer } from '@/lib/types';
+import type { Order, OrderHistory, OrderItem, Topping, SideDish, Customer, CrossSellItem } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
@@ -142,7 +143,8 @@ export default function OrderDetailsPage() {
     const calculateItemSubtotal = (item: OrderItem) => {
         const toppingsPrice = item.toppings?.reduce((acc, topping) => acc + topping.price, 0) || 0;
         const sideDishesPrice = item.sideDishes?.reduce((acc, sideDish) => acc + sideDish.price, 0) || 0;
-        return (item.price + toppingsPrice + sideDishesPrice) * item.quantity;
+        const crossSellPrice = item.crossSellItems?.reduce((acc, crossSell) => acc + crossSell.price, 0) || 0;
+        return (item.price + toppingsPrice + sideDishesPrice + crossSellPrice) * item.quantity;
     }
 
     const currentSubtotal = editedItems.reduce((acc, item) => acc + calculateItemSubtotal(item), 0);
@@ -184,239 +186,246 @@ export default function OrderDetailsPage() {
     const remainingAmount = finalTotal - amountPaid;
 
     return (
-        <div className="space-y-6">
-             <Card>
-                <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                        <div>
-                             <CardTitle className="font-headline text-2xl mb-1">Order {order.id.substring(0, 7)}</CardTitle>
-                             <p className="text-sm text-muted-foreground">
-                                Placed on {order.date.toDate().toLocaleString()}
-                            </p>
-                            <div className="mt-4 flex items-center gap-4">
-                                <Avatar className="h-12 w-12">
-                                    <AvatarImage src={customer.avatarUrl} />
-                                    <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
-                                    <div className="text-sm text-muted-foreground">{customer.email}</div>
+        <main className="p-4 lg:p-6">
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div>
+                                <h1 className="font-headline text-2xl mb-1">Order {order.id.substring(0, 7)}</h1>
+                                <p className="text-sm text-muted-foreground">
+                                    Placed on {order.date.toDate().toLocaleString()}
+                                </p>
+                                <div className="mt-4 flex items-center gap-4">
+                                    <Avatar className="h-12 w-12">
+                                        <AvatarImage src={customer.avatarUrl} />
+                                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
+                                        <div className="text-sm text-muted-foreground">{customer.email}</div>
+                                    </div>
                                 </div>
                             </div>
+                            <div className="w-full md:w-auto">
+                                <Label htmlFor="order-status" className="font-body">Order Status</Label>
+                                <Select onValueChange={handleStatusChange} value={order.status}>
+                                    <SelectTrigger id="order-status" className="w-full md:w-[200px]">
+                                        <SelectValue placeholder="Select Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="Processing">Processing</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                         <div className="w-full md:w-auto">
-                             <Label htmlFor="order-status">Order Status</Label>
-                             <Select onValueChange={handleStatusChange} value={order.status}>
-                                 <SelectTrigger id="order-status" className="w-full md:w-[200px]">
-                                     <SelectValue placeholder="Select Status" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                     <SelectItem value="Pending">Pending</SelectItem>
-                                     <SelectItem value="Processing">Processing</SelectItem>
-                                     <SelectItem value="Completed">Completed</SelectItem>
-                                     <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                 </SelectContent>
-                             </Select>
-                         </div>
-                    </div>
-                    <Separator className="my-6"/>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-8 text-sm">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Total Amount</p>
-                            <p className="text-lg font-semibold">${finalTotal.toFixed(2)}</p>
+                        <Separator className="my-6"/>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-8 text-sm">
+                            <div>
+                                <p className="text-sm text-muted-foreground font-body">Total Amount</p>
+                                <p className="text-lg font-semibold font-headline">${finalTotal.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-body">Payment</p>
+                                <div className="font-semibold flex items-center">{remainingAmount <= 0 ? (
+                                    <Badge>Paid</Badge>
+                                ) : (
+                                    <Badge variant="destructive">Unpaid</Badge>
+                                )}</div>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground font-body">Payment Method</p>
+                                <p className="font-medium font-body">{order.paymentMethod || 'N/A'}</p>
+                            </div>
+                            <div className="col-span-full md:col-span-2">
+                                <p className="text-sm text-muted-foreground font-body">Shipping</p>
+                                <p className="font-medium font-body">{order.shippingAddress ? 'Delivery' : 'Pickup'}</p>
+                                {order.shippingAddress && <p className="text-muted-foreground text-xs font-body">{order.shippingAddress}</p>}
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Payment</p>
-                            <div className="font-semibold flex items-center">{remainingAmount <= 0 ? (
-                                <Badge>Paid</Badge>
-                            ) : (
-                                <Badge variant="destructive">Unpaid</Badge>
-                            )}</div>
-                        </div>
-                         <div>
-                            <p className="text-sm text-muted-foreground">Payment Method</p>
-                            <p className="font-medium">{order.paymentMethod || 'N/A'}</p>
-                        </div>
-                        <div className="col-span-full md:col-span-2">
-                             <p className="text-sm text-muted-foreground">Shipping</p>
-                             <p className="font-medium">{order.shippingAddress ? 'Delivery' : 'Pickup'}</p>
-                             {order.shippingAddress && <p className="text-muted-foreground text-xs">{order.shippingAddress}</p>}
-                        </div>
-                    </div>
-                </CardHeader>
-            </Card>
+                    </CardHeader>
+                </Card>
 
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="font-headline">Order Items</CardTitle>
-                    {order.status !== 'Completed' && order.status !== 'Cancelled' && (
-                        <div className="flex gap-2">
-                            {isEditing ? (
-                                <>
-                                    <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
-                                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                                </>
-                            ) : (
-                                <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
-                            )}
-                        </div>
-                    )}
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Item</TableHead>
-                                <TableHead className="w-24 text-center">Quantity</TableHead>
-                                <TableHead className="text-right w-32">Unit Price</TableHead>
-                                <TableHead className="text-right w-32">Subtotal</TableHead>
-                                {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {editedItems.map((item: OrderItem) => (
-                                <TableRow key={item.id}>
-                                    <TableCell>
-                                        {item.isEditing ? (
-                                            <Select onValueChange={(val) => handleNewItemSelect(item.id, val)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a product" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {mockMenuItems.map(mi => (
-                                                        <SelectItem key={mi.id} value={mi.id}>{mi.name} - ${mi.price.toFixed(2)}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        ) : (
-                                            <div>
-                                                <span className="font-medium text-base">{item.name}</span>
-                                                {item.toppings && item.toppings.length > 0 && (
-                                                     <div className="text-xs text-muted-foreground">
-                                                        + Toppings: {item.toppings.map(t => `${t.name} ($${t.price.toFixed(2)})`).join(', ')}
-                                                    </div>
-                                                )}
-                                                {item.sideDishes && item.sideDishes.length > 0 && (
-                                                    <div className="text-xs text-muted-foreground">
-                                                        + Sides: {item.sideDishes.map(s => `${s.name} ($${s.price.toFixed(2)})`).join(', ')}
-                                                    </div>
-                                                )}
-                                                 {item.note && (
-                                                    <div className="text-xs text-muted-foreground italic flex items-center gap-1 mt-1">
-                                                        <MessageSquare className="h-3 w-3"/> Note: {item.note}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        {isEditing ? (
-                                            <Input 
-                                                type="number" 
-                                                value={item.quantity} 
-                                                onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                                                className="h-8 w-16 mx-auto"
-                                                min="1"
-                                            />
-                                        ) : (
-                                            item.quantity
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-medium">${(calculateItemSubtotal(item)).toFixed(2)}</TableCell>
-                                    {isEditing && (
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </TableCell>
-                                    )}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    {isEditing && (
-                        <div className="mt-4">
-                            <Button variant="outline" size="sm" onClick={handleAddItem}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Item
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-                <CardFooter className="flex-col items-stretch gap-4">
-                    {order.note && (
-                        <>
-                            <Separator />
-                            <div className="flex items-start gap-3 p-4">
-                                <StickyNote className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
-                                <div>
-                                    <h4 className="font-medium text-sm">Order Note</h4>
-                                    <p className="text-sm text-muted-foreground italic">"{order.note}"</p>
-                                </div>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="font-headline">Order Items</CardTitle>
+                        {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                            <div className="flex gap-2">
+                                {isEditing ? (
+                                    <>
+                                        <Button variant="ghost" onClick={handleEditToggle}>Cancel</Button>
+                                        <Button onClick={handleSaveChanges}>Save Changes</Button>
+                                    </>
+                                ) : (
+                                    <Button variant="outline" onClick={handleEditToggle}>Edit Order</Button>
+                                )}
                             </div>
-                        </>
-                    )}
-                    <Separator />
-                   <div className="w-full flex justify-end p-4">
-                        <div className="w-full max-w-sm space-y-3">
-                             <div className="flex justify-between text-muted-foreground">
-                                <span>Subtotal:</span>
-                                <span>${currentSubtotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-muted-foreground">
-                                <span>Discount:</span>
-                                <span>-${discount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-muted-foreground">
-                                <span>Shipping:</span>
-                                <span>+${shippingFee.toFixed(2)}</span>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between font-bold text-lg">
-                                <span>Total:</span>
-                                <span>${finalTotal.toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between text-muted-foreground">
-                                <span>Paid:</span>
-                                <span>${amountPaid.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between font-semibold">
-                                <span>Remaining:</span>
-                                <span>${remainingAmount.toFixed(2)}</span>
-                            </div>
-                        </div>
-                   </div>
-                </CardFooter>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg">Change History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="max-h-60 overflow-y-auto">
+                        )}
+                    </CardHeader>
+                    <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Timestamp</TableHead>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Action</TableHead>
+                                    <TableHead>Item</TableHead>
+                                    <TableHead className="w-24 text-center">Quantity</TableHead>
+                                    <TableHead className="text-right w-32">Unit Price</TableHead>
+                                    <TableHead className="text-right w-32">Subtotal</TableHead>
+                                    {isEditing && <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
-                                    <TableRow key={entry.id}>
-                                        <TableCell className="text-xs text-muted-foreground">{new Date(entry.timestamp).toLocaleString()}</TableCell>
-                                        <TableCell className="text-xs">{entry.user}</TableCell>
-                                        <TableCell className="text-xs">{entry.action}</TableCell>
+                                {editedItems.map((item: OrderItem) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>
+                                            {item.isEditing ? (
+                                                <Select onValueChange={(val) => handleNewItemSelect(item.id, val)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a product" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {mockMenuItems.map(mi => (
+                                                            <SelectItem key={mi.id} value={mi.id}>{mi.name} - ${mi.price.toFixed(2)}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <div>
+                                                    <span className="font-medium text-base font-body">{item.name}</span>
+                                                    {item.toppings && item.toppings.length > 0 && (
+                                                        <div className="text-xs text-muted-foreground font-body">
+                                                            + Toppings: {item.toppings.map(t => `${t.name} ($${t.price.toFixed(2)})`).join(', ')}
+                                                        </div>
+                                                    )}
+                                                    {item.sideDishes && item.sideDishes.length > 0 && (
+                                                        <div className="text-xs text-muted-foreground font-body">
+                                                            + Sides: {item.sideDishes.map(s => `${s.name} ($${s.price.toFixed(2)})`).join(', ')}
+                                                        </div>
+                                                    )}
+                                                    {item.crossSellItems && item.crossSellItems.length > 0 && (
+                                                        <div className="text-xs text-muted-foreground font-body pl-4">
+                                                            + With: {item.crossSellItems.map(cs => `${cs.name} ($${cs.price.toFixed(2)})`).join(', ')}
+                                                        </div>
+                                                    )}
+                                                    {item.note && (
+                                                        <div className="text-xs text-muted-foreground italic flex items-center gap-1 mt-1 font-body">
+                                                            <MessageSquare className="h-3 w-3"/> Note: {item.note}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center font-body">
+                                            {isEditing ? (
+                                                <Input 
+                                                    type="number" 
+                                                    value={item.quantity} 
+                                                    onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
+                                                    className="h-8 w-16 mx-auto"
+                                                    min="1"
+                                                />
+                                            ) : (
+                                                item.quantity
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right font-body">${item.price.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right font-medium font-body">${(calculateItemSubtotal(item)).toFixed(2)}</TableCell>
+                                        {isEditing && (
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+                        {isEditing && (
+                            <div className="mt-4">
+                                <Button variant="outline" size="sm" onClick={handleAddItem}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Item
+                                </Button>
+                            </div>
+                        )}
+                        {order.note && (
+                            <>
+                                <Separator className="my-4"/>
+                                <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+                                    <StickyNote className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="font-medium text-sm font-headline">Order Note</h4>
+                                        <p className="text-sm text-muted-foreground italic font-body">"{order.note}"</p>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                    <CardFooter className="flex-col items-stretch gap-4">
+                        <Separator />
+                       <div className="w-full flex justify-end p-4">
+                            <div className="w-full max-w-sm space-y-3 font-body">
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>Subtotal:</span>
+                                    <span>${currentSubtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>Discount:</span>
+                                    <span>-${discount.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>Shipping:</span>
+                                    <span>+${shippingFee.toFixed(2)}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between font-bold text-lg font-headline">
+                                    <span>Total:</span>
+                                    <span>${finalTotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>Paid:</span>
+                                    <span>${amountPaid.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold">
+                                    <span>Remaining:</span>
+                                    <span>${remainingAmount.toFixed(2)}</span>
+                                </div>
+                            </div>
+                       </div>
+                    </CardFooter>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg">Change History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-h-60 overflow-y-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Timestamp</TableHead>
+                                        <TableHead>User</TableHead>
+                                        <TableHead>Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.history?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry: OrderHistory) => (
+                                        <TableRow key={entry.id}>
+                                            <TableCell className="text-xs text-muted-foreground font-body">{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                            <TableCell className="text-xs font-body">{entry.user}</TableCell>
+                                            <TableCell className="text-xs font-body">{entry.action}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
     );
 }

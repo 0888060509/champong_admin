@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,8 +27,23 @@ import {
 import { Switch } from '@/components/ui/switch';
 import type { MenuItem, OptionGroup } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, Trash2, GripVertical } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { mockMenuItems } from '@/lib/mock-data';
+import { Badge } from '@/components/ui/badge';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -50,6 +66,7 @@ const itemFormSchema = z.object({
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
   optionGroups: z.array(optionGroupSchema).optional(),
+  crossSellProductIds: z.array(z.string()).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemFormSchema>;
@@ -72,15 +89,23 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
       optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
+      crossSellProductIds: initialData?.crossSellProductIds || [],
     },
   });
 
-  const { control } = form;
+  const { control, setValue, watch } = form;
 
   const { fields: groupFields, append: appendGroup, remove: removeGroup } = useFieldArray({
       control,
       name: "optionGroups"
   });
+  
+  const { fields: crossSellFields, append: appendCrossSell, remove: removeCrossSell } = useFieldArray({
+    control,
+    name: "crossSellProductIds"
+  });
+  
+  const watchedCrossSellIds = watch('crossSellProductIds') || [];
 
   const handleAddGroupFromTemplate = (templateId: string) => {
     const template = allOptionGroups.find(g => g.id === templateId);
@@ -104,6 +129,13 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
   const availableTemplates = allOptionGroups.filter(
     template => !groupFields.some(field => field.name === template.name)
   );
+  
+  const availableCrossSellProducts = mockMenuItems.filter(
+    item => item.id !== initialData?.id && !watchedCrossSellIds.includes(item.id)
+  );
+  
+  const selectedCrossSellProducts = watchedCrossSellIds.map(id => mockMenuItems.find(item => item.id === id)).filter(Boolean) as MenuItem[];
+
 
   return (
     <FormProvider {...form}>
@@ -199,7 +231,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
           {/* Option Groups Section */}
           <div>
             <h3 className="text-lg font-medium font-headline">Product Options</h3>
-            <FormDescription>Customize options for this product.</FormDescription>
+            <FormDescription>Add and customize modifiers for this product, like sizes or toppings.</FormDescription>
             
             <div className="space-y-4 mt-4">
               {groupFields.map((group, groupIndex) => (
@@ -229,6 +261,66 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
               </Button>
             </div>
           </div>
+          
+          <Separator />
+          
+           {/* Cross-sell Section */}
+          <div>
+            <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
+            <FormDescription>Suggest other products to customers when they view this item.</FormDescription>
+            
+            <div className="mt-4">
+               <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                    >
+                      Add items to suggest...
+                      <PlusCircle className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search products..." />
+                       <CommandList>
+                        <CommandEmpty>No products found.</CommandEmpty>
+                        <CommandGroup>
+                          {availableCrossSellProducts.map((item) => (
+                            <CommandItem
+                              key={item.id}
+                              onSelect={() => {
+                                appendCrossSell(item.id);
+                              }}
+                            >
+                              {item.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                 <div className="mt-4 flex flex-wrap gap-2">
+                    {selectedCrossSellProducts.map((item, index) => (
+                      <Badge key={item.id} variant="secondary" className="flex items-center gap-1">
+                        {item.name}
+                        <button
+                          type="button"
+                          className="ml-1 rounded-full hover:bg-destructive/20 text-destructive"
+                          onClick={() => removeCrossSell(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+
+            </div>
+          </div>
+
 
           {/* Status */}
           <FormField

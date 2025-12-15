@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,7 +35,7 @@ export default function EditMenuItemPage() {
     // In a real app, you would send this to your backend
     const itemIndex = mockMenuItems.findIndex(i => i.id === itemId);
     if (itemIndex > -1) {
-        mockMenuItems[itemIndex] = { ...mockMenuItems[itemIndex], ...itemData };
+        mockMenuItems[itemIndex] = { ...mockMenuItems[itemIndex], ...itemData, id: itemId };
     }
     
     toast({ title: 'Success', description: 'Menu item updated.' });
