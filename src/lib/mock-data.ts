@@ -470,6 +470,18 @@ export const mockBundleTemplates: BundleTemplate[] = [
     }
 ]
     
-
+// Add a mock flexible bundle item
+mockMenuItems.push({
+    id: 'BNDL01',
+    name: 'Lunch Special Bundle',
+    productType: 'bundle',
+    category: 'Combo',
+    price: 15.99,
+    description: 'Your choice of main and drink.',
+    isActive: true,
+    bundleTemplateId: 'BT01'
+});
     
 
+
+```

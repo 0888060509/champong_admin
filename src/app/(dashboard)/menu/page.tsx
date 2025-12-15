@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, Trash2, GripVertical, Copy } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Trash2, GripVertical, Copy, Package } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockMenuItems, mockOptionGroups } from "@/lib/mock-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,10 +88,15 @@ export default function MenuPage() {
                     Add Item
                   </Link>
                 </Button>
-              ) : (
+              ) : activeTab === 'options' ? (
                 <Button onClick={() => handleOpenOptionGroupForm()}>
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  {activeTab === 'options' ? 'Add Group' : 'Add Category'}
+                  Add Group
+                </Button>
+              ) : (
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Category
                 </Button>
               )}
           </div>
@@ -134,7 +139,9 @@ export default function MenuPage() {
                               <TableCell>{item.category}</TableCell>
                                <TableCell>
                                 {item.productType === 'combo' ? (
-                                    <Badge variant="secondary">Combo</Badge>
+                                    <Badge variant="secondary">Fixed Combo</Badge>
+                                ) : item.productType === 'bundle' ? (
+                                    <Badge variant="outline" className="border-accent text-accent">Flexible</Badge>
                                 ) : (
                                     <Badge variant="outline">Single</Badge>
                                 )}

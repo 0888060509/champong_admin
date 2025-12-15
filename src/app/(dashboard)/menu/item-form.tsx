@@ -29,7 +29,7 @@ import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct } from '@/lib/
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { mockMenuItems } from '@/lib/mock-data';
+import { mockMenuItems, mockBundleTemplates } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
 import {
   Command,
@@ -47,6 +47,7 @@ import {
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import Link from 'next/link';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -82,7 +83,8 @@ const itemFormSchema = z.object({
   description: z.string().optional(),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   isActive: z.boolean(),
-  productType: z.enum(['single', 'combo']).default('single'),
+  productType: z.enum(['single', 'combo', 'bundle']).default('single'),
+  bundleTemplateId: z.string().optional(),
   optionGroups: z.array(optionGroupSchema).optional(),
   crossSellGroups: z.array(crossSellGroupSchema).optional(),
   comboProducts: z.array(comboProductSchema).optional(),
@@ -108,13 +110,14 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       imageUrl: initialData?.imageUrl || '',
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
       productType: initialData?.productType || 'single',
+      bundleTemplateId: initialData?.bundleTemplateId || '',
       optionGroups: initialData?.optionGroups ? JSON.parse(JSON.stringify(initialData.optionGroups)) : [],
       crossSellGroups: initialData?.crossSellGroups ? JSON.parse(JSON.stringify(initialData.crossSellGroups)) : [],
       comboProducts: initialData?.comboProducts ? JSON.parse(JSON.stringify(initialData.comboProducts)) : [],
     },
   });
 
-  const { control, watch } = form;
+  const { control, watch, setValue } = form;
   const productType = watch('productType');
 
   const { fields: groupFields, append: appendGroup, remove: removeGroup, move: moveGroup } = useFieldArray({
@@ -155,6 +158,16 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
       productIds: []
     })
   }
+  
+  const handleSelectBundleTemplate = (templateId: string) => {
+    const template = mockBundleTemplates.find(t => t.id === templateId);
+    if (template) {
+        setValue('bundleTemplateId', template.id);
+        setValue('price', template.basePrice);
+        setValue('name', template.name);
+        setValue('description', template.description);
+    }
+  }
 
   // Prevent already added groups from showing in the template list
   const existingGroupIds = watch('optionGroups')?.map(field => field.id) || [];
@@ -193,7 +206,15 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                               <RadioGroupItem value="combo" />
                             </FormControl>
                             <FormLabel className="font-normal">
-                              Combo / Bundle
+                              Fixed Combo
+                            </FormLabel>
+                          </FormItem>
+                           <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="bundle" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Flexible Bundle
                             </FormLabel>
                           </FormItem>
                         </RadioGroup>
@@ -208,7 +229,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{productType === 'combo' ? 'Combo Name' : 'Product Name'}</FormLabel>
+                    <FormLabel>{productType === 'combo' ? 'Combo Name' : productType === 'bundle' ? 'Bundle Name' : 'Product Name'}</FormLabel>
                     <FormControl>
                       <Input placeholder={productType === 'combo' ? 'e.g., Lunch Special' : 'e.g., Classic Burger'} {...field} />
                     </FormControl>
@@ -253,10 +274,11 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                   name="price"
                   render={({ field }) => (
                       <FormItem>
-                      <FormLabel>{productType === 'combo' ? 'Combo Price' : 'Base Price'}</FormLabel>
+                      <FormLabel>{productType === 'single' ? 'Base Price' : 'Total Price'}</FormLabel>
                       <FormControl>
-                          <Input type="number" step="0.01" placeholder="99.00" {...field} />
+                          <Input type="number" step="0.01" placeholder="99.00" {...field} disabled={productType === 'bundle'}/>
                       </FormControl>
+                      {productType === 'bundle' && <FormDescription>Price is set by the Bundle Template.</FormDescription>}
                       <FormMessage />
                       </FormItem>
                   )}
@@ -274,7 +296,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                  {productType === 'combo' && <SelectItem value="Combo">Combo</SelectItem>}
+                                  {(productType === 'combo' || productType === 'bundle') && <SelectItem value="Combo">Combo</SelectItem>}
                                   <SelectItem value="Main Course">Main Course</SelectItem>
                                   <SelectItem value="Appetizers">Appetizers</SelectItem>
                                   <SelectItem value="Desserts">Desserts</SelectItem>
@@ -286,8 +308,35 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                   )}
               />
           </div>
-
-          {productType === 'combo' ? (
+          
+          {productType === 'bundle' ? (
+            <FormField
+              control={control}
+              name="bundleTemplateId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bundle Template</FormLabel>
+                   <FormDescription>Select a pre-defined template to create this flexible bundle.</FormDescription>
+                  <Select onValueChange={(value) => handleSelectBundleTemplate(value)} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bundle template" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {mockBundleTemplates.map(template => (
+                          <SelectItem key={template.id} value={template.id}>
+                              {template.name} - ${template.basePrice.toFixed(2)}
+                          </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Manage templates on the <Link href="/bundle-templates" className="text-primary underline">Bundle Templates</Link> page.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : productType === 'combo' ? (
               <ComboProductsSection />
             ) : (
               <>

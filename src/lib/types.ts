@@ -72,7 +72,7 @@ export type OrderItem = {
   sideDishes?: SideDish[];
   crossSellItems?: CrossSellItem[];
   // For combos
-  productType?: 'single' | 'combo';
+  productType?: 'single' | 'combo' | 'bundle';
   comboProducts?: { id: string; name: string; quantity: number }[];
 };
 
@@ -132,7 +132,8 @@ export type MenuItem = {
     description: string;
     imageUrl?: string;
     isActive: boolean;
-    productType?: 'single' | 'combo';
+    productType?: 'single' | 'combo' | 'bundle';
+    bundleTemplateId?: string;
     optionGroups?: OptionGroup[];
     crossSellGroups?: CrossSellGroup[];
     comboProducts?: ComboProduct[];

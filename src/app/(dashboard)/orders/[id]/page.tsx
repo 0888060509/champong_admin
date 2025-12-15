@@ -95,6 +95,8 @@ export default function OrderDetailsPage() {
                     name: selectedItem.name,
                     price: selectedItem.price,
                     originalPrice: selectedItem.price,
+                    productType: selectedItem.productType,
+                    comboProducts: selectedItem.comboProducts,
                     isEditing: false, // Done selecting
                 };
             }
@@ -114,7 +116,7 @@ export default function OrderDetailsPage() {
 
         const updatedOrder: Order = {
             ...order,
-            items: editedItems,
+            items: editedItems.filter(item => !item.isEditing), // Remove any items that weren't fully added
             subtotal: newSubtotal,
             total: newTotal,
             remainingAmount: newTotal - amountPaid,
@@ -141,7 +143,7 @@ export default function OrderDetailsPage() {
     };
     
     const calculateItemSubtotal = (item: OrderItem) => {
-        if (item.productType === 'combo') {
+        if (item.productType === 'combo' || item.productType === 'bundle') {
             return item.price * item.quantity;
         }
         const toppingsPrice = item.toppings?.reduce((acc, topping) => acc + topping.price, 0) || 0;
@@ -299,6 +301,7 @@ export default function OrderDetailsPage() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-medium text-base font-body">{item.name}</span>
                                                         {item.productType === 'combo' && <Badge variant="secondary">Combo</Badge>}
+                                                        {item.productType === 'bundle' && <Badge variant="outline" className="border-accent text-accent">Bundle</Badge>}
                                                     </div>
                                                     {item.comboProducts && item.comboProducts.length > 0 && (
                                                         <div className="text-xs text-muted-foreground font-body pl-4">
