@@ -12,7 +12,7 @@ import { mockOrders, mockMenuItems, mockCustomers } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard, User, Info, History } from 'lucide-react';
+import { Trash2, PlusCircle, ArrowLeft, MessageSquare, StickyNote, ShoppingCart, BarChart2, Calendar, Gem, Phone, MapPin, CreditCard, User, Info, History, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -180,6 +180,14 @@ export default function OrderDetailsPage() {
         
         toast({ title: 'Status Updated', description: `Order status changed to ${newStatus}`});
     };
+    
+    const handleCallShipper = () => {
+        if (order && order.shippingAddress) {
+            const encodedAddress = encodeURIComponent(order.shippingAddress);
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+            window.open(mapsUrl, '_blank');
+        }
+    }
 
     if (!order || !customer) {
         return <div>Loading...</div>;
@@ -212,19 +220,27 @@ export default function OrderDetailsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="w-full md:w-auto">
-                                <Label htmlFor="order-status" className="font-body">Order Status</Label>
-                                <Select onValueChange={handleStatusChange} value={order.status}>
-                                    <SelectTrigger id="order-status" className="w-full md:w-[200px]">
-                                        <SelectValue placeholder="Select Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Pending">Pending</SelectItem>
-                                        <SelectItem value="Processing">Processing</SelectItem>
-                                        <SelectItem value="Completed">Completed</SelectItem>
-                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div className="w-full md:w-auto flex flex-col md:items-end gap-2">
+                                <div className="w-full md:w-auto">
+                                    <Label htmlFor="order-status" className="font-body">Order Status</Label>
+                                    <Select onValueChange={handleStatusChange} value={order.status}>
+                                        <SelectTrigger id="order-status" className="w-full md:w-[200px]">
+                                            <SelectValue placeholder="Select Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Pending">Pending</SelectItem>
+                                            <SelectItem value="Processing">Processing</SelectItem>
+                                            <SelectItem value="Completed">Completed</SelectItem>
+                                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {order.shippingAddress && (
+                                    <Button variant="outline" onClick={handleCallShipper}>
+                                        <Send className="mr-2 h-4 w-4"/>
+                                        Call Shipper
+                                    </Button>
+                                )}
                             </div>
                         </div>
                         <Separator className="my-6"/>
