@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -60,6 +61,28 @@ export default function SegmentsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [initialSegmentData, setInitialSegmentData] = useState<Partial<Segment> | null>(null);
+  
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const fromReports = searchParams.get('from') === 'reports';
+    if (fromReports) {
+      const prefillDataJSON = sessionStorage.getItem('prefillSegment');
+      if (prefillDataJSON) {
+        try {
+          const prefillData = JSON.parse(prefillDataJSON);
+          openCreateDialog(prefillData);
+          // Clean up session storage and URL
+          sessionStorage.removeItem('prefillSegment');
+          router.replace('/segments', { scroll: false });
+        } catch (e) {
+          console.error("Failed to parse prefill data", e);
+        }
+      }
+    }
+  }, [searchParams, router]);
+
 
   const handleSaveSegment = async (data: z.infer<typeof segmentFormSchema>) => {
     setIsSaving(true);
@@ -163,7 +186,7 @@ export default function SegmentsPage() {
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] pr-6">
             <CreateSegmentForm 
-              key={initialSegmentData ? initialSegmentData.name : 'new'}
+              key={initialSegmentData ? `prefill-${initialSegmentData.name}` : 'new'}
               initialData={initialSegmentData}
               onSave={handleSaveSegment} 
               onCancel={() => setCreateDialogOpen(false)}

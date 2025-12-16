@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Download, ArrowUpDown, X as XIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, ArrowUpDown, X as XIcon, PlusCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
@@ -16,6 +16,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Ba
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 // Mock Data
 const allProductPerformanceData = [
@@ -113,7 +114,45 @@ const generateProductPerformanceData = () => {
     return allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) }));
 };
 
+const rfmSegmentRules: { [key: string]: any } = {
+    'Champions': {
+        name: 'Champions',
+        description: 'Best customers who bought recently, buy often and spend the most.',
+        root: { type: 'group', logic: 'AND', conditions: [
+            { type: 'condition', criteria: 'lastVisit', operator: 'after', value: addDays(new Date(), -30) },
+            { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 5 },
+            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 1000 },
+        ]}
+    },
+    'Loyal Customers': {
+        name: 'Loyal Customers',
+        description: 'Customers who buy on a regular basis. Responsive to promotions.',
+        root: { type: 'group', logic: 'AND', conditions: [
+             { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 3 },
+             { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
+        ]}
+    },
+    'At Risk': {
+        name: 'At Risk',
+        description: 'Spent big money and purchased often, but long time ago. Need to bring them back!',
+        root: { type: 'group', logic: 'AND', conditions: [
+            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -90) },
+            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
+        ]}
+    },
+     'Hibernating': {
+        name: 'Hibernating',
+        description: 'Last purchase was long back, low spenders and low number of orders.',
+        root: { type: 'group', logic: 'AND', conditions: [
+            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -180) },
+            { type: 'condition', criteria: 'orderFrequency', operator: 'lte', value: 2 },
+        ]}
+    },
+};
+
+
 export default function ReportsPage() {
+  const router = useRouter();
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -226,6 +265,16 @@ export default function ReportsPage() {
     if (!perfData) return <Badge variant="outline">{segment}</Badge>;
     return <Badge className={cn('text-xs', perfData.color)}>{segment}</Badge>;
   }
+
+  const handleCreateSegmentFromRfm = (segmentName: string) => {
+    const segmentRules = rfmSegmentRules[segmentName];
+    if (segmentRules) {
+        // Store in sessionStorage and navigate
+        sessionStorage.setItem('prefillSegment', JSON.stringify(segmentRules));
+        router.push('/segments?from=reports');
+    }
+  };
+
 
   if (!isClient) {
     return null; // or a loading skeleton
@@ -621,6 +670,7 @@ export default function ReportsPage() {
                                     <TableHead className="text-right">Avg Revenue</TableHead>
                                     <TableHead className="text-right">Avg Recency</TableHead>
                                     <TableHead className="text-right">Avg Frequency</TableHead>
+                                    <TableHead className="w-36 text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -642,6 +692,20 @@ export default function ReportsPage() {
                                         <TableCell className="text-right">${item.avgRevenue.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">{item.avgRecency.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">{item.avgFrequency.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCreateSegmentFromRfm(item.segment);
+                                                }}
+                                                disabled={!rfmSegmentRules[item.segment]}
+                                            >
+                                                <PlusCircle className="mr-2 h-4 w-4" />
+                                                Create Segment
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -651,7 +715,7 @@ export default function ReportsPage() {
                                     <TableCell className="text-right font-bold">{rfmTotals.clients}</TableCell>
                                     <TableCell className="text-right font-bold">{rfmTotals.orders}</TableCell>
                                     <TableCell className="text-right font-bold">${rfmTotals.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                                    <TableCell colSpan={3}></TableCell>
+                                    <TableCell colSpan={4}></TableCell>
                                 </TableRow>
                             </TableFooter>
                         </Table>
@@ -699,5 +763,3 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
-
-    
