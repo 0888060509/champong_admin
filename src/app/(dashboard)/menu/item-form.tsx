@@ -27,7 +27,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct, BundleTemplate, BundleSlot } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown, StickyNote, PackageCheck } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown, StickyNote, PackageCheck, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { mockMenuItems, mockBundleTemplates } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
@@ -123,6 +123,7 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
 
   const { control, watch, setValue, getValues } = form;
   const productType = watch('productType');
+  const bundleTemplateId = watch('bundleTemplateId');
   const watchedFormValues = watch();
 
   const { fields: groupFields, append: appendGroup, remove: removeGroup, move: moveGroup } = useFieldArray({
@@ -168,8 +169,10 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     const template = mockBundleTemplates.find(t => t.id === templateId);
     if (template) {
         setValue('bundleTemplateId', template.id);
+        // Only set name/desc if they are empty
         if (!getValues('name')) setValue('name', template.name);
         if (!getValues('description')) setValue('description', template.description);
+        // Set price as a suggestion, but allow override
         setValue('price', template.basePrice);
     }
   }
@@ -180,6 +183,8 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     template => !existingGroupIds.some(id => id.includes(template.id)) // A bit tricky due to custom IDs
   );
   
+  const selectedTemplate = mockBundleTemplates.find(t => t.id === bundleTemplateId);
+
   return (
     <FormProvider {...form}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -338,6 +343,27 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedTemplate && (
+                        <Card className="mt-4 bg-muted/50">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-headline flex items-center gap-2">
+                                    <Package className="h-4 w-4" />
+                                    Template Details
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-xs space-y-3">
+                                {selectedTemplate.slots.map(slot => (
+                                    <div key={slot.id}>
+                                        <p className="font-semibold">{slot.name}</p>
+                                        <p className="text-muted-foreground">Select {slot.minSelection} to {slot.maxSelection} items</p>
+                                        <ul className="list-disc list-inside">
+                                            {slot.items.map(item => <li key={item.id}>{item.name} {item.upcharge > 0 && `(+$${item.upcharge.toFixed(2)})`}</li>)}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                      )}
                       <FormDescription>Manage templates on the <Link href="/bundle-templates" className="text-primary underline">Bundle Templates</Link> page.</FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -734,8 +760,9 @@ function CrossSellGroupCard({
   );
 
   const selectedProducts = fields.map((field, index) => {
-    const productId = watchedProductIds[index];
-    return mockMenuItems.find(item => item.id === productId);
+    const productId = field.id; // This is the form field id, not the product id.
+    const realProductId = watch(`crossSellGroups.${groupIndex}.productIds`)[index];
+    return mockMenuItems.find(item => item.id === realProductId);
   }).filter(Boolean) as MenuItem[];
   
 
@@ -824,22 +851,23 @@ function CrossSellGroupCard({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {selectedProducts.map((item, index) => {
-                        if (!item) return null;
+                    {fields.map((item, index) => {
+                        const product = mockMenuItems.find(p => p.id === item.id)
+                        if (!product) return null;
                         return (
                         <TableRow key={item.id}>
                             <TableCell>
                                     <Image
-                                    src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
-                                    alt={item.name}
+                                    src={product.imageUrl || `https://picsum.photos/seed/${product.id}/64/64`}
+                                    alt={product.name}
                                     width={48}
                                     height={48}
                                     className="rounded-md object-cover"
                                     />
                             </TableCell>
                             <TableCell>
-                                <p className="font-medium">{item.name}</p>
-                                <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                                <p className="font-medium">{product.name}</p>
+                                <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
                             </TableCell>
                             <TableCell className="text-right">
                                 <div className="flex justify-end items-center gap-1">
