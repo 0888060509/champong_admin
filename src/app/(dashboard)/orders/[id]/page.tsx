@@ -94,7 +94,6 @@ export default function OrderDetailsPage() {
                     ...item,
                     name: selectedItem.name,
                     price: selectedItem.price,
-                    originalPrice: selectedItem.price,
                     productType: selectedItem.productType,
                     comboProducts: selectedItem.comboProducts,
                     isEditing: false, // Done selecting
@@ -343,7 +342,7 @@ export default function OrderDetailsPage() {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center font-body">
-                                            {isEditing ? (
+                                            {isEditing && !item.isEditing ? (
                                                 <Input 
                                                     type="number" 
                                                     value={item.quantity} 
@@ -376,7 +375,7 @@ export default function OrderDetailsPage() {
                                 </Button>
                             </div>
                         )}
-                        {order.note && (
+                        {order.note && !isEditing && (
                             <>
                                 <Separator className="my-4"/>
                                 <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
@@ -454,5 +453,3 @@ export default function OrderDetailsPage() {
         </main>
     );
 }
-
-    
