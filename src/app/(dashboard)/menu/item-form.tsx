@@ -25,9 +25,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct } from '@/lib/types';
+import type { MenuItem, OptionGroup, CrossSellGroup, ComboProduct, BundleTemplate, BundleSlot } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown, StickyNote } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, X, ArrowUp, ArrowDown, StickyNote, PackageCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { mockMenuItems, mockBundleTemplates } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +48,8 @@ import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Link from 'next/link';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '../scroll-area';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -119,8 +121,9 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     },
   });
 
-  const { control, watch, setValue } = form;
+  const { control, watch, setValue, getValues } = form;
   const productType = watch('productType');
+  const watchedFormValues = watch();
 
   const { fields: groupFields, append: appendGroup, remove: removeGroup, move: moveGroup } = useFieldArray({
       control,
@@ -165,9 +168,11 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     const template = mockBundleTemplates.find(t => t.id === templateId);
     if (template) {
         setValue('bundleTemplateId', template.id);
+        // Only set default values if the user hasn't typed anything yet
+        if (!getValues('name')) setValue('name', template.name);
+        if (!getValues('description')) setValue('description', template.description);
+        // Set the price from the template as a starting point
         setValue('price', template.basePrice);
-        setValue('name', template.name);
-        setValue('description', template.description);
     }
   }
 
@@ -179,289 +184,382 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
   
   return (
     <FormProvider {...form}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 p-1">
-          {/* Basic Info */}
-          <div className="space-y-4">
-              <FormField
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="lg:col-span-1">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 p-1">
+              {/* Basic Info */}
+              <div className="space-y-4">
+                  <FormField
+                      control={control}
+                      name="productType"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Product Type</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex items-center space-x-4"
+                            >
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="single" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Single Product
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="combo" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Fixed Combo
+                                </FormLabel>
+                              </FormItem>
+                               <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="bundle" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Flexible Bundle
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                  <FormField
+                    control={control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{productType === 'combo' ? 'Combo Name' : productType === 'bundle' ? 'Bundle Name' : 'Product Name'}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={productType === 'combo' ? 'e.g., Lunch Special' : 'e.g., Classic Burger'} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="A short, appealing description for customers." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://picsum.photos/seed/..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+
+              <Separator/>
+
+              {/* Pricing and Category */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <FormField
+                      control={control}
+                      name="price"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>{productType === 'single' ? 'Base Price' : 'Total Price'}</FormLabel>
+                          <FormControl>
+                              <Input type="number" step="0.01" placeholder="99.00" {...field} />
+                          </FormControl>
+                          {productType === 'bundle' && <FormDescription>Set the final price for this bundle deal.</FormDescription>}
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                   />
+                   <FormField
+                      control={control}
+                      name="category"
+                      render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Category</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                      <SelectTrigger>
+                                      <SelectValue placeholder="Select a category" />
+                                      </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                      {(productType === 'combo' || productType === 'bundle') && <SelectItem value="Combo">Combo</SelectItem>}
+                                      <SelectItem value="Main Course">Main Course</SelectItem>
+                                      <SelectItem value="Appetizers">Appetizers</SelectItem>
+                                      <SelectItem value="Desserts">Desserts</SelectItem>
+                                      <SelectItem value="Drinks">Drinks</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+              </div>
+              
+              {productType === 'bundle' ? (
+                <FormField
                   control={control}
-                  name="productType"
+                  name="bundleTemplateId"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Product Type</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex items-center space-x-4"
-                        >
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="single" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Single Product
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="combo" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Fixed Combo
-                            </FormLabel>
-                          </FormItem>
-                           <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="bundle" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Flexible Bundle
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
+                    <FormItem>
+                      <FormLabel>Bundle Template</FormLabel>
+                       <FormDescription>Select a pre-defined template to create this flexible bundle.</FormDescription>
+                      <Select onValueChange={(value) => handleSelectBundleTemplate(value)} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a bundle template" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {mockBundleTemplates.map(template => (
+                              <SelectItem key={template.id} value={template.id}>
+                                  {template.name} - ${template.basePrice.toFixed(2)}
+                              </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Manage templates on the <Link href="/bundle-templates" className="text-primary underline">Bundle Templates</Link> page.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              ) : productType === 'combo' ? (
+                  <ComboProductsSection />
+                ) : (
+                  <>
+                    <Separator />
+                    
+                    {/* Option Groups Section */}
+                    <div>
+                      <h3 className="text-lg font-medium font-headline">Product Options</h3>
+                      <FormDescription>Add and customize modifiers for this product, like sizes or toppings. Drag to reorder.</FormDescription>
+                      
+                      <div className="space-y-4 mt-4">
+                        {groupFields.map((group, groupIndex) => (
+                            <OptionGroupCard 
+                                key={group.id} 
+                                groupIndex={groupIndex} 
+                                onRemoveGroup={() => removeGroup(groupIndex)}
+                                onMoveUp={() => groupIndex > 0 && moveGroup(groupIndex, groupIndex - 1)}
+                                onMoveDown={() => groupIndex < groupFields.length - 1 && moveGroup(groupIndex, groupIndex + 1)}
+                            />
+                        ))}
+                      </div>
 
-              <FormField
-                control={control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{productType === 'combo' ? 'Combo Name' : productType === 'bundle' ? 'Bundle Name' : 'Product Name'}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={productType === 'combo' ? 'e.g., Lunch Special' : 'e.g., Classic Burger'} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="A short, appealing description for customers." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://picsum.photos/seed/..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </div>
+                      <div className="mt-4 flex gap-2">
+                        <Select onValueChange={handleAddGroupFromTemplate} value="">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Add options from a template..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableTemplates.length > 0 ? availableTemplates.map(template => (
+                                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                                )) : (
+                                    <SelectItem value="none" disabled>No available templates</SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                        <Button type="button" variant="outline" onClick={handleAddNewCustomGroup}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Custom Group
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    {/* Cross-sell Section */}
+                    <div>
+                      <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
+                      <FormDescription>Suggest other products to customers when they view this item. You can reorder groups and items.</FormDescription>
+                      
+                      <div className="mt-4 space-y-4">
+                        {crossSellGroupFields.map((group, groupIndex) => (
+                          <CrossSellGroupCard
+                            key={group.id}
+                            groupIndex={groupIndex}
+                            initialDataId={initialData?.id}
+                            onRemoveGroup={() => removeCrossSellGroup(groupIndex)}
+                            onMoveUp={() => groupIndex > 0 && moveCrossSellGroup(groupIndex, groupIndex - 1)}
+                            onMoveDown={() => groupIndex < crossSellGroupFields.length - 1 && moveCrossSellGroup(groupIndex, groupIndex + 1)}
+                          />
+                        ))}
 
-          <Separator/>
-
-          {/* Pricing and Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <FormField
-                  control={control}
-                  name="price"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>{productType === 'single' ? 'Base Price' : 'Total Price'}</FormLabel>
-                      <FormControl>
-                          <Input type="number" step="0.01" placeholder="99.00" {...field} disabled={productType === 'bundle'}/>
-                      </FormControl>
-                      {productType === 'bundle' && <FormDescription>Price is set by the Bundle Template.</FormDescription>}
-                      <FormMessage />
-                      </FormItem>
-                  )}
-               />
-               <FormField
-                  control={control}
-                  name="category"
-                  render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                  <SelectTrigger>
-                                  <SelectValue placeholder="Select a category" />
-                                  </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                  {(productType === 'combo' || productType === 'bundle') && <SelectItem value="Combo">Combo</SelectItem>}
-                                  <SelectItem value="Main Course">Main Course</SelectItem>
-                                  <SelectItem value="Appetizers">Appetizers</SelectItem>
-                                  <SelectItem value="Desserts">Desserts</SelectItem>
-                                  <SelectItem value="Drinks">Drinks</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-              />
-          </div>
-          
-          {productType === 'bundle' ? (
-            <FormField
-              control={control}
-              name="bundleTemplateId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bundle Template</FormLabel>
-                   <FormDescription>Select a pre-defined template to create this flexible bundle.</FormDescription>
-                  <Select onValueChange={(value) => handleSelectBundleTemplate(value)} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a bundle template" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {mockBundleTemplates.map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                              {template.name} - ${template.basePrice.toFixed(2)}
-                          </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Manage templates on the <Link href="/bundle-templates" className="text-primary underline">Bundle Templates</Link> page.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                        <Button type="button" variant="outline" onClick={handleAddNewCrossSellGroup}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Cross-sell Group
+                        </Button>
+                      </div>
+                    </div>
+                </>
               )}
-            />
-          ) : productType === 'combo' ? (
-              <ComboProductsSection />
-            ) : (
-              <>
-                <Separator />
-                
-                {/* Option Groups Section */}
-                <div>
-                  <h3 className="text-lg font-medium font-headline">Product Options</h3>
-                  <FormDescription>Add and customize modifiers for this product, like sizes or toppings. Drag to reorder.</FormDescription>
-                  
-                  <div className="space-y-4 mt-4">
-                    {groupFields.map((group, groupIndex) => (
-                        <OptionGroupCard 
-                            key={group.id} 
-                            groupIndex={groupIndex} 
-                            onRemoveGroup={() => removeGroup(groupIndex)}
-                            onMoveUp={() => groupIndex > 0 && moveGroup(groupIndex, groupIndex - 1)}
-                            onMoveDown={() => groupIndex < groupFields.length - 1 && moveGroup(groupIndex, groupIndex + 1)}
-                        />
-                    ))}
-                  </div>
 
-                  <div className="mt-4 flex gap-2">
-                    <Select onValueChange={handleAddGroupFromTemplate} value="">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Add options from a template..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableTemplates.length > 0 ? availableTemplates.map(template => (
-                                <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                            )) : (
-                                <SelectItem value="none" disabled>No available templates</SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
-                    <Button type="button" variant="outline" onClick={handleAddNewCustomGroup}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Custom Group
-                    </Button>
-                  </div>
+
+              {/* Status */}
+                <div className="space-y-4 pt-4">
+                    <FormField
+                        control={control}
+                        name="isActive"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Product Status</FormLabel>
+                                <FormDescription>
+                                Inactive products will not be visible to customers.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                     {productType === 'single' && (<FormField
+                        control={control}
+                        name="allowNotes"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Allow Customer Notes</FormLabel>
+                                <FormDescription>
+                                Allow customers to add special instructions for this item.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />)}
                 </div>
-                
-                <Separator />
-                
-                {/* Cross-sell Section */}
-                <div>
-                  <h3 className="text-lg font-medium font-headline">Cross-sell Items</h3>
-                  <FormDescription>Suggest other products to customers when they view this item. You can reorder groups and items.</FormDescription>
-                  
-                  <div className="mt-4 space-y-4">
-                    {crossSellGroupFields.map((group, groupIndex) => (
-                      <CrossSellGroupCard
-                        key={group.id}
-                        groupIndex={groupIndex}
-                        initialDataId={initialData?.id}
-                        onRemoveGroup={() => removeCrossSellGroup(groupIndex)}
-                        onMoveUp={() => groupIndex > 0 && moveCrossSellGroup(groupIndex, groupIndex - 1)}
-                        onMoveDown={() => groupIndex < crossSellGroupFields.length - 1 && moveCrossSellGroup(groupIndex, groupIndex + 1)}
-                      />
-                    ))}
-
-                    <Button type="button" variant="outline" onClick={handleAddNewCrossSellGroup}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Cross-sell Group
-                    </Button>
-                  </div>
-                </div>
-            </>
-          )}
-
-
-          {/* Status */}
-            <div className="space-y-4 pt-4">
-                <FormField
-                    control={control}
-                    name="isActive"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                            <FormLabel>Product Status</FormLabel>
-                            <FormDescription>
-                            Inactive products will not be visible to customers.
-                            </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                />
-                 {productType === 'single' && (<FormField
-                    control={control}
-                    name="allowNotes"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                            <FormLabel>Allow Customer Notes</FormLabel>
-                            <FormDescription>
-                            Allow customers to add special instructions for this item.
-                            </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                />)}
-            </div>
-          
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-            <Button type="submit">
-              {initialData?.id ? 'Save Changes' : 'Create Product'}
-            </Button>
-          </div>
-        </form>
-      </Form>
+              
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                <Button type="submit">
+                  {initialData?.id ? 'Save Changes' : 'Create Product'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+        <div className="lg:col-span-1">
+          <ProductPreview formData={watchedFormValues} />
+        </div>
+      </div>
     </FormProvider>
+  );
+}
+
+// Product Preview Component
+function ProductPreview({ formData }: { formData: ItemFormValues }) {
+  const { name, price, description, imageUrl, optionGroups = [], productType, bundleTemplateId } = formData;
+  const selectedTemplate = mockBundleTemplates.find(t => t.id === bundleTemplateId);
+
+  return (
+    <div className="sticky top-20">
+      <div className="w-full max-w-sm mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-lg overflow-hidden border">
+        <div className="bg-gray-100 dark:bg-zinc-800 p-4">
+          <h2 className="text-sm font-semibold text-center text-muted-foreground">App Preview</h2>
+        </div>
+        <ScrollArea className="h-[70vh]">
+          <Image
+            src={imageUrl || `https://picsum.photos/seed/${name || 'product'}/600/400`}
+            alt={name || "Product image"}
+            width={600}
+            height={400}
+            className="w-full h-48 object-cover"
+            data-ai-hint="food item"
+          />
+          <div className="p-4 space-y-4">
+            <div>
+              <h1 className="text-2xl font-bold font-headline">{name || 'Product Name'}</h1>
+              <p className="text-2xl text-primary font-semibold font-headline">${price.toFixed(2)}</p>
+              {description && <p className="text-muted-foreground text-sm mt-2">{description}</p>}
+            </div>
+            
+            <Separator />
+            
+            {productType === 'bundle' && selectedTemplate ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <PackageCheck className="h-5 w-5 text-accent" />
+                    <h3 className="text-lg font-semibold font-headline">Bundle Details</h3>
+                </div>
+                {selectedTemplate.slots.map(slot => (
+                    <div key={slot.id} className="border-t pt-3">
+                        <p className="font-semibold">{slot.name}</p>
+                        <p className="text-xs text-muted-foreground mb-2">Choose between {slot.minSelection} and {slot.maxSelection}</p>
+                        <div className="space-y-1">
+                            {slot.items.map(item => (
+                                <div key={item.id} className="flex justify-between items-center text-sm">
+                                    <span>{item.name}</span>
+                                    {item.upcharge > 0 && <span className="text-muted-foreground">+${item.upcharge.toFixed(2)}</span>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+              </div>
+            ) : optionGroups.map((group) => (
+              <div key={group.id}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold font-headline">{group.name}</h3>
+                  {group.required && <Badge variant="secondary">Required</Badge>}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {group.type === 'single' ? 'Select 1' : 'Select up to ' + group.options.length}
+                </p>
+                <RadioGroup className="mt-2 space-y-2">
+                    {group.options.map(option => (
+                         <div key={option.id} className="flex items-center justify-between p-3 border rounded-md">
+                            <div className="flex items-center gap-3">
+                                <RadioGroupItem value={option.id} id={`${group.id}-${option.id}`} />
+                                <Label htmlFor={`${group.id}-${option.id}`} className="font-normal">{option.name}</Label>
+                            </div>
+                            {option.priceAdjustment > 0 && <span className="text-sm text-muted-foreground">+${option.priceAdjustment.toFixed(2)}</span>}
+                        </div>
+                    ))}
+                </RadioGroup>
+              </div>
+            ))}
+
+            <div className="space-y-2">
+                <Label>Special Instructions</Label>
+                <Textarea placeholder="e.g. No onions, please." rows={3} />
+            </div>
+
+            <Button size="lg" className="w-full">Add to Cart</Button>
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
   );
 }
 
@@ -524,9 +622,16 @@ function OptionGroupCard({
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <Badge variant={isExclusion ? "secondary" : "outline"}>
-                                        {isExclusion ? "Exclusion Group" : "Standard Group"}
-                                    </Badge>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="h-8 text-xs">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="single">Single Choice</SelectItem>
+                                            <SelectItem value="multiple">Multiple Choice</SelectItem>
+                                            <SelectItem value="exclusion">Exclusion Group</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </FormControl>
                             </FormItem>
                         )}
@@ -631,9 +736,11 @@ function CrossSellGroupCard({
     item => item.id !== initialDataId && !watchedProductIds.includes(item.id)
   );
 
-  const selectedProducts = watchedProductIds.map(id => 
-    mockMenuItems.find(item => item.id === id)
-  ).filter(Boolean) as MenuItem[];
+  const selectedProducts = fields.map((field, index) => {
+    const productId = watchedProductIds[index];
+    return mockMenuItems.find(item => item.id === productId);
+  }).filter(Boolean) as MenuItem[];
+  
 
   return (
     <Card className="bg-muted/30 relative pl-12">
@@ -683,7 +790,10 @@ function CrossSellGroupCard({
                     <CommandItem
                       key={item.id}
                       value={item.name}
-                      onSelect={() => append(item.id)}
+                      onSelect={() => {
+                        const newField = { id: item.id };
+                        append(newField.id)
+                      }}
                       className="!p-2"
                     >
                       <div className="flex items-center gap-3">
@@ -718,12 +828,10 @@ function CrossSellGroupCard({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {fields.map((field, index) => {
-                        const productId = watchedProductIds[index];
-                        const item = selectedProducts.find(p => p.id === productId);
+                    {selectedProducts.map((item, index) => {
                         if (!item) return null;
                         return (
-                        <TableRow key={field.id}>
+                        <TableRow key={item.id}>
                             <TableCell>
                                     <Image
                                     src={item.imageUrl || `https://picsum.photos/seed/${item.id}/64/64`}
