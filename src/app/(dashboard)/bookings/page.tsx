@@ -1,3 +1,7 @@
+
+'use client';
+
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockBookings } from "@/lib/mock-data";
@@ -5,8 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import type { Booking } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BookingsPage() {
+    const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+    const { toast } = useToast();
 
     const getStatusBadge = (status: 'Confirmed' | 'Pending' | 'Cancelled') => {
         switch (status) {
@@ -18,6 +26,18 @@ export default function BookingsPage() {
                 return <Badge variant="destructive">Cancelled</Badge>;
         }
     }
+    
+    const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
+        setBookings(currentBookings => 
+            currentBookings.map(booking => 
+                booking.id === bookingId ? { ...booking, status: newStatus } : booking
+            )
+        );
+        toast({
+            title: 'Booking Status Updated',
+            description: `Booking #${bookingId} has been set to ${newStatus}.`,
+        });
+    };
 
   return (
     <Card>
@@ -39,7 +59,7 @@ export default function BookingsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockBookings.map((booking) => (
+            {bookings.map((booking) => (
               <TableRow key={booking.id}>
                 <TableCell className="font-medium">{booking.id}</TableCell>
                 <TableCell>{booking.customerName}</TableCell>
@@ -57,8 +77,16 @@ export default function BookingsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Confirm</DropdownMenuItem>
-                            <DropdownMenuItem>Cancel</DropdownMenuItem>
+                            {booking.status === 'Pending' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'Confirmed')}>
+                                    Confirm
+                                </DropdownMenuItem>
+                            )}
+                            {booking.status !== 'Cancelled' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(booking.id, 'Cancelled')} className="text-destructive">
+                                    Cancel
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </TableCell>
