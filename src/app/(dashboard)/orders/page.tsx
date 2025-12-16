@@ -2,7 +2,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -14,13 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const ORDER_STATUSES: Order['status'][] = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -28,7 +29,6 @@ export default function OrdersPage() {
     const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
     const [cancellationReason, setCancellationReason] = useState('');
     const [cancellationNotes, setCancellationNotes] = useState('');
-    const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
@@ -39,11 +39,6 @@ export default function OrdersPage() {
 
     const filteredOrders = useMemo(() => {
         return orders
-            .filter(order => {
-                // Status tab filter
-                if (activeTab === 'all') return true;
-                return order.status.toLowerCase() === activeTab;
-            })
             .filter(order => {
                 // Search query filter
                 if (!searchQuery) return true;
@@ -66,10 +61,18 @@ export default function OrdersPage() {
                 }
                 return true;
             });
-    }, [orders, activeTab, searchQuery, dateRange]);
+    }, [orders, searchQuery, dateRange]);
+    
+    const ordersByStatus = useMemo(() => {
+        const grouped: { [key in Order['status']]?: Order[] } = {};
+        for (const status of ORDER_STATUSES) {
+            grouped[status] = filteredOrders.filter(order => order.status === status);
+        }
+        return grouped;
+    }, [filteredOrders]);
 
 
-    const getStatusBadge = (status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
+    const getStatusBadge = (status: Order['status']) => {
         switch (status) {
             case 'Completed':
                 return <Badge>Completed</Badge>;
@@ -78,6 +81,7 @@ export default function OrdersPage() {
             case 'Cancelled':
                 return <Badge variant="destructive">Cancelled</Badge>;
             case 'Pending':
+            default:
                 return <Badge variant="outline">Pending</Badge>;
         }
     };
@@ -128,14 +132,14 @@ export default function OrdersPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 flex flex-col h-[calc(100vh-8rem)]">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">Order Manager</CardTitle>
-                    <CardDescription>View and manage all customer orders.</CardDescription>
+                    <CardTitle className="font-headline">Order Board</CardTitle>
+                    <CardDescription>View and manage all customer orders in a Kanban-style board.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center justify-between gap-4 pb-4">
+                    <div className="flex items-center justify-between gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -189,41 +193,37 @@ export default function OrdersPage() {
                             </Button>
                         )}
                     </div>
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList>
-                            <TabsTrigger value="all">All</TabsTrigger>
-                            <TabsTrigger value="processing">Processing</TabsTrigger>
-                            <TabsTrigger value="completed">Completed</TabsTrigger>
-                            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value={activeTab} className="mt-4">
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                    <TableHead>Order ID</TableHead>
-                                    <TableHead>Customer</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
-                                    <TableHead><span className="sr-only">Actions</span></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredOrders.map((order) => (
-                                    <TableRow key={order.id}>
-                                        <TableCell className="font-medium">
-                                            <Link href={`/orders/${order.id}`} className="hover:underline">
-                                                {order.id.substring(0, 7)}...
-                                            </Link>
-                                        </TableCell>
-                                        <TableCell>{order.customerName}</TableCell>
-                                        <TableCell>{order.date.toDate().toLocaleDateString()}</TableCell>
-                                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
+                </CardContent>
+            </Card>
+
+            <div className="flex-1 overflow-x-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-max">
+                    {ORDER_STATUSES.map(status => (
+                        <div key={status} className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between px-2">
+                                <h2 className="text-lg font-semibold font-headline flex items-center gap-2">
+                                    {status}
+                                    <Badge variant="secondary" className="text-base">{ordersByStatus[status]?.length || 0}</Badge>
+                                </h2>
+                            </div>
+                            <ScrollArea className="h-full w-80 rounded-md">
+                                <div className="flex flex-col gap-4 pr-4">
+                                {ordersByStatus[status]?.map(order => (
+                                    <Card key={order.id} className="w-full">
+                                        <CardHeader className="p-4 flex flex-row items-start justify-between">
+                                            <div>
+                                                <CardTitle className="text-base font-body">
+                                                    <Link href={`/orders/${order.id}`} className="hover:underline">
+                                                        {order.customerName}
+                                                    </Link>
+                                                </CardTitle>
+                                                <CardDescription className="text-xs">
+                                                    ID: {order.id.substring(0, 7)}...
+                                                </CardDescription>
+                                            </div>
+                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <Button aria-haspopup="true" size="icon" variant="ghost" className="h-6 w-6">
                                                     <MoreHorizontal className="h-4 w-4" />
                                                     <span className="sr-only">Toggle menu</span>
                                                 </Button>
@@ -235,25 +235,23 @@ export default function OrdersPage() {
                                                     <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            {filteredOrders.length === 0 && (
-                                <div className="text-center text-muted-foreground py-10">
-                                    No orders found matching your criteria.
+                                        </CardHeader>
+                                        <CardContent className="p-4 pt-0 text-sm">
+                                            <p className="text-lg font-semibold font-headline">${order.total.toFixed(2)}</p>
+                                            <p className="text-muted-foreground text-xs">{order.items.length} item(s)</p>
+                                            <p className="text-muted-foreground text-xs mt-2">{order.date.toDate().toLocaleString()}</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                {(!ordersByStatus[status] || ordersByStatus[status]?.length === 0) && (
+                                    <div className="text-center text-sm text-muted-foreground p-4">No orders in this status.</div>
+                                )}
                                 </div>
-                            )}
-                        </TabsContent>
-                    </Tabs>
-                </CardContent>
-                 <CardFooter>
-                    <div className="text-xs text-muted-foreground">
-                        Showing <strong>{filteredOrders.length}</strong> of <strong>{orders.length}</strong> orders.
-                    </div>
-                </CardFooter>
-            </Card>
+                            </ScrollArea>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
                 <AlertDialogContent>
