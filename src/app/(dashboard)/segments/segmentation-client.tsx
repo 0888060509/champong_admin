@@ -64,10 +64,10 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-2">
             <Sparkles className="text-accent w-6 h-6" />
-            Customer Segmentation Tool
+            AI Segment Assistant
           </CardTitle>
           <CardDescription>
-            Describe your desired customer segment, and let AI suggest some ideas to get you started.
+            Describe the customer group you're thinking of, and let AI create complete segments with ready-to-use rules.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -77,16 +77,15 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
               <Textarea
                 id="description"
                 name="description"
-                placeholder="e.g., 'Customers who frequently buy coffee on weekday mornings and live near downtown.'"
+                placeholder="e.g., 'Customers who frequently buy coffee on weekday mornings' or 'high spenders who haven't visited in a while'."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={4}
+                rows={3}
               />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div></div>
+        <CardFooter className="flex justify-end">
           <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent/90">
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -103,24 +102,40 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
             <hr className="mx-6"/>
             <CardContent className="pt-6">
             <h3 className="text-lg font-semibold font-headline mb-4">AI Suggestions</h3>
+            <p className="text-sm text-muted-foreground mb-4">Click a suggestion to pre-fill the creation form.</p>
             {isLoading && (
-                <div className="space-y-2">
-                    <div className="animate-pulse bg-muted h-8 w-1/2 rounded-md"></div>
-                    <div className="animate-pulse bg-muted h-8 w-2/3 rounded-md"></div>
-                    <div className="animate-pulse bg-muted h-8 w-1/3 rounded-md"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[...Array(3)].map((_, i) => (
+                      <Card key={i} className="animate-pulse">
+                        <CardHeader>
+                          <div className="bg-muted h-5 w-3/4 rounded-md"></div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="bg-muted h-4 w-full rounded-md"></div>
+                          <div className="bg-muted h-4 w-1/2 rounded-md mt-2"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
             )}
             {suggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {suggestions.map((suggestion, index) => (
-                        <Badge 
+                       <Card 
                             key={index} 
-                            variant="outline" 
-                            className="text-base p-2 cursor-pointer hover:bg-muted"
+                            className="cursor-pointer hover:border-primary transition-colors"
                             onClick={() => onSuggestionClick(suggestion)}
                         >
-                            {suggestion.name}
-                        </Badge>
+                           <CardHeader>
+                               <CardTitle className="text-base font-headline">{suggestion.name}</CardTitle>
+                               <CardDescription className="text-xs">{suggestion.description}</CardDescription>
+                           </CardHeader>
+                           <CardContent>
+                               <Badge variant="outline" className="font-mono text-xs p-1 whitespace-normal">
+                                {formatCondition(suggestion.suggestedConditions)}
+                               </Badge>
+                           </CardContent>
+                       </Card>
                     ))}
                 </div>
             )}
@@ -129,4 +144,42 @@ export function SegmentationClient({ onSuggestionClick }: SegmentationClientProp
       )}
     </Card>
   );
+}
+
+// Helper function to display conditions, can be extracted to a shared util
+const operatorMap: { [key: string]: string } = {
+  gte: '>=',
+  lte: '<=',
+  eq: '==',
+  neq: '!=',
+  before: 'before',
+  after: 'after',
+};
+
+const criteriaMap: { [key: string]: string } = {
+    totalSpend: 'Total Spend',
+    lastVisit: 'Last Visit',
+    orderFrequency: 'Order Freq.',
+    membershipLevel: 'Tier'
+}
+
+const formatCondition = (condition: any): string => {
+    if (condition.type === 'group') {
+        const nested = condition.conditions.map(formatCondition).join(` ${condition.logic} `);
+        return `(${nested})`;
+    }
+    const { criteria, operator, value } = condition;
+    const formattedCriteria = criteriaMap[criteria] || criteria;
+    const formattedOperator = operatorMap[operator] || operator;
+
+    let formattedValue;
+    if (criteria === 'lastVisit') {
+        formattedValue = new Date(value).toLocaleDateString();
+    } else if (typeof value === 'string') {
+        formattedValue = `'${value}'`;
+    } else {
+        formattedValue = value;
+    }
+
+    return `${formattedCriteria} ${formattedOperator} ${formattedValue}`;
 }
