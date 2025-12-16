@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Search, X as XIcon, Calendar as CalendarIcon } from "lucide-react";
+import { MoreHorizontal, Search, X as XIcon, Calendar as CalendarIcon, LayoutGrid, List } from "lucide-react";
 import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { mockOrders } from '@/lib/mock-data';
@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 const ORDER_STATUSES: Order['status'][] = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 
@@ -31,6 +33,8 @@ export default function OrdersPage() {
     const [cancellationNotes, setCancellationNotes] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+
 
     useEffect(() => {
         const sortedOrders = [...mockOrders].sort((a, b) => b.date.toMillis() - a.date.toMillis());
@@ -135,8 +139,22 @@ export default function OrdersPage() {
         <div className="space-y-6 flex flex-col h-[calc(100vh-8rem)]">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">Order Board</CardTitle>
-                    <CardDescription>View and manage all customer orders in a Kanban-style board.</CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="font-headline">Order Management</CardTitle>
+                            <CardDescription>View, track, and manage all customer orders.</CardDescription>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <Button variant={viewMode === 'board' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('board')}>
+                                <LayoutGrid className="h-4 w-4" />
+                                <span className="sr-only">Board View</span>
+                            </Button>
+                            <Button variant={viewMode === 'table' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('table')}>
+                                <List className="h-4 w-4" />
+                                <span className="sr-only">Table View</span>
+                            </Button>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between gap-4">
@@ -196,62 +214,110 @@ export default function OrdersPage() {
                 </CardContent>
             </Card>
 
-            <div className="flex-1 overflow-x-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-max">
-                    {ORDER_STATUSES.map(status => (
-                        <div key={status} className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between px-2">
-                                <h2 className="text-lg font-semibold font-headline flex items-center gap-2">
-                                    {status}
-                                    <Badge variant="secondary" className="text-base">{ordersByStatus[status]?.length || 0}</Badge>
-                                </h2>
+            {viewMode === 'board' ? (
+                <div className="flex-1 overflow-x-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-max">
+                        {ORDER_STATUSES.map(status => (
+                            <div key={status} className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between px-2">
+                                    <h2 className="text-lg font-semibold font-headline flex items-center gap-2">
+                                        {status}
+                                        <Badge variant="secondary" className="text-base">{ordersByStatus[status]?.length || 0}</Badge>
+                                    </h2>
+                                </div>
+                                <ScrollArea className="h-full w-80 rounded-md">
+                                    <div className="flex flex-col gap-4 pr-4">
+                                    {ordersByStatus[status]?.map(order => (
+                                        <Card key={order.id} className="w-full">
+                                            <CardHeader className="p-4 flex flex-row items-start justify-between">
+                                                <div>
+                                                    <CardTitle className="text-base font-body">
+                                                        <Link href={`/orders/${order.id}`} className="hover:underline">
+                                                            {order.customerName}
+                                                        </Link>
+                                                    </CardTitle>
+                                                    <CardDescription className="text-xs">
+                                                        ID: {order.id.substring(0, 7)}...
+                                                    </CardDescription>
+                                                </div>
+                                                 <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost" className="h-6 w-6">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Toggle menu</span>
+                                                    </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                                        <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </CardHeader>
+                                            <CardContent className="p-4 pt-0 text-sm">
+                                                <p className="text-lg font-semibold font-headline">${order.total.toFixed(2)}</p>
+                                                <p className="text-muted-foreground text-xs">{order.items.length} item(s)</p>
+                                                <p className="text-muted-foreground text-xs mt-2">{order.date.toDate().toLocaleString()}</p>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                    {(!ordersByStatus[status] || ordersByStatus[status]?.length === 0) && (
+                                        <div className="text-center text-sm text-muted-foreground p-4">No orders in this status.</div>
+                                    )}
+                                    </div>
+                                </ScrollArea>
                             </div>
-                            <ScrollArea className="h-full w-80 rounded-md">
-                                <div className="flex flex-col gap-4 pr-4">
-                                {ordersByStatus[status]?.map(order => (
-                                    <Card key={order.id} className="w-full">
-                                        <CardHeader className="p-4 flex flex-row items-start justify-between">
-                                            <div>
-                                                <CardTitle className="text-base font-body">
-                                                    <Link href={`/orders/${order.id}`} className="hover:underline">
-                                                        {order.customerName}
-                                                    </Link>
-                                                </CardTitle>
-                                                <CardDescription className="text-xs">
-                                                    ID: {order.id.substring(0, 7)}...
-                                                </CardDescription>
-                                            </div>
-                                             <DropdownMenu>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Customer</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredOrders.map(order => (
+                                    <TableRow key={order.id}>
+                                        <TableCell className="font-medium">
+                                            <Link href={`/orders/${order.id}`} className="text-primary hover:underline">
+                                                {order.id.substring(0, 7)}...
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell>{order.customerName}</TableCell>
+                                        <TableCell>{order.date.toDate().toLocaleString()}</TableCell>
+                                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost" className="h-6 w-6">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Toggle menu</span>
-                                                </Button>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Toggle menu</span>
+                                                    </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                        </CardHeader>
-                                        <CardContent className="p-4 pt-0 text-sm">
-                                            <p className="text-lg font-semibold font-headline">${order.total.toFixed(2)}</p>
-                                            <p className="text-muted-foreground text-xs">{order.items.length} item(s)</p>
-                                            <p className="text-muted-foreground text-xs mt-2">{order.date.toDate().toLocaleString()}</p>
-                                        </CardContent>
-                                    </Card>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                                {(!ordersByStatus[status] || ordersByStatus[status]?.length === 0) && (
-                                    <div className="text-center text-sm text-muted-foreground p-4">No orders in this status.</div>
-                                )}
-                                </div>
-                            </ScrollArea>
-                        </div>
-                    ))}
-                </div>
-            </div>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
 
             <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
                 <AlertDialogContent>
