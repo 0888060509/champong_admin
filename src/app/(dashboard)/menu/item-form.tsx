@@ -49,7 +49,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '../scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const menuOptionSchema = z.object({
     id: z.string(),
@@ -168,10 +168,8 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
     const template = mockBundleTemplates.find(t => t.id === templateId);
     if (template) {
         setValue('bundleTemplateId', template.id);
-        // Only set default values if the user hasn't typed anything yet
         if (!getValues('name')) setValue('name', template.name);
         if (!getValues('description')) setValue('description', template.description);
-        // Set the price from the template as a starting point
         setValue('price', template.basePrice);
     }
   }
@@ -283,11 +281,11 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
                       name="price"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>{productType === 'single' ? 'Base Price' : 'Total Price'}</FormLabel>
+                          <FormLabel>{productType === 'bundle' ? 'Bundle Price' : productType === 'combo' ? 'Combo Price' : 'Base Price'}</FormLabel>
                           <FormControl>
                               <Input type="number" step="0.01" placeholder="99.00" {...field} />
                           </FormControl>
-                          {productType === 'bundle' && <FormDescription>Set the final price for this bundle deal.</FormDescription>}
+                           {productType === 'bundle' && <FormDescription>Set the final price for this bundle deal. Base price from template is a suggestion.</FormDescription>}
                           <FormMessage />
                           </FormItem>
                       )}
@@ -479,15 +477,12 @@ export function ItemForm({ onSave, onCancel, initialData, allOptionGroups }: Ite
 
 // Product Preview Component
 function ProductPreview({ formData }: { formData: ItemFormValues }) {
-  const { name, price, description, imageUrl, optionGroups = [], productType, bundleTemplateId } = formData;
+  const { name, price, description, imageUrl, optionGroups = [], productType, bundleTemplateId, allowNotes } = formData;
   const selectedTemplate = mockBundleTemplates.find(t => t.id === bundleTemplateId);
 
   return (
     <div className="sticky top-20">
       <div className="w-full max-w-sm mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-lg overflow-hidden border">
-        <div className="bg-gray-100 dark:bg-zinc-800 p-4">
-          <h2 className="text-sm font-semibold text-center text-muted-foreground">App Preview</h2>
-        </div>
         <ScrollArea className="h-[70vh]">
           <Image
             src={imageUrl || `https://picsum.photos/seed/${name || 'product'}/600/400`}
@@ -550,10 +545,12 @@ function ProductPreview({ formData }: { formData: ItemFormValues }) {
               </div>
             ))}
 
-            <div className="space-y-2">
-                <Label>Special Instructions</Label>
-                <Textarea placeholder="e.g. No onions, please." rows={3} />
-            </div>
+            {allowNotes && (
+              <div className="space-y-2">
+                  <Label>Special Instructions</Label>
+                  <Textarea placeholder="e.g. No onions, please." rows={3} />
+              </div>
+            )}
 
             <Button size="lg" className="w-full">Add to Cart</Button>
           </div>
@@ -791,8 +788,7 @@ function CrossSellGroupCard({
                       key={item.id}
                       value={item.name}
                       onSelect={() => {
-                        const newField = { id: item.id };
-                        append(newField.id)
+                        append(item.id)
                       }}
                       className="!p-2"
                     >
