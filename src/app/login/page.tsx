@@ -21,7 +21,7 @@ export default function LoginPage() {
     e.preventDefault();
     // In a real app, you'd have authentication logic here.
     // For this scaffold, we'll just navigate to the dashboard.
-    router.push('/dashboard');
+    router.push('/dashboard/dashboard');
   }
 
   return (
