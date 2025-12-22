@@ -89,6 +89,7 @@ export const CollectionsProvider = ({ children }: { children: ReactNode }) => {
       productCount: 7, 
       publicTitle: "Premium Entrees",
       description: 'Top-tier main courses for discerning customers.',
+      isActive: true,
       root: { 
           type: 'group',
           logic: 'AND', 
@@ -97,7 +98,6 @@ export const CollectionsProvider = ({ children }: { children: ReactNode }) => {
               {type: 'condition', id: 'cond-4b', criteria: 'price', operator: 'gte', value: 25}
           ]
       },
-      isActive: true,
     },
   ]);
   const [isFormOpen, setFormOpen] = useState(false);
