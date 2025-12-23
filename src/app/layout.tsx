@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseProvider } from '@/firebase/provider';
 import './globals.css';
+import DashboardLayout from './dashboard/layout';
 
 export const metadata: Metadata = {
   title: 'AdminWeb',
@@ -23,7 +24,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseProvider>
-          {children}
+          <DashboardLayout>
+            {children}
+          </DashboardLayout>
         </FirebaseProvider>
         <Toaster />
       </body>
