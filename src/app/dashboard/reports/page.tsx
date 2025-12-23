@@ -105,6 +105,15 @@ const rfmPerformanceData = [
     { segment: 'Lost', clients: 14, orders: 95, totalRevenue: 30976.29, avgRevenue: 326.07, avgRecency: 559.33, avgFrequency: 1.93, color: 'bg-gray-400 text-white' },
 ];
 
+const customerTrendsData = [
+    { month: 'Jan', newCustomers: 120, returningCustomers: 450, averageClv: 280 },
+    { month: 'Feb', newCustomers: 150, returningCustomers: 480, averageClv: 285 },
+    { month: 'Mar', newCustomers: 180, returningCustomers: 520, averageClv: 290 },
+    { month: 'Apr', newCustomers: 160, returningCustomers: 510, averageClv: 295 },
+    { month: 'May', newCustomers: 200, returningCustomers: 550, averageClv: 305 },
+    { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
+];
+
 const generateProductPerformanceData = () => {
     return allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) }));
 };
