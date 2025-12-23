@@ -66,6 +66,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "next": "15.6.0-canary.58"
+    "next": "15.6.0-canary.60"
   }
 }

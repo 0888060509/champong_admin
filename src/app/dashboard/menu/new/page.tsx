@@ -1,6 +1,5 @@
 
 
-
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -43,7 +42,7 @@ export default function NewMenuItemPage() {
     // In a real app, you would send this to your backend
     mockMenuItems.unshift({ id: `M${Date.now()}`, ...itemData });
     toast({ title: 'Success', description: 'New menu item created.' });
-    router.push('/dashboard/menu');
+    router.push('/menu');
   };
 
   return (
@@ -62,7 +61,7 @@ export default function NewMenuItemPage() {
           <ItemForm
             key={initialData ? `duplicate-${searchParams.get('duplicateId')}` : 'new'}
             onSave={handleSaveItem}
-            onCancel={() => router.push('/dashboard/menu')}
+            onCancel={() => router.push('/menu')}
             initialData={initialData}
             allOptionGroups={mockOptionGroups}
           />
@@ -71,5 +70,3 @@ export default function NewMenuItemPage() {
     </div>
   );
 }
-
-    

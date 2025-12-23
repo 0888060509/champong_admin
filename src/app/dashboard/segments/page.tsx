@@ -76,7 +76,7 @@ export default function SegmentsPage() {
           openCreateDialog(prefillData);
           // Clean up session storage and URL
           sessionStorage.removeItem('prefillSegment');
-          router.replace('/dashboard/segments', { scroll: false });
+          router.replace('/segments', { scroll: false });
         } catch (e) {
           console.error("Failed to parse prefill data", e);
         }
@@ -202,5 +202,3 @@ export default function SegmentsPage() {
     </div>
   );
 }
-
-    

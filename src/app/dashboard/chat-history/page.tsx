@@ -69,7 +69,7 @@ export default function ChatHistoryPage() {
                         {sessions.map((session) => (
                             <TableRow key={session.id}>
                                 <TableCell className="font-medium">
-                                    <Link href={`/dashboard/chat-history/${session.id}`} className="hover:underline">
+                                    <Link href={`/chat-history/${session.id}`} className="hover:underline">
                                         {session.id}
                                     </Link>
                                 </TableCell>
@@ -87,7 +87,7 @@ export default function ChatHistoryPage() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <Link href={`/dashboard/chat-history/${session.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                            <Link href={`/chat-history/${session.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                                             {session.status === 'Open' && (
                                                 <DropdownMenuItem onClick={() => handleCloseSession(session.id)}>Close Session</DropdownMenuItem>
                                             )}
@@ -102,5 +102,3 @@ export default function ChatHistoryPage() {
         </Card>
     );
 }
-
-    
