@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -6,10 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Download, ArrowUpDown, X as XIcon, PlusCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, ArrowUpDown, X as XIcon, PlusCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { addDays, format, differenceInDays } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ScatterChart, Scatter, ZAxis, LineChart, Line, ReferenceLine } from 'recharts';
@@ -17,6 +18,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { getSegmentRules } from '@/lib/rfm-segment-rules';
 
 // Mock Data
 const allProductPerformanceData = [
@@ -101,59 +105,16 @@ const rfmPerformanceData = [
     { segment: 'Lost', clients: 14, orders: 95, totalRevenue: 30976.29, avgRevenue: 326.07, avgRecency: 559.33, avgFrequency: 1.93, color: 'bg-gray-400 text-white' },
 ];
 
-const customerTrendsData = [
-    { month: 'Jan', newCustomers: 120, returningCustomers: 450, averageClv: 280 },
-    { month: 'Feb', newCustomers: 150, returningCustomers: 480, averageClv: 285 },
-    { month: 'Mar', newCustomers: 180, returningCustomers: 520, averageClv: 290 },
-    { month: 'Apr', newCustomers: 160, returningCustomers: 510, averageClv: 295 },
-    { month: 'May', newCustomers: 200, returningCustomers: 550, averageClv: 305 },
-    { month: 'Jun', newCustomers: 210, returningCustomers: 580, averageClv: 310 },
-];
-
 const generateProductPerformanceData = () => {
     return allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) }));
 };
 
-const rfmSegmentRules: { [key: string]: any } = {
-    'Champions': {
-        name: 'Champions',
-        description: 'Best customers who bought recently, buy often and spend the most.',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'after', value: addDays(new Date(), -30).toISOString() },
-            { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 5 },
-            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 1000 },
-        ]}
-    },
-    'Loyal Customers': {
-        name: 'Loyal Customers',
-        description: 'Customers who buy on a regular basis. Responsive to promotions.',
-        root: { type: 'group', logic: 'AND', conditions: [
-             { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 3 },
-             { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
-        ]}
-    },
-    'At Risk': {
-        name: 'At Risk',
-        description: 'Spent big money and purchased often, but long time ago. Need to bring them back!',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -90).toISOString() },
-            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
-        ]}
-    },
-     'Hibernating': {
-        name: 'Hibernating',
-        description: 'Last purchase was long back, low spenders and low number of orders.',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -180).toISOString() },
-            { type: 'condition', criteria: 'orderFrequency', operator: 'lte', value: 2 },
-        ]}
-    },
-};
-
-
 export default function ReportsPage() {
   const router = useRouter();
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [compareDate, setCompareDate] = useState<DateRange | undefined>(undefined);
+  const [enableCompare, setEnableCompare] = useState(false);
+
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -183,6 +144,17 @@ export default function ReportsPage() {
     // Mock data fetching based on filters
     setProductData(generateProductPerformanceData());
   }, [date, selectedBranch, isClient]);
+
+  useEffect(() => {
+    if (enableCompare && date?.from && date.to) {
+        const diff = differenceInDays(date.to, date.from);
+        const prevFrom = addDays(date.from, -(diff + 1));
+        const prevTo = addDays(date.to, -(diff + 1));
+        setCompareDate({ from: prevFrom, to: prevTo });
+    } else {
+        setCompareDate(undefined);
+    }
+  }, [date, enableCompare]);
 
   const filteredAndSortedProductData = useMemo(() => {
     let filteredData = selectedCategory
@@ -267,7 +239,7 @@ export default function ReportsPage() {
   }
 
   const handleCreateSegmentFromRfm = (segmentName: string) => {
-    const segmentRules = rfmSegmentRules[segmentName];
+    const segmentRules = getSegmentRules(segmentName);
     if (segmentRules) {
         // Store in sessionStorage and navigate
         sessionStorage.setItem('prefillSegment', JSON.stringify(segmentRules));
@@ -295,50 +267,96 @@ export default function ReportsPage() {
                     </Button>
                 </div>
             </CardHeader>
-            <CardContent className="flex items-center gap-4">
-                 <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        id="date"
-                        variant={"outline"}
-                        className="w-[300px] justify-start text-left font-normal"
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date?.from ? (
-                        date.to ? (
-                            <>
-                            {format(date.from, "LLL dd, y")} -{" "}
-                            {format(date.to, "LLL dd, y")}
-                            </>
-                        ) : (
-                            format(date.from, "LLL dd, y")
-                        )
-                        ) : (
-                        <span>Pick a date</span>
-                        )}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
-                    />
-                    </PopoverContent>
-                </Popover>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                    <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select Branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Branches</SelectItem>
-                        <SelectItem value="main-street">Main Street Cafe</SelectItem>
-                        <SelectItem value="downtown-deli">Downtown Deli</SelectItem>
-                    </SelectContent>
-                </Select>
+            <CardContent>
+                <div className="flex items-center gap-4">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            id="date"
+                            variant={"outline"}
+                            className="w-[300px] justify-start text-left font-normal"
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                            date.to ? (
+                                <>
+                                {format(date.from, "LLL dd, y")} -{" "}
+                                {format(date.to, "LLL dd, y")}
+                                </>
+                            ) : (
+                                format(date.from, "LLL dd, y")
+                            )
+                            ) : (
+                            <span>Pick a date</span>
+                            )}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <div className="flex items-center space-x-2">
+                        <Switch id="compare-mode" checked={enableCompare} onCheckedChange={setEnableCompare} />
+                        <Label htmlFor="compare-mode">Compare</Label>
+                    </div>
+                     {enableCompare && (
+                         <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="compare-date"
+                                variant={"outline"}
+                                className="w-[300px] justify-start text-left font-normal"
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {compareDate?.from ? (
+                                compareDate.to ? (
+                                    <>
+                                    {format(compareDate.from, "LLL dd, y")} -{" "}
+                                    {format(compareDate.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(compareDate.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Pick a comparison date</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={compareDate?.from}
+                                selected={compareDate}
+                                onSelect={setCompareDate}
+                                numberOfMonths={2}
+                            />
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                    <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Branches</SelectItem>
+                            <SelectItem value="main-street">Main Street Cafe</SelectItem>
+                            <SelectItem value="downtown-deli">Downtown Deli</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                {compareDate && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                        Comparing to: {format(compareDate.from!, "LLL dd, y")} - {format(compareDate.to!, "LLL dd, y")}
+                    </p>
+                )}
             </CardContent>
         </Card>
 
@@ -700,7 +718,7 @@ export default function ReportsPage() {
                                                     e.stopPropagation();
                                                     handleCreateSegmentFromRfm(item.segment);
                                                 }}
-                                                disabled={!rfmSegmentRules[item.segment]}
+                                                disabled={!getSegmentRules(item.segment)}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Create Segment
@@ -763,3 +781,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    
+
+    

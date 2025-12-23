@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,9 +31,9 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import type { Collection } from './collections-context';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Collection } from './collections-context';
 
 const conditionSchema = z.object({
   id: z.string().optional(),
@@ -498,3 +499,5 @@ export function CreateCollectionForm({ onSave, onCancel, isSaving, initialData }
     </Form>
   );
 }
+
+    

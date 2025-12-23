@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CollectionsProvider } from './collections-context';
@@ -10,3 +11,5 @@ export default function CollectionsLayout({
 }) {
   return <CollectionsProvider>{children}</CollectionsProvider>;
 }
+
+    
