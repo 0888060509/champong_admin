@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Campaign } from '@/lib/types';
@@ -18,13 +18,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreVertical } from 'lucide-react';
+import { ArrowLeft, MoreVertical } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { mockCollections } from '@/lib/mock-data';
 
 
 export default function CampaignDetailsPage() {
     const params = useParams();
+    const router = useRouter();
     const campaignId = params.id as string;
     const { getCampaignById, updateCampaign } = useCampaigns();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -103,37 +104,35 @@ export default function CampaignDetailsPage() {
     return (
         <>
             <div className="grid gap-6">
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <CardTitle className="font-headline">{campaign.name}</CardTitle>
-                                <CardDescription>{campaign.description || 'No description available.'}</CardDescription>
-                                <div className="mt-2">{getStatusBadge(campaign.status)}</div>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleOpenDialog}>Edit</Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button size="icon" variant="outline">
-                                            <MoreVertical className="h-4 w-4" />
-                                            <span className="sr-only">More actions</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {(campaign.status === 'Scheduled' || campaign.status === 'Sending') && (
-                                            <DropdownMenuItem onClick={() => handleStatusChange('Draft')}>Pause (Set to Draft)</DropdownMenuItem>
-                                        )}
-                                        {campaign.status === 'Scheduled' && (
-                                            <DropdownMenuItem onClick={() => handleStatusChange('Canceled')} className="text-destructive">Cancel</DropdownMenuItem>
-                                        )}
-                                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                    </CardHeader>
-                </Card>
+                 <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1">
+                        <CardTitle className="font-headline">{campaign.name}</CardTitle>
+                        <CardDescription>{campaign.description || 'No description available.'}</CardDescription>
+                    </div>
+                     <div className="flex gap-2">
+                        <Button variant="outline" onClick={handleOpenDialog}>Edit</Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button size="icon" variant="outline">
+                                    <MoreVertical className="h-4 w-4" />
+                                    <span className="sr-only">More actions</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {(campaign.status === 'Scheduled' || campaign.status === 'Sending') && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange('Draft')}>Pause (Set to Draft)</DropdownMenuItem>
+                                )}
+                                {campaign.status === 'Scheduled' && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange('Canceled')} className="text-destructive">Cancel</DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
                     <Card>
@@ -141,6 +140,10 @@ export default function CampaignDetailsPage() {
                             <CardTitle className="font-headline text-lg">Performance</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Status</p>
+                                {getStatusBadge(campaign.status)}
+                            </div>
                              <div>
                                 <p className="text-sm text-muted-foreground">Sent</p>
                                 <p className="text-2xl font-bold">{campaign.sentCount.toLocaleString()}</p>

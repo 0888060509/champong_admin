@@ -70,5 +70,3 @@ export default function EditMenuItemPage() {
     </div>
   );
 }
-
-    
