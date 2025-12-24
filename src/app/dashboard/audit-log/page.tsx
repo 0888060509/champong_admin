@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockAuditLogs } from "@/lib/mock-data";
@@ -35,5 +34,3 @@ export default function AuditLogPage() {
     </Card>
   );
 }
-
-    

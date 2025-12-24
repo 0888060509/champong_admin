@@ -132,7 +132,7 @@ export default function CampaignsPage() {
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">
-                     <Link href={`/campaigns/${campaign.id}`} className="hover:underline">
+                     <Link href={`/dashboard/campaigns/${campaign.id}`} className="hover:underline">
                         {campaign.name}
                      </Link>
                   </TableCell>
@@ -153,7 +153,7 @@ export default function CampaignsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <Link href={`/campaigns/${campaign.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                        <Link href={`/dashboard/campaigns/${campaign.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                         <DropdownMenuItem onClick={() => handleOpenDialog(campaign)}>Edit</DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-destructive">Delete</DropdownMenuItem>
