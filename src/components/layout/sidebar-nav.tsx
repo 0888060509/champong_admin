@@ -74,7 +74,7 @@ export function SidebarNav() {
     if (href === '/dashboard') {
         return pathname === href;
     }
-    return pathname.startsWith(href);
+    return pathname.startsWith(href.replace('/dashboard', ''));
   };
   
   return (
@@ -95,7 +95,7 @@ export function SidebarNav() {
                     <ul className="flex flex-col gap-1">
                         {menuItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard','')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -120,7 +120,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {managementItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard','')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
@@ -145,7 +145,7 @@ export function SidebarNav() {
                      <ul className="flex flex-col gap-1">
                         {settingsItems.map((item) => (
                             <li key={item.href}>
-                            <Link href={item.href}>
+                            <Link href={`/dashboard${item.href.replace('/dashboard','')}`}>
                                 <SidebarMenuButton
                                 isActive={isActive(item.href)}
                                 tooltip={{ children: item.label }}
