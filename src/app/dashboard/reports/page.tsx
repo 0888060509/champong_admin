@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -272,7 +271,7 @@ export default function ReportsPage() {
     if (segmentRules) {
         // Store in sessionStorage and navigate
         sessionStorage.setItem('prefillSegment', JSON.stringify(segmentRules));
-        router.push('/dashboard/segments?from=reports');
+        router.push('/segments?from=reports');
     }
   };
 

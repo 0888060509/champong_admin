@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -233,7 +232,7 @@ export default function OrdersPage() {
                                             <CardHeader className="p-4 flex flex-row items-start justify-between">
                                                 <div>
                                                     <CardTitle className="text-base font-body">
-                                                        <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">
+                                                        <Link href={`/orders/${order.id}`} className="hover:underline">
                                                             {order.customerName}
                                                         </Link>
                                                     </CardTitle>
@@ -249,7 +248,7 @@ export default function OrdersPage() {
                                                     </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <Link href={`/dashboard/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                                        <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                                                         <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Processing')}>Mark as Processing</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
@@ -290,7 +289,7 @@ export default function OrdersPage() {
                                 {filteredOrders.map(order => (
                                     <TableRow key={order.id}>
                                         <TableCell className="font-medium">
-                                            <Link href={`/dashboard/orders/${order.id}`} className="text-primary hover:underline">
+                                            <Link href={`/orders/${order.id}`} className="text-primary hover:underline">
                                                 {order.id.substring(0, 7)}...
                                             </Link>
                                         </TableCell>
@@ -307,7 +306,7 @@ export default function OrdersPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <Link href={`/dashboard/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                                                    <Link href={`/orders/${order.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                                                     <DropdownMenuItem onClick={() => openCancelDialog(order)} className="text-destructive">Cancel Order</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

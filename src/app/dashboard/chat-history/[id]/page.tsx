@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -117,7 +116,7 @@ export default function ChatHistoryDetailsPage() {
         <div className="flex flex-col gap-6 h-full">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => router.push('/dashboard/chat-history')}>
+                    <Button variant="outline" size="icon" onClick={() => router.push('/chat-history')}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
@@ -155,7 +154,7 @@ export default function ChatHistoryDetailsPage() {
                                     </Avatar>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{session.customerName}</span>
-                                        <Link href={`/dashboard/customers/${session.customerId}`} className="text-xs text-primary hover:underline">View Profile</Link>
+                                        <Link href={`/customers/${session.customerId}`} className="text-xs text-primary hover:underline">View Profile</Link>
                                     </div>
                                 </div>
                             </div>

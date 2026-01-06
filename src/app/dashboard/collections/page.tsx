@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -103,7 +102,7 @@ export default function CollectionsPage() {
                         {collections.map(collection => (
                         <TableRow key={collection.id}>
                             <TableCell className="font-medium">
-                                <Link href={`/dashboard/collections/${collection.id}`} className="hover:underline">
+                                <Link href={`/collections/${collection.id}`} className="hover:underline">
                                     {collection.name}
                                 </Link>
                                 <p className="text-xs text-muted-foreground">{collection.description}</p>
@@ -127,7 +126,7 @@ export default function CollectionsPage() {
                                     </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <Link href={`/dashboard/collections/${collection.id}`} passHref><DropdownMenuItem>View Products</DropdownMenuItem></Link>
+                                        <Link href={`/collections/${collection.id}`} passHref><DropdownMenuItem>View Products</DropdownMenuItem></Link>
                                         <DropdownMenuItem onClick={() => openForm(collection)}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDuplicateCollection(collection)}>Duplicate</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => deleteCollection(collection.id)} className="text-destructive">Delete</DropdownMenuItem>
