@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { getSegmentRules } from '@/lib/rfm-segment-rules';
 
 // Mock Data
 const allProductPerformanceData = [
@@ -112,42 +114,6 @@ const customerTrendsData = [
 
 const generateProductPerformanceData = () => {
     return allProductPerformanceData.map(item => ({...item, quantity: item.quantity + Math.floor(Math.random() * 50) }));
-};
-
-const rfmSegmentRules: { [key: string]: any } = {
-    'Champions': {
-        name: 'Champions',
-        description: 'Best customers who bought recently, buy often and spend the most.',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'after', value: addDays(new Date(), -30).toISOString() },
-            { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 5 },
-            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 1000 },
-        ]}
-    },
-    'Loyal Customers': {
-        name: 'Loyal Customers',
-        description: 'Customers who buy on a regular basis. Responsive to promotions.',
-        root: { type: 'group', logic: 'AND', conditions: [
-             { type: 'condition', criteria: 'orderFrequency', operator: 'gte', value: 3 },
-             { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
-        ]}
-    },
-    'At Risk': {
-        name: 'At Risk',
-        description: 'Spent big money and purchased often, but long time ago. Need to bring them back!',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -90).toISOString() },
-            { type: 'condition', criteria: 'totalSpend', operator: 'gte', value: 500 },
-        ]}
-    },
-     'Hibernating': {
-        name: 'Hibernating',
-        description: 'Last purchase was long back, low spenders and low number of orders.',
-        root: { type: 'group', logic: 'AND', conditions: [
-            { type: 'condition', criteria: 'lastVisit', operator: 'before', value: addDays(new Date(), -180).toISOString() },
-            { type: 'condition', criteria: 'orderFrequency', operator: 'lte', value: 2 },
-        ]}
-    },
 };
 
 
@@ -267,11 +233,11 @@ export default function ReportsPage() {
   }
 
   const handleCreateSegmentFromRfm = (segmentName: string) => {
-    const segmentRules = rfmSegmentRules[segmentName];
+    const segmentRules = getSegmentRules(segmentName);
     if (segmentRules) {
         // Store in sessionStorage and navigate
         sessionStorage.setItem('prefillSegment', JSON.stringify(segmentRules));
-        router.push('/segments?from=reports');
+        router.push('/dashboard/segments?from=reports');
     }
   };
 
@@ -700,7 +666,7 @@ export default function ReportsPage() {
                                                     e.stopPropagation();
                                                     handleCreateSegmentFromRfm(item.segment);
                                                 }}
-                                                disabled={!rfmSegmentRules[item.segment]}
+                                                disabled={!getSegmentRules(item.segment)}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Create Segment
@@ -763,3 +729,5 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
+    

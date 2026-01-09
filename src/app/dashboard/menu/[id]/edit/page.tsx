@@ -25,7 +25,7 @@ export default function EditMenuItemPage() {
       setItem(foundItem);
     } else {
       toast({ title: 'Error', description: 'Menu item not found.', variant: 'destructive' });
-      router.push('/menu');
+      router.push('/dashboard/menu');
     }
   }, [itemId, router, toast]);
 
@@ -38,7 +38,7 @@ export default function EditMenuItemPage() {
     }
     
     toast({ title: 'Success', description: 'Menu item updated.' });
-    router.push('/menu');
+    router.push('/dashboard/menu');
   };
 
   if (!item) {
@@ -60,7 +60,7 @@ export default function EditMenuItemPage() {
         <CardContent className="pt-6">
           <ItemForm
             onSave={handleSaveItem}
-            onCancel={() => router.push('/menu')}
+            onCancel={() => router.push('/dashboard/menu')}
             initialData={item}
             allOptionGroups={mockOptionGroups}
           />
@@ -69,3 +69,5 @@ export default function EditMenuItemPage() {
     </div>
   );
 }
+
+    

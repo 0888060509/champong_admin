@@ -39,29 +39,29 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/orders', label: 'Orders', icon: ShoppingCart },
-    { href: '/bookings', label: 'Bookings', icon: Calendar },
-    { href: '/customers', label: 'Customers', icon: Users },
-    { href: '/menu', label: 'Menu', icon: BookOpen },
-    { href: '/banners', label: 'Banners', icon: ImageIcon },
-    { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
-    { href: '/segments', label: 'Segmentation', icon: Sparkles },
-    { href: '/reports', label: 'Reports', icon: BarChart },
+    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+    { href: '/dashboard/bookings', label: 'Bookings', icon: Calendar },
+    { href: '/dashboard/customers', label: 'Customers', icon: Users },
+    { href: '/dashboard/menu', label: 'Menu', icon: BookOpen },
+    { href: '/dashboard/banners', label: 'Banners', icon: ImageIcon },
+    { href: '/dashboard/campaigns', label: 'Campaigns', icon: Megaphone },
+    { href: '/dashboard/segments', label: 'Segmentation', icon: Sparkles },
+    { href: '/dashboard/reports', label: 'Reports', icon: BarChart },
 ];
 
 const managementItems = [
-    { href: '/branches', label: 'Branches', icon: Store },
-    { href: '/loyalty', label: 'Loyalty', icon: Gem },
-    { href: '/collections', label: 'Collections', icon: Package },
-    { href: '/bundle-templates', label: 'Bundle Templates', icon: Boxes },
-    { href: '/roles', label: 'Roles & Permissions', icon: UserCog },
-    { href: '/audit-log', label: 'Audit Log', icon: Shield },
-    { href: '/chat-history', label: 'Chat History', icon: MessageSquare },
+    { href: '/dashboard/branches', label: 'Branches', icon: Store },
+    { href: '/dashboard/loyalty', label: 'Loyalty', icon: Gem },
+    { href: '/dashboard/collections', label: 'Collections', icon: Package },
+    { href: '/dashboard/bundle-templates', label: 'Bundle Templates', icon: Boxes },
+    { href: '/dashboard/roles', label: 'Roles & Permissions', icon: UserCog },
+    { href: '/dashboard/audit-log', label: 'Audit Log', icon: Shield },
+    { href: '/dashboard/chat-history', label: 'Chat History', icon: MessageSquare },
 ];
 
 const settingsItems = [
-    { href: '/settings/pos', label: 'POS365', icon: Settings },
-    { href: '/settings/notifications', label: 'Automations', icon: Settings },
+    { href: '/dashboard/settings/pos', label: 'POS365', icon: Settings },
+    { href: '/dashboard/settings/notifications', label: 'Automations', icon: Settings },
 ];
 
 
@@ -177,3 +177,5 @@ export function SidebarNav() {
     </>
   );
 }
+
+    

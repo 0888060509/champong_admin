@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -40,7 +41,7 @@ export default function CustomersPage() {
                             <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <Link href={`/customers/${customer.id}`} className="font-medium hover:underline">{customer.name}</Link>
+                            <Link href={`/dashboard/customers/${customer.id}`} className="font-medium hover:underline">{customer.name}</Link>
                             <div className="text-sm text-muted-foreground">{customer.email}</div>
                         </div>
                     </div>
@@ -57,7 +58,7 @@ export default function CustomersPage() {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <Link href={`/customers/${customer.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
+                            <Link href={`/dashboard/customers/${customer.id}`} passHref><DropdownMenuItem>View Details</DropdownMenuItem></Link>
                             <DropdownMenuItem>View Orders</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive">Delete Customer</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -71,3 +72,5 @@ export default function CustomersPage() {
     </Card>
   );
 }
+
+    

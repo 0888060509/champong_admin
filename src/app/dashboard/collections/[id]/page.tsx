@@ -59,7 +59,7 @@ export default function CollectionDetailPage() {
         if (collectionId) {
             const foundCollection = getCollectionById(collectionId);
             if (!foundCollection) {
-                router.push('/collections');
+                router.push('/dashboard/collections');
                 return;
             }
             setCollection(foundCollection);
@@ -74,7 +74,7 @@ export default function CollectionDetailPage() {
     const handleDelete = () => {
         if (collection) {
             deleteCollection(collection.id);
-            router.push('/collections');
+            router.push('/dashboard/collections');
         }
     }
 
@@ -86,7 +86,7 @@ export default function CollectionDetailPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => router.push('/collections')}>
+                    <Button variant="outline" size="icon" onClick={() => router.push('/dashboard/collections')}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
@@ -162,3 +162,5 @@ export default function CollectionDetailPage() {
         </div>
     )
 }
+
+    

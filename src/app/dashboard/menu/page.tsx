@@ -42,7 +42,7 @@ export default function MenuPage() {
     const itemToDuplicate = menuItems.find(item => item.id === itemId);
     if (itemToDuplicate) {
         // By setting the state and navigating, the new page will pick it up
-        router.push(`/menu/new?duplicateId=${itemId}`);
+        router.push(`/dashboard/menu/new?duplicateId=${itemId}`);
     }
   };
 
@@ -82,7 +82,7 @@ export default function MenuPage() {
               </TabsList>
               {activeTab === 'items' ? (
                 <Button asChild>
-                  <Link href="/menu/new">
+                  <Link href="/dashboard/menu/new">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Item
                   </Link>
@@ -132,7 +132,7 @@ export default function MenuPage() {
                                   />
                               </TableCell>
                               <TableCell className="font-medium">
-                                  <Link href={`/menu/${item.id}/edit`} className="font-medium hover:underline">{item.name}</Link>
+                                  <Link href={`/dashboard/menu/${item.id}/edit`} className="font-medium hover:underline">{item.name}</Link>
                                   <div className="text-sm text-muted-foreground">{item.description}</div>
                               </TableCell>
                               <TableCell>{item.category}</TableCell>
@@ -161,7 +161,7 @@ export default function MenuPage() {
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <Link href={`/menu/${item.id}/edit`} passHref>
+                                        <Link href={`/dashboard/menu/${item.id}/edit`} passHref>
                                           <DropdownMenuItem>Edit</DropdownMenuItem>
                                         </Link>
                                         <DropdownMenuItem onClick={() => handleDuplicateItem(item.id)}>
@@ -414,3 +414,5 @@ function OptionGroupForm({
         </form>
     );
 }
+
+    

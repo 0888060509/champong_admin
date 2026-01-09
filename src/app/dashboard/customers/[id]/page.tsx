@@ -31,7 +31,7 @@ export default function CustomerDetailPage() {
                 setCustomerOrders(orders);
             } else {
                 // Handle customer not found
-                router.push('/customers');
+                router.push('/dashboard/customers');
             }
         }
     }, [customerId, router]);
@@ -120,7 +120,7 @@ export default function CustomerDetailPage() {
                             {customerOrders.map((order) => (
                             <TableRow key={order.id}>
                                 <TableCell className="font-medium">
-                                    <Link href={`/orders/${order.id}`} className="hover:underline text-primary">
+                                    <Link href={`/dashboard/orders/${order.id}`} className="hover:underline text-primary">
                                         {order.id.substring(0, 7)}...
                                     </Link>
                                 </TableCell>
@@ -137,3 +137,5 @@ export default function CustomerDetailPage() {
         </div>
     );
 }
+
+    
