@@ -151,15 +151,16 @@ export default function ReportsPage() {
 
     const filteredAndSortedProductData = useMemo(() => {
         let filteredData = selectedCategory
-            ? productData.filter(p => p.category === selectedCategory)
+            ? productData.filter((p: ProductPerformanceData) => p.category === selectedCategory)
             : productData;
 
         if (sortConfig !== null) {
-            filteredData.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
+            filteredData.sort((a: ProductPerformanceData, b: ProductPerformanceData) => {
+                const key = sortConfig.key as keyof ProductPerformanceData;
+                if (a[key] < b[key]) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
                 }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
+                if (a[key] > b[key]) {
                     return sortConfig.direction === 'ascending' ? 1 : -1;
                 }
                 return 0;
@@ -184,7 +185,7 @@ export default function ReportsPage() {
     };
 
     const getProfitCellStyle = (profit: number) => {
-        const profits = filteredAndSortedProductData.map(p => p.profit);
+        const profits = filteredAndSortedProductData.map((p: ProductPerformanceData) => p.profit);
         const maxProfit = Math.max(...profits);
         const minProfit = Math.min(...profits);
         const range = maxProfit - minProfit;
@@ -198,14 +199,14 @@ export default function ReportsPage() {
         return '';
     }
 
-    const handlePieClick = (data: any) => {
+    const handlePieClick = (data: { name: string }) => {
         const categoryName = data.name;
-        setSelectedCategory(current => current === categoryName ? null : categoryName);
+        setSelectedCategory((current: string | null) => current === categoryName ? null : categoryName);
     };
 
-    const handleScatterClick = (data: any) => {
+    const handleScatterClick = (data: { name: string }) => {
         if (data && data.name) {
-            setSelectedRfmSegment(current => current === data.name ? null : data.name);
+            setSelectedRfmSegment((current: string | null) => current === data.name ? null : data.name);
         }
     };
 
@@ -344,7 +345,7 @@ export default function ReportsPage() {
                                         outerRadius={80}
                                         fill="#8884d8"
                                         dataKey="value"
-                                        onClick={(e) => handlePieClick(e)}
+                                        onClick={(e: any) => handlePieClick(e)}
                                     >
                                         {revenueByCategoryData.map((entry, index) => (
                                             <Cell
@@ -356,8 +357,8 @@ export default function ReportsPage() {
                                             />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value, name) => [`${value}%`, name]} />
-                                    <Legend onClick={(e) => handlePieClick(e.payload as any)} className="cursor-pointer" />
+                                    <Tooltip formatter={(value: number, name: string) => [`${value}%`, name]} />
+                                    <Legend onClick={(e: any) => handlePieClick(e.payload)} className="cursor-pointer" />
                                 </PieChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -401,7 +402,7 @@ export default function ReportsPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredAndSortedProductData.map((item) => (
+                                        {filteredAndSortedProductData.map((item: ProductPerformanceData) => (
                                             <TableRow key={item.name}>
                                                 <TableCell className="font-medium">{item.name}</TableCell>
                                                 <TableCell>{item.category}</TableCell>
@@ -600,7 +601,7 @@ export default function ReportsPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {topCustomersData.map(customer => (
+                                        {topCustomersData.map((customer: typeof allTopCustomers[0]) => (
                                             <TableRow key={customer.id}>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
@@ -646,7 +647,7 @@ export default function ReportsPage() {
                                                 "cursor-pointer",
                                                 selectedRfmSegment === item.segment && "bg-muted/80"
                                             )}
-                                            onClick={() => setSelectedRfmSegment(current => current === item.segment ? null : item.segment)}
+                                            onClick={() => setSelectedRfmSegment((current: string | null) => current === item.segment ? null : item.segment)}
                                         >
                                             <TableCell>
                                                 <Badge className={cn('text-xs', item.color)}>{item.segment}</Badge>
@@ -661,7 +662,7 @@ export default function ReportsPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={(e) => {
+                                                    onClick={(e: React.MouseEvent) => {
                                                         e.stopPropagation();
                                                         handleCreateSegmentFromRfm(item.segment);
                                                     }}
@@ -712,7 +713,7 @@ export default function ReportsPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div>
+        </div >
     );
 }
 
