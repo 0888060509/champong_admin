@@ -201,5 +201,3 @@ export const useCollections = () => {
   }
   return context;
 };
-
-    

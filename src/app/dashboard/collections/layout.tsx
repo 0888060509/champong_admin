@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CollectionsProvider } from './collections-context';

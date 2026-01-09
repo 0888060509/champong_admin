@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +43,7 @@ export default function OrderDetailsPage() {
             }
         } else {
             toast({ title: 'Error', description: 'Order not found.', variant: 'destructive'});
-            router.push('/dashboard/orders');
+            router.push('/orders');
         }
     }, [orderId, router, toast]);
 
@@ -213,7 +214,7 @@ export default function OrderDetailsPage() {
                                         <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <Link href={`/dashboard/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
+                                        <Link href={`/customers/${customer.id}`} className="font-semibold hover:underline">{customer.name}</Link>
                                         <div className="text-sm text-muted-foreground">{customer.email}</div>
                                     </div>
                                 </div>
@@ -452,5 +453,3 @@ export default function OrderDetailsPage() {
         </main>
     );
 }
-
-    
